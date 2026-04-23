@@ -20,166 +20,143 @@
 </head>
 <body>
   <div id="root">
-    <!-- Shown until React mounts -->
-    <div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px">
+    <div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:14px">
       <div style="font-size:48px">🍷</div>
-      <div style="color:#5a6480;font-size:13px;font-family:system-ui">Loading Cave...</div>
+      <div style="color:#5a6480;font-size:13px;font-family:system-ui">Loading Cave…</div>
     </div>
   </div>
-  <div id="js-error" style="display:none;position:fixed;inset:0;background:#1a0808;padding:24px;overflow:auto;z-index:999">
-    <div style="color:#ff6b6b;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all"></div>
+  <div id="js-err" style="display:none;position:fixed;inset:0;background:#100808;padding:20px;overflow:auto;z-index:9999">
+    <div style="color:#ff6b6b;font-family:monospace;font-size:11px;white-space:pre-wrap;word-break:break-all;line-height:1.6"></div>
   </div>
 
-  <!-- Use cdnjs - more reliable than unpkg for production -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 
   <script>
-    // Show any JS errors visibly on screen
     window.addEventListener('error', function(e) {
-      var el = document.getElementById('js-error');
+      var el = document.getElementById('js-err');
       el.style.display = 'block';
-      el.querySelector('div').textContent += 'ERROR: ' + e.message + '\nFile: ' + e.filename + ' line ' + e.lineno + '\n\n';
+      el.querySelector('div').textContent += 'ERROR line ' + e.lineno + ': ' + e.message + '\n' + (e.error ? e.error.stack : '') + '\n\n';
     });
     window.addEventListener('unhandledrejection', function(e) {
-      var el = document.getElementById('js-error');
+      var el = document.getElementById('js-err');
       el.style.display = 'block';
-      el.querySelector('div').textContent += 'PROMISE ERROR: ' + (e.reason && e.reason.stack ? e.reason.stack : String(e.reason)) + '\n\n';
+      el.querySelector('div').textContent += 'PROMISE: ' + (e.reason ? (e.reason.stack || String(e.reason)) : String(e)) + '\n\n';
     });
-
-    // localStorage storage adapter
-    window.storage = {
-      list: async function(prefix) {
-        var keys = Object.keys(localStorage).filter(function(k){ return k.startsWith(prefix); });
-        return { keys: keys };
-      },
-      get: async function(key) {
-        var val = localStorage.getItem(key);
-        if (val === null) throw new Error('Key not found: ' + key);
-        return { value: val };
-      },
-      set: async function(key, value) {
-        localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
-        return { key: key, value: value };
-      },
-      delete: async function(key) {
-        localStorage.removeItem(key);
-        return { key: key, deleted: true };
-      }
-    };
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(function(){});
-    }
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(function(){});
   </script>
 
   <script type="text/babel" data-presets="react,env">
-const { useState, useEffect } = React;
+// Cave v2 — full rewrite
+// No imports (globals: React, ReactDOM via CDN)
 
-// ── CSS + Pure helpers (no API calls, no OCR) ─────────────────────────────────
-// ─── CSS ─────────────────────────────────────────────────────────────────────
+// ─── CONSTANTS & HELPERS ─────────────────────────────────────────────────────
+
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#161c2e;color:#f0ead8;font-family:system-ui,sans-serif}
+body{background:#161c2e;color:#f0ead8;font-family:system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 .df{font-family:'Cormorant Garamond',Georgia,serif}
 .di{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic}
-textarea,input[type=text]{background:#252d4a;border:0.5px solid #3a4468;border-radius:10px;padding:10px 12px;width:100%;font-size:13px;color:#f0ead8;font-family:system-ui,sans-serif;outline:none;resize:none}
-textarea::placeholder,input::placeholder{color:#5a6480}
-.btn{background:#c4a44a;color:#0f0c05;border:none;border-radius:10px;padding:12px;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.04em;width:100%}
+input,textarea{background:#252d4a;border:0.5px solid #3a4468;border-radius:10px;padding:10px 12px;width:100%;font-size:14px;color:#f0ead8;font-family:system-ui,sans-serif;outline:none;-webkit-appearance:none}
+input::placeholder,textarea::placeholder{color:#5a6480}
+textarea{resize:none}
+.btn{background:#c4a44a;color:#0f0c05;border:none;border-radius:10px;padding:13px;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.04em;width:100%;-webkit-appearance:none}
 .btn:disabled{background:#252d4a;color:#5a6480;cursor:not-allowed}
-.gbtn{background:transparent;color:#c4a44a;border:0.5px solid #3d3015;border-radius:10px;padding:11px;font-size:12px;cursor:pointer;width:100%}
-.dbtn{background:#2a1010;color:#c44a4a;border:0.5px solid #4a2020;border-radius:10px;padding:11px;font-size:12px;cursor:pointer;width:100%}
+.gbtn{background:transparent;color:#c4a44a;border:0.5px solid #3d3015;border-radius:10px;padding:12px;font-size:12px;cursor:pointer;width:100%}
+.dbtn{background:#2a1010;color:#c44a4a;border:0.5px solid #4a2020;border-radius:10px;padding:12px;font-size:12px;cursor:pointer;width:100%}
 .chip{background:#1e2640;border:0.5px solid #2d3654;color:#5a6480;border-radius:20px;padding:5px 12px;font-size:11px;cursor:pointer;white-space:nowrap}
 .chipon{background:#251f0e;border-color:#c4a44a;color:#c4a44a}
 .card{background:#1e2640;border:0.5px solid #2d3654;border-radius:14px;padding:14px}
-.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid #2d3654;cursor:pointer}
+.row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:0.5px solid #2d3654;cursor:pointer}
 .sec{color:#5a6480;font-size:10px;letter-spacing:.1em;margin-bottom:8px}
 .bhold{background:#251608;color:#c47a2a;font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid #3d2810;white-space:nowrap;display:inline-block}
 .bdrink{background:#0e2318;color:#4a9e6a;font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid #1a3d28;white-space:nowrap;display:inline-block}
 .bdanger{background:#2a1010;color:#c44a4a;font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid #4a2020;white-space:nowrap;display:inline-block}
 .pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;letter-spacing:.04em;font-weight:500}
-.pr{background:#3d1a14;color:#e8917a}
-.pw{background:#2a2918;color:#d4d09a}
-.ps{background:#162038;color:#7ab0e8}
-.prs{background:#3d1a28;color:#e89ab0}
+.pr{background:#3d1a14;color:#e8917a}.pw{background:#2a2918;color:#d4d09a}.ps{background:#162038;color:#7ab0e8}.prs{background:#3d1a28;color:#e89ab0}
 .nav{display:flex;justify-content:space-around;padding:10px 0 16px;border-top:0.5px solid #2d3654;background:#161c2e;flex-shrink:0}
 .nb{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;color:#5a6480;font-size:10px;letter-spacing:.04em;padding:0 14px}
 .nbon{color:#c4a44a}
-.ndot{width:4px;height:4px;border-radius:50%;background:#c4a44a;opacity:0;margin-top:1px}
-.ndoton{opacity:1}
-.qbtn{width:30px;height:30px;border-radius:8px;background:#252d4a;border:0.5px solid #3a4468;color:#f0ead8;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
-.lopt{display:flex;align-items:center;gap:12px;padding:12px;background:#1e2640;border:0.5px solid #2d3654;border-radius:12px;cursor:pointer;margin-bottom:8px}
-.back{background:none;border:none;color:#5a6480;font-size:22px;cursor:pointer;padding:0;line-height:1;flex-shrink:0}
-.star{cursor:pointer;font-size:20px;user-select:none}
+.ndot{width:4px;height:4px;border-radius:50%;background:#c4a44a;opacity:0;margin-top:1px}.ndoton{opacity:1}
+.qbtn{width:32px;height:32px;border-radius:8px;background:#252d4a;border:0.5px solid #3a4468;color:#f0ead8;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
+.lopt{display:flex;align-items:center;gap:12px;padding:13px;background:#1e2640;border:0.5px solid #2d3654;border-radius:12px;cursor:pointer;margin-bottom:8px}
+.back{background:none;border:none;color:#5a6480;font-size:24px;cursor:pointer;padding:0;line-height:1;flex-shrink:0}
+.star{cursor:pointer;font-size:22px;user-select:none}
 .err{padding:10px 12px;background:#2a1010;border:0.5px solid #4a2020;border-radius:10px;color:#c44a4a;font-size:12px;line-height:1.5}
-.scrl{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
-.scrl::-webkit-scrollbar{display:none}
+.scrl{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}.scrl::-webkit-scrollbar{display:none}
+.field-row{margin-bottom:10px}
+.field-label{color:#5a6480;font-size:10px;letter-spacing:.08em;margin-bottom:5px}
 `;
 
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
+const pillCls = t => { const s=(t||'').toLowerCase(); if(s==='red')return'pill pr'; if(s==='white')return'pill pw'; if(s==='sparkling')return'pill ps'; if(s==='rosé'||s==='rose')return'pill prs'; return 'pill pw'; };
+const statusCls = s => { const v=(s||'').toLowerCase(); if(v.includes('now')||v.includes('soon')||(v.includes('peak')&&!v.includes('past')))return'bdrink'; if(v.includes('past'))return'bdanger'; return'bhold'; };
+const wineEmoji = t => ({'red':'🍷','white':'🍾','sparkling':'🥂','rosé':'🌸','rose':'🌸','dessert':'🍯','fortified':'🥃'}[(t||'').toLowerCase()]||'🍷');
+const avg = w => ((w.retailPriceLow||0)+(w.retailPriceHigh||0))/2;
 
-const pillCls = (t = '') => {
-  const s = t.toLowerCase();
-  if (s === 'red') return 'pill pr';
-  if (s === 'white') return 'pill pw';
-  if (s === 'sparkling') return 'pill ps';
-  if (s === 'rosé' || s === 'rose') return 'pill prs';
-  return 'pill pw';
-};
-
-const statusCls = (s = '') => {
-  const v = s.toLowerCase();
-  if (v.includes('now') || v.includes('soon') || (v.includes('peak') && !v.includes('past'))) return 'bdrink';
-  if (v.includes('past')) return 'bdanger';
-  return 'bhold';
-};
-
-const wineEmoji = (t = '') => ({ red: '🍷', white: '🍾', sparkling: '🥂', rosé: '🌸', dessert: '🍯', fortified: '🥃' }[t.toLowerCase()] || '🍷');
-
-const avg = w => ((w.retailPriceLow || 0) + (w.retailPriceHigh || 0)) / 2;
-
-function compressImage(dataUrl, maxDim = 1400) {
+function compressImage(dataUrl, maxDim=1400) {
   return new Promise(resolve => {
     const img = new Image();
     img.onload = () => {
-      const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+      const scale = Math.min(1, maxDim/Math.max(img.width,img.height));
       const c = document.createElement('canvas');
-      c.width = Math.round(img.width * scale);
-      c.height = Math.round(img.height * scale);
-      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-      resolve(c.toDataURL('image/jpeg', 0.82));
+      c.width = Math.round(img.width*scale); c.height = Math.round(img.height*scale);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      resolve(c.toDataURL('image/jpeg',0.82));
     };
     img.onerror = () => resolve(dataUrl);
     img.src = dataUrl;
   });
 }
 
-function makeThumbnail(dataUrl, size = 140) {
+function makeThumbnail(dataUrl, size=140) {
   return new Promise(resolve => {
     const img = new Image();
     img.onload = () => {
-      const s = Math.min(size / img.width, size / img.height);
+      const s = Math.min(size/img.width, size/img.height);
       const c = document.createElement('canvas');
-      c.width = Math.round(img.width * s);
-      c.height = Math.round(img.height * s);
-      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-      resolve(c.toDataURL('image/jpeg', 0.75));
+      c.width = Math.round(img.width*s); c.height = Math.round(img.height*s);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      resolve(c.toDataURL('image/jpeg',0.75));
     };
     img.onerror = () => resolve('');
     img.src = dataUrl;
   });
 }
 
-// ── OCR ───────────────────────────────────────────────────────────────────────
+const isPWA = () => window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+
+// ─── STORAGE ─────────────────────────────────────────────────────────────────
+// Profile-aware storage: cave:{profileId}:wine:{id}
+function getProfilePrefix(profileId) { return `cave:${profileId}:`; }
+
+const store = {
+  get: k => { try { return localStorage.getItem(k); } catch { return null; } },
+  set: (k,v) => { try { localStorage.setItem(k, typeof v==='string'?v:JSON.stringify(v)); return true; } catch { return false; } },
+  del: k => { try { localStorage.removeItem(k); return true; } catch { return false; } },
+  keys: prefix => { try { return Object.keys(localStorage).filter(k=>k.startsWith(prefix)); } catch { return []; } }
+};
+
+// window.storage adapter (used by Cave's internal loadCellar/saveWine etc.)
+function buildStorage(profileId) {
+  const prefix = getProfilePrefix(profileId);
+  window.storage = {
+    list: async p => ({ keys: store.keys(prefix+(p||'')) }),
+    get: async k => { const v=store.get(prefix+k); if(v===null) throw new Error('not found'); return {value:v}; },
+    set: async (k,v) => { store.set(prefix+k, v); return {key:k,value:v}; },
+    delete: async k => { store.del(prefix+k); return {key:k,deleted:true}; }
+  };
+}
+
+// ─── OCR ─────────────────────────────────────────────────────────────────────
 async function loadTesseract() {
   if (window.Tesseract) return window.Tesseract;
   return new Promise((resolve, reject) => {
     const s = document.createElement('script');
     s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
     s.onload = () => resolve(window.Tesseract);
-    s.onerror = () => reject(new Error('Could not load OCR'));
+    s.onerror = () => reject(new Error('OCR engine failed to load'));
     document.head.appendChild(s);
   });
 }
@@ -199,10 +176,23 @@ async function runOCR(imageDataUrl) {
   }
 }
 
-// ── API (with stored key injection) ───────────────────────────────────────────
-async function callAPI(prompt) {
-  const apiKey = localStorage.getItem('cave_api_key') || '';
-  if (!apiKey) throw new Error('No API key — tap ⚙ to add your Anthropic key.');
+// ─── API ──────────────────────────────────────────────────────────────────────
+function getApiKey(profileId) {
+  return store.get(`cave_key_${profileId}`) || store.get('cave_api_key') || '';
+}
+
+async function callAPI(prompt, profileId, useWebSearch=false) {
+  const apiKey = getApiKey(profileId);
+  if (!apiKey) throw new Error('No API key — go to Settings to add your Anthropic key.');
+  const body = {
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 1500,
+    messages: [{ role: 'user', content: prompt }]
+  };
+  if (useWebSearch) {
+    body.tools = [{ type: 'web_search_20250305', name: 'web_search' }];
+    body.max_tokens = 2000;
+  }
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -211,18 +201,22 @@ async function callAPI(prompt) {
       'anthropic-version': '2023-06-01',
       'anthropic-dangerous-direct-browser-access': 'true'
     },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1000,
-      messages: [{ role: 'user', content: prompt }]
-    })
+    body: JSON.stringify(body)
   });
   const raw = await res.text();
-  if (!res.ok) throw new Error(`HTTP ${res.status}: ${raw.slice(0, 200)}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}: ${raw.slice(0,200)}`);
   let data;
-  try { data = JSON.parse(raw); } catch(e) { throw new Error(`Bad response: ${raw.slice(0, 100)}`); }
+  try { data = JSON.parse(raw); } catch { throw new Error(`Bad response: ${raw.slice(0,100)}`); }
   if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-  const txt = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
+  // Handle web search multi-turn if needed
+  if (data.stop_reason === 'tool_use' && useWebSearch) {
+    // Web search results embedded — extract text from all blocks
+    const texts = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    if (texts) return texts;
+    // If no text yet, retry without web search
+    return callAPI(prompt, profileId, false);
+  }
+  const txt = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
   if (!txt) throw new Error('Empty response from API');
   return txt;
 }
@@ -231,45 +225,71 @@ function parseJSON(txt) {
   const fence = txt.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fence) return JSON.parse(fence[1].trim());
   const s = txt.indexOf('{'), e = txt.lastIndexOf('}');
-  if (s !== -1 && e > s) return JSON.parse(txt.slice(s, e + 1));
-  throw new Error(`No JSON found in: ${txt.slice(0, 120)}`);
+  if (s!==-1 && e>s) return JSON.parse(txt.slice(s,e+1));
+  throw new Error(`No JSON in: ${txt.slice(0,120)}`);
 }
 
-async function identifyWine(labelText) {
-  const prompt = `You are an expert sommelier. Text extracted from a wine label: "${labelText.slice(0, 600)}"
+async function identifyWine(frontText, backText, profileId) {
+  const combined = [frontText, backText].filter(Boolean).join('\n\n--- BACK LABEL ---\n\n');
+  const prompt = `You are an expert sommelier and wine database. OCR text extracted from a wine bottle label:
 
-Reply with ONLY a raw JSON object, nothing else before or after it.
+${combined}
 
-{"identified":true,"confidence":"high","producer":"producer name","wineName":"wine name","vintage":"2021","region":"region, country","appellation":"appellation","grapeVarieties":["Nebbiolo"],"wineType":"red","style":"Full-bodied","retailPriceLow":45,"retailPriceHigh":65,"priceNote":"varies","tastingNotes":{"nose":"aromas","palate":"flavors","finish":"finish"},"drinkingWindow":{"status":"hold","start":"2027","end":"2038","recommendation":"Hold 3-5 more years"},"cellaring":{"shouldCellar":true,"yearsToHold":"3-5 years","storageNotes":"55F, 70% humidity"},"servingTemp":"62-65F","decantingAdvice":"Decant 2 hours"}
+Search your knowledge (and the web if needed) to identify this exact wine. Return ONLY a raw JSON object.
 
-wineType must be one of: red, white, rose, sparkling, dessert, fortified. Current year 2026. Realistic US retail prices.
-If cannot identify: {"identified":false,"reason":"explanation"}`;
-  return parseJSON(await callAPI(prompt));
+{"identified":true,"confidence":"high","producer":"exact producer name","wineName":"exact wine/cuvee name","vintage":"2021","region":"region, country","appellation":"appellation DOCG/AOC etc","grapeVarieties":["Nebbiolo"],"wineType":"red","style":"Full-bodied, tannic, age-worthy","retailPriceLow":45,"retailPriceHigh":65,"priceNote":"US retail varies by vintage","tastingNotes":{"nose":"specific aromas","palate":"specific flavors and texture","finish":"finish description"},"drinkingWindow":{"status":"hold","start":"2027","end":"2038","recommendation":"2-sentence drink advice"},"cellaring":{"shouldCellar":true,"yearsToHold":"3-5 more years","storageNotes":"55F, 70% humidity, lay flat"},"servingTemp":"62-65F","decantingAdvice":"Decant 2 hours before serving","alternatives":[]}
+
+Rules:
+- wineType: red | white | rose | sparkling | dessert | fortified
+- confidence: high (certain) | medium (likely) | low (guessing)  
+- If medium/low confidence, populate "alternatives" with 2-3 other possible wines: [{"producer":"...","wineName":"...","vintage":"...","reason":"why it might be this"}]
+- Give realistic current US retail prices
+- Current year is 2026
+- If truly unidentifiable: {"identified":false,"reason":"what you can read and why it's unclear","rawText":"${combined.slice(0,200)}"}`;
+
+  const txt = await callAPI(prompt, profileId, true);
+  return parseJSON(txt);
 }
 
-async function getRecommendations(description, cellar) {
-  const list = cellar.map((w, i) =>
-    `${i+1}. ${w.producer} ${w.wineName} ${w.vintage} - ${w.wineType} - Status: ${w.drinkingWindow ? w.drinkingWindow.status : 'unknown'} - ${w.bottles} bottles`
+async function getRecommendations(description, cellar, profileId) {
+  const list = cellar.map((w,i) =>
+    `${i+1}. ${w.producer} "${w.wineName}" ${w.vintage} — ${w.wineType}, ${(w.grapeVarieties||[]).join('/')} — Status: ${w.drinkingWindow?.status||'unknown'} — ${w.bottles} btl`
   ).join('\n');
-  const prompt = `You are a sommelier. Host says: "${description}"\n\nTheir cellar:\n${list}\n\nRecommend 1-3 wines from the list. Prioritize drink-now/soon/peak status. Reply with ONLY a JSON array:\n[{"index":1,"reason":"why this wine"}]\n\nIf none are ready to drink, return [].`;
-  const txt = await callAPI(prompt);
+  const prompt = `You are an expert sommelier. Host says: "${description}"\n\nCellar:\n${list}\n\nRecommend 1-3 wines best for tonight. Prioritize drink-now/soon/peak. Return ONLY a JSON array:\n[{"index":1,"reason":"specific reason"}]\n\nIf none are ready to drink now, return [].`;
+  const txt = await callAPI(prompt, profileId, false);
   const m = txt.match(/\[[\s\S]*\]/);
   if (!m) return [];
   return JSON.parse(m[0]);
 }
 
-// ── Cave Component ────────────────────────────────────────────────────────────
-// ─── COMPONENT ────────────────────────────────────────────────────────────────
+// ─── PROFILE MANAGEMENT ───────────────────────────────────────────────────────
+function getProfiles() {
+  try { return JSON.parse(store.get('cave_profiles')||'[]'); } catch { return []; }
+}
+function saveProfiles(profiles) { store.set('cave_profiles', JSON.stringify(profiles)); }
+function getCurrentProfileId() { return store.get('cave_current_profile') || ''; }
+function setCurrentProfileId(id) { store.set('cave_current_profile', id); }
+function createProfile(name, apiKey) {
+  const id = Date.now().toString();
+  const profiles = getProfiles();
+  profiles.push({ id, name, createdAt: Date.now() });
+  saveProfiles(profiles);
+  store.set(`cave_key_${id}`, apiKey);
+  return id;
+}
 
-function Cave() {
+// ─── CAVE COMPONENT ───────────────────────────────────────────────────────────
+function Cave({ profileId, profileName, onSwitchProfile }) {
+  const { useState, useEffect } = React;
   const [view, setView] = useState('home');
   const [cellar, setCellar] = useState([]);
   const [selId, setSelId] = useState(null);
+  const [frontImg, setFrontImg] = useState(null);
+  const [backImg, setBackImg] = useState(null);
   const [pending, setPending] = useState(null);
-  const [pendingImg, setPendingImg] = useState(null);
   const [pendingQty, setPendingQty] = useState(1);
-  const [scanText, setScanText] = useState('');
   const [manual, setManual] = useState(false);
+  const [manualText, setManualText] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadMsg, setLoadMsg] = useState('');
   const [error, setError] = useState('');
@@ -282,836 +302,915 @@ function Cave() {
   const [recs, setRecs] = useState(null);
   const [notesDraft, setNotesDraft] = useState('');
   const [editNotes, setEditNotes] = useState(false);
+  const [editPending, setEditPending] = useState(null);
 
   const sel = cellar.find(w => w.id === selId);
-
   const stats = {
-    bottles: cellar.reduce((s, w) => s + (w.bottles || 0), 0),
-    value: Math.round(cellar.reduce((s, w) => s + (w.bottles || 0) * avg(w), 0)),
-    ready: cellar.filter(w => statusCls(w.drinkingWindow?.status || '') === 'bdrink').length
+    bottles: cellar.reduce((s,w)=>s+(w.bottles||0),0),
+    value: Math.round(cellar.reduce((s,w)=>s+(w.bottles||0)*avg(w),0)),
+    ready: cellar.filter(w=>statusCls(w.drinkingWindow?.status||'')==='bdrink').length
   };
 
-  useEffect(() => { loadCellar(); }, []);
+  useEffect(() => { buildStorage(profileId); loadCellar(); }, [profileId]);
 
   async function loadCellar() {
     try {
-      const res = await window.storage.list('cave:');
-      if (!res?.keys?.length) return;
+      const res = await window.storage.list('wine:');
+      if (!res?.keys?.length) { setCellar([]); return; }
       const wines = [];
       for (const key of res.keys) {
-        try {
-          const r = await window.storage.get(key);
-          if (r) wines.push(JSON.parse(r.value));
-        } catch {}
+        try { const r = await window.storage.get(key); if(r) wines.push(JSON.parse(r.value)); } catch {}
       }
-      wines.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0));
+      wines.sort((a,b)=>(b.addedAt||0)-(a.addedAt||0));
       setCellar(wines);
-    } catch {}
+    } catch { setCellar([]); }
   }
 
   async function saveWine(wine) {
-    await window.storage.set(`cave:${wine.id}`, JSON.stringify(wine));
+    await window.storage.set(`wine:${wine.id}`, JSON.stringify(wine));
     await loadCellar();
   }
-
   async function removeWine(id) {
-    await window.storage.delete(`cave:${id}`);
+    await window.storage.delete(`wine:${id}`);
     await loadCellar();
   }
 
-  function goScan() {
-    setManual(false); setScanText(''); setError('');
-    setPendingImg(null); setPending(null);
-    setView('scan');
+  function resetScan() {
+    setFrontImg(null); setBackImg(null); setPending(null);
+    setManual(false); setManualText(''); setError('');
   }
 
-  async function handlePhoto(e) {
-    const file = e.target.files?.[0];
-    e.target.value = '';
+  function goScan() { resetScan(); setView('scan-front'); }
+
+  async function handlePhoto(e, side) {
+    const file = e.target.files?.[0]; e.target.value='';
     if (!file) return;
     setError('');
     const reader = new FileReader();
     reader.onload = async () => {
       const compressed = await compressImage(reader.result);
-      setPendingImg(compressed);
-      setView('scanning');
-      setLoadMsg('Reading label…');
-      setLoading(true);
-      try {
-        const ocrText = await runOCR(compressed);
-        if (!ocrText || ocrText.length < 4) throw new Error('OCR returned too little text');
-        setScanText(ocrText);
-        setLoadMsg('Identifying wine…');
-        const wine = await identifyWine(ocrText);
-        if (!wine.identified) {
-          setError(wine.reason || 'Could not identify — try typing the label text below.');
-          setManual(true); setView('scan');
-        } else {
-          setPending(wine); setPendingQty(1); setView('confirm');
-        }
-      } catch (err) {
-        setError('OCR could not read the label — please type what you see below.');
-        setManual(true); setView('scan');
-      } finally {
-        setLoading(false);
-      }
+      if (side === 'front') { setFrontImg(compressed); setView('scan-back'); }
+      else { setBackImg(compressed); await runIdentification(frontImg, compressed); }
     };
     reader.readAsDataURL(file);
   }
 
-  async function handleManualIdentify() {
-    if (!scanText.trim()) return;
-    setLoading(true); setError('');
-    setView('scanning'); setLoadMsg('Identifying wine…');
+  async function runIdentification(front, back) {
+    setView('scanning'); setLoadMsg('Reading label…'); setLoading(true); setError('');
     try {
-      const wine = await identifyWine(scanText);
+      let frontText = '', backText = '';
+      if (front) { setLoadMsg('Reading front label…'); frontText = await runOCR(front); }
+      if (back) { setLoadMsg('Reading back label…'); backText = await runOCR(back); }
+      const text = frontText || backText || manualText;
+      if (!text || text.length < 3) throw new Error('Could not read text from label');
+      setLoadMsg('Searching wine database…');
+      const wine = await identifyWine(frontText, backText || manualText, profileId);
       if (!wine.identified) {
-        setError(wine.reason || 'Could not identify. Add more label details.');
-        setView('scan');
+        setError(wine.reason || 'Could not identify this wine.');
+        setManual(true); setManualText(wine.rawText || '');
+        setView('scan-front');
       } else {
-        setPending(wine); setPendingQty(1); setView('confirm');
+        setPending(wine); setPendingQty(1); setView('is-this-right');
       }
     } catch (err) {
-      setError(err.message); setView('scan');
-    } finally {
-      setLoading(false);
-    }
+      setError(err.message || 'Identification failed.');
+      setManual(true); setView('scan-front');
+    } finally { setLoading(false); }
   }
 
-  async function confirmAdd() {
-    if (!pending) return;
-    const thumb = pendingImg ? await makeThumbnail(pendingImg) : '';
-    const existing = cellar.find(w =>
-      w.producer === pending.producer &&
-      w.wineName === pending.wineName &&
-      w.vintage === pending.vintage
-    );
+  async function handleManual() {
+    if (!manualText.trim()) return;
+    await runIdentification(frontImg, backImg);
+  }
+
+  async function confirmAdd(wineData) {
+    const w = wineData || pending; if (!w) return;
+    const thumb = frontImg ? await makeThumbnail(frontImg) : '';
+    const existing = cellar.find(x => x.producer===w.producer && x.wineName===w.wineName && x.vintage===w.vintage);
     if (existing) {
-      await saveWine({ ...existing, bottles: (existing.bottles || 0) + pendingQty });
+      await saveWine({ ...existing, bottles: (existing.bottles||0)+pendingQty });
     } else {
       const id = Date.now().toString();
-      await saveWine({ id, ...pending, bottles: pendingQty, myNotes: '', rating: 0, image: thumb, addedAt: Date.now(), drinkLog: [] });
+      await saveWine({ id, ...w, bottles: pendingQty, myNotes: '', rating: 0, image: thumb, addedAt: Date.now(), drinkLog: [] });
     }
-    setPending(null); setPendingImg(null); setScanText(''); setManual(false);
-    setView('home');
+    resetScan(); setView('home');
   }
 
   async function confirmLog() {
     if (!sel) return;
-    if (logAction === 'delete') {
-      await removeWine(sel.id);
-      setSelId(null); setLogAction(''); setView('cellar');
-      return;
-    }
+    if (logAction === 'delete') { await removeWine(sel.id); setSelId(null); setLogAction(''); setView('cellar'); return; }
     const entry = { date: new Date().toLocaleDateString(), type: logAction, notes: logNotes, rating: logRating };
-    const updated = {
-      ...sel,
-      bottles: Math.max(0, (sel.bottles || 0) - 1),
-      drinkLog: [entry, ...(sel.drinkLog || [])]
-    };
-    await saveWine(updated);
-    setLogAction(''); setLogNotes(''); setLogRating(0);
-    setView('detail');
+    await saveWine({ ...sel, bottles: Math.max(0,(sel.bottles||0)-1), drinkLog: [entry,...(sel.drinkLog||[])] });
+    setLogAction(''); setLogNotes(''); setLogRating(0); setView('detail');
   }
 
-  async function adjustQty(delta) {
-    if (!sel) return;
-    await saveWine({ ...sel, bottles: Math.max(0, (sel.bottles || 0) + delta) });
-  }
-
-  async function saveMyNotes() {
-    if (!sel) return;
-    await saveWine({ ...sel, myNotes: notesDraft });
-    setEditNotes(false);
-  }
+  async function adjustQty(delta) { if (!sel) return; await saveWine({ ...sel, bottles: Math.max(0,(sel.bottles||0)+delta) }); }
+  async function saveMyNotes() { if (!sel) return; await saveWine({ ...sel, myNotes: notesDraft }); setEditNotes(false); }
 
   async function runConcierge() {
-    if (!concText.trim() || cellar.length === 0) return;
+    if (!concText.trim() || !cellar.length) return;
     setLoading(true); setError(''); setRecs(null);
     try {
-      const idxs = await getRecommendations(concText, cellar);
-      const matched = idxs
-        .map(r => ({ wine: cellar[r.index - 1], reason: r.reason }))
-        .filter(r => r.wine);
-      setRecs(matched);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+      const idxs = await getRecommendations(concText, cellar, profileId);
+      setRecs(idxs.map(r=>({ wine: cellar[r.index-1], reason: r.reason })).filter(r=>r.wine));
+    } catch(err) { setError(err.message); } finally { setLoading(false); }
   }
 
   const filteredCellar = cellar
-    .filter(w => filterType === 'all' || (w.wineType || '').toLowerCase() === filterType)
-    .sort((a, b) => {
-      if (sortBy === 'type') return (a.wineType || '').localeCompare(b.wineType || '');
-      if (sortBy === 'varietal') return ((a.grapeVarieties || [])[0] || '').localeCompare((b.grapeVarieties || [])[0] || '');
-      if (sortBy === 'price↑') return avg(a) - avg(b);
-      if (sortBy === 'price↓') return avg(b) - avg(a);
-      if (sortBy === 'drink') return (a.drinkingWindow?.start || '9999').localeCompare(b.drinkingWindow?.start || '9999');
+    .filter(w => filterType==='all'||(w.wineType||'').toLowerCase()===filterType)
+    .sort((a,b) => {
+      if(sortBy==='type') return (a.wineType||'').localeCompare(b.wineType||'');
+      if(sortBy==='varietal') return ((a.grapeVarieties||[])[0]||'').localeCompare((b.grapeVarieties||[])[0]||'');
+      if(sortBy==='price↑') return avg(a)-avg(b);
+      if(sortBy==='price↓') return avg(b)-avg(a);
+      if(sortBy==='drink') return (a.drinkingWindow?.start||'9999').localeCompare(b.drinkingWindow?.start||'9999');
       return 0;
     });
 
   function Nav({ cur }) {
     return (
       <div className="nav">
-        {[['home', '⌂', 'Home'], ['cellar', '▤', 'Cellar'], ['concierge', '✦', 'Concierge']].map(([v, ic, lb]) => (
-          <button key={v} className={`nb ${cur === v ? 'nbon' : ''}`}
-            onClick={() => { if (v === 'concierge') { setRecs(null); } setView(v); }}>
-            <span style={{ fontSize: 16 }}>{ic}</span>
-            {lb}
-            <span className={`ndot ${cur === v ? 'ndoton' : ''}`} />
+        {[['home','⌂','Home'],['cellar','▤','Cellar'],['concierge','✦','Concierge'],['settings','◎','Settings']].map(([v,ic,lb])=>(
+          <button key={v} className={`nb ${cur===v?'nbon':''}`} onClick={()=>{if(v==='concierge')setRecs(null);setView(v);}}>
+            <span style={{fontSize:16}}>{ic}</span>{lb}<span className={`ndot ${cur===v?'ndoton':''}`}/>
           </button>
         ))}
       </div>
     );
   }
 
-  // ── HOME ────────────────────────────────────────────────────────────────────
-  if (view === 'home') return (
-    <div style={{ background: '#161c2e', minHeight: '100vh', display: 'flex', flexDirection: 'column', maxWidth: 440, margin: '0 auto' }}>
+  const wrap = (content, cur='', extraStyle={}) => (
+    <div style={{background:'#161c2e',minHeight:'100vh',display:'flex',flexDirection:'column',maxWidth:440,margin:'0 auto',...extraStyle}}>
       <style>{CSS}</style>
-      <div style={{ padding: '20px 16px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ color: '#5a6480', fontSize: 10, letterSpacing: '.12em', marginBottom: 2 }}>YOUR</div>
-          <div className="di" style={{ color: '#f0ead8', fontSize: 28 }}>Cave</div>
-        </div>
-        <div style={{ background: '#252d4a', border: '0.5px solid #3a4468', borderRadius: '50%', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c4a44a', fontSize: 14, fontWeight: 600 }}>A</div>
-      </div>
-
-      <div style={{ padding: '0 16px 14px', display: 'flex', gap: 8 }}>
-        {[
-          { label: 'BOTTLES', val: stats.bottles, color: '#f0ead8' },
-          { label: 'VALUE', val: stats.value > 0 ? `$${stats.value.toLocaleString()}` : '—', color: '#c4a44a' },
-          { label: 'READY', val: stats.ready, color: '#4a9e6a' }
-        ].map(s => (
-          <div key={s.label} className="card" style={{ flex: 1, textAlign: 'center', padding: 12 }}>
-            <div style={{ color: '#5a6480', fontSize: 10, letterSpacing: '.06em', marginBottom: 4 }}>{s.label}</div>
-            <div className="df" style={{ color: s.color, fontSize: 22 }}>{s.val}</div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ padding: '0 16px', flex: 1, overflowY: 'auto' }}>
-        {cellar.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '48px 0' }}>
-            <div style={{ fontSize: 40, marginBottom: 14 }}>🍷</div>
-            <div className="di" style={{ color: '#8a96b8', fontSize: 20, marginBottom: 8 }}>Your cave is empty.</div>
-            <div style={{ color: '#5a6480', fontSize: 13 }}>Scan your first bottle to begin.</div>
-          </div>
-        ) : cellar.slice(0, 8).map(w => (
-          <div key={w.id} className="row" onClick={() => { setSelId(w.id); setView('detail'); }}>
-            <div style={{ width: 34, height: 46, borderRadius: 5, background: '#252d4a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0, overflow: 'hidden' }}>
-              {w.image ? <img src={w.image} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 4 }} /> : wineEmoji(w.wineType)}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ color: '#f0ead8', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.producer}</div>
-              <div style={{ color: '#5a6480', fontSize: 11, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.wineName} {w.vintage} · <span style={{ color: '#8a96b8' }}>{w.bottles} btl</span></div>
-            </div>
-            <div style={{ textAlign: 'right', flexShrink: 0 }}>
-              <div style={{ color: '#c4a44a', fontSize: 13 }}>${Math.round(avg(w))}</div>
-              <div className={statusCls(w.drinkingWindow?.status)} style={{ marginTop: 4 }}>{w.drinkingWindow?.status || '—'}</div>
-            </div>
-          </div>
-        ))}
-        {cellar.length > 8 && <div style={{ color: '#5a6480', fontSize: 11, textAlign: 'center', padding: '10px 0' }}>+ {cellar.length - 8} more · see Cellar tab</div>}
-      </div>
-
-      <div style={{ padding: '10px 16px' }}>
-        <button className="btn" onClick={goScan}>+ Scan new bottle</button>
-      </div>
-      <Nav cur="home" />
+      {content}
+      <Nav cur={cur}/>
     </div>
   );
 
-  // ── SCAN ─────────────────────────────────────────────────────────────────────
-  if (view === 'scan') return (
-    <div style={{ background: '#161c2e', minHeight: '100vh', display: 'flex', flexDirection: 'column', maxWidth: 440, margin: '0 auto' }}>
-      <style>{CSS}</style>
-      <div style={{ padding: '18px 16px 10px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <button className="back" onClick={() => setView('home')}>←</button>
-        <span className="di" style={{ color: '#f0ead8', fontSize: 18 }}>Add to cave</span>
+  // PWA install banner
+  const InstallBanner = () => !isPWA() ? (
+    <div style={{margin:'0 16px 12px',background:'#251f0e',border:'0.5px solid #3d3015',borderRadius:12,padding:'10px 14px',display:'flex',gap:10,alignItems:'center'}}>
+      <div style={{fontSize:20,flexShrink:0}}>📲</div>
+      <div style={{flex:1}}>
+        <div style={{color:'#c4a44a',fontSize:12,fontWeight:600,marginBottom:2}}>Install Cave for persistent storage</div>
+        <div style={{color:'#8a7a50',fontSize:11,lineHeight:1.4}}>Share → Add to Home Screen in Safari. Without this, data may be lost when Safari clears cache.</div>
       </div>
+    </div>
+  ) : null;
 
-      {!manual ? (
-        <>
-          <div style={{ margin: '0 16px', background: '#1e2640', borderRadius: 16, border: '0.5px solid #2d3654', minHeight: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
-            {pendingImg
-              ? <img src={pendingImg} style={{ width: '100%', maxHeight: 220, objectFit: 'contain' }} />
-              : <>
-                {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(pos => {
-                  const [v, h] = pos.split('-');
-                  return <div key={pos} style={{ position: 'absolute', [v]: 16, [h]: 16, width: 18, height: 18, borderTop: v === 'top' ? '2px solid #c4a44a' : 'none', borderBottom: v === 'bottom' ? '2px solid #c4a44a' : 'none', borderLeft: h === 'left' ? '2px solid #c4a44a' : 'none', borderRight: h === 'right' ? '2px solid #c4a44a' : 'none', borderRadius: `${v === 'top' && h === 'left' ? '3px' : '0'} ${v === 'top' && h === 'right' ? '3px' : '0'} ${v === 'bottom' && h === 'right' ? '3px' : '0'} ${v === 'bottom' && h === 'left' ? '3px' : '0'}` }} />;
-                })}
-                <div style={{ fontSize: 32, marginBottom: 8 }}>📷</div>
-                <div style={{ color: '#5a6480', fontSize: 12 }}>Point at the front label</div>
-              </>
-            }
+  // ── HOME ──────────────────────────────────────────────────────────────────
+  if (view === 'home') return wrap(<>
+    <div style={{padding:'20px 16px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+      <div>
+        <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.12em',marginBottom:2}}>YOUR</div>
+        <div className="di" style={{color:'#f0ead8',fontSize:28}}>Cave</div>
+      </div>
+      <button onClick={onSwitchProfile} style={{background:'#252d4a',border:'0.5px solid #3a4468',borderRadius:'50%',width:38,height:38,display:'flex',alignItems:'center',justifyContent:'center',color:'#c4a44a',fontSize:14,fontWeight:600,cursor:'pointer'}}>
+        {(profileName||'?').charAt(0).toUpperCase()}
+      </button>
+    </div>
+    <div style={{padding:'0 16px 14px',display:'flex',gap:8}}>
+      {[{label:'BOTTLES',val:stats.bottles,color:'#f0ead8'},{label:'VALUE',val:stats.value>0?`$${stats.value.toLocaleString()}`:'—',color:'#c4a44a'},{label:'READY',val:stats.ready,color:'#4a9e6a'}].map(s=>(
+        <div key={s.label} className="card" style={{flex:1,textAlign:'center',padding:12}}>
+          <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.06em',marginBottom:4}}>{s.label}</div>
+          <div className="df" style={{color:s.color,fontSize:22}}>{s.val}</div>
+        </div>
+      ))}
+    </div>
+    <InstallBanner/>
+    <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
+      {cellar.length===0 ? (
+        <div style={{textAlign:'center',padding:'48px 0'}}>
+          <div style={{fontSize:40,marginBottom:14}}>🍷</div>
+          <div className="di" style={{color:'#8a96b8',fontSize:20,marginBottom:8}}>Your cave is empty.</div>
+          <div style={{color:'#5a6480',fontSize:13}}>Scan your first bottle to begin.</div>
+        </div>
+      ) : cellar.slice(0,8).map(w=>(
+        <div key={w.id} className="row" onClick={()=>{setSelId(w.id);setView('detail');}}>
+          <div style={{width:34,height:46,borderRadius:5,background:'#252d4a',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0,overflow:'hidden'}}>
+            {w.image?<img src={w.image} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:4}}/>:wineEmoji(w.wineType)}
           </div>
-
-          {error && <div className="err" style={{ margin: '10px 16px 0' }}>{error}</div>}
-
-          <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <label style={{ display: 'block', cursor: 'pointer' }}>
-              <div className="btn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>📷 Take photo</div>
-              <input type="file" accept="image/*" capture="environment" onChange={handlePhoto} style={{ display: 'none' }} />
-            </label>
-            <label style={{ display: 'block', cursor: 'pointer' }}>
-              <div className="gbtn" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, textAlign: 'center' }}>🖼 Choose from library</div>
-              <input type="file" accept="image/*" onChange={handlePhoto} style={{ display: 'none' }} />
-            </label>
-            <button style={{ background: 'none', border: 'none', color: '#5a6480', fontSize: 12, cursor: 'pointer', marginTop: 4 }} onClick={() => { setManual(true); setError(''); }}>
-              Type label manually →
-            </button>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{color:'#f0ead8',fontSize:13,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.producer}</div>
+            <div style={{color:'#5a6480',fontSize:11,marginTop:1,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.wineName} {w.vintage} · <span style={{color:'#8a96b8'}}>{w.bottles} btl</span></div>
           </div>
-        </>
-      ) : (
-        <div style={{ padding: '0 16px', flex: 1 }}>
-          {pendingImg && <div style={{ borderRadius: 12, overflow: 'hidden', maxHeight: 150, marginBottom: 12 }}><img src={pendingImg} style={{ width: '100%', objectFit: 'contain', maxHeight: 150 }} /></div>}
-          {error && <div className="err" style={{ marginBottom: 12 }}>{error}</div>}
-          <div className="sec">TYPE WHAT'S ON THE LABEL</div>
-          <textarea value={scanText} onChange={e => setScanText(e.target.value)}
-            placeholder="e.g. Barolo 2021, Domenico Clerico, del Comune di Monforte d'Alba, Piedmont Italy"
-            rows={4} style={{ marginBottom: 8 }} />
-          <div style={{ color: '#5a6480', fontSize: 11, marginBottom: 12 }}>Include producer · wine name · vintage · region</div>
-          <button className="btn" onClick={handleManualIdentify} disabled={!scanText.trim() || loading}>Identify wine</button>
-          <button className="gbtn" style={{ marginTop: 8 }} onClick={() => { setManual(false); setError(''); }}>← Back to camera</button>
+          <div style={{textAlign:'right',flexShrink:0}}>
+            <div style={{color:'#c4a44a',fontSize:13}}>${Math.round(avg(w))}</div>
+            <div className={statusCls(w.drinkingWindow?.status)} style={{marginTop:4}}>{w.drinkingWindow?.status||'—'}</div>
+          </div>
+        </div>
+      ))}
+      {cellar.length>8&&<div style={{color:'#5a6480',fontSize:11,textAlign:'center',padding:'10px 0'}}>+{cellar.length-8} more · see Cellar tab</div>}
+    </div>
+    <div style={{padding:'10px 16px'}}><button className="btn" onClick={goScan}>+ Scan new bottle</button></div>
+  </>, 'home');
+
+  // ── SCAN FRONT ────────────────────────────────────────────────────────────
+  if (view === 'scan-front') return wrap(<>
+    <div style={{padding:'18px 16px 10px',display:'flex',alignItems:'center',gap:10}}>
+      <button className="back" onClick={()=>setView('home')}>←</button>
+      <span className="di" style={{color:'#f0ead8',fontSize:18}}>Add to cave</span>
+      <div style={{marginLeft:'auto',color:'#5a6480',fontSize:11}}>Step 1 of 2</div>
+    </div>
+    {!manual ? <>
+      <div style={{margin:'0 16px',background:'#1e2640',borderRadius:16,border:'0.5px solid #2d3654',minHeight:200,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden'}}>
+        {frontImg ? <img src={frontImg} style={{width:'100%',maxHeight:220,objectFit:'contain'}}/> : <>
+          <div style={{position:'absolute',top:16,left:16,width:18,height:18,borderTop:'2px solid #c4a44a',borderLeft:'2px solid #c4a44a',borderRadius:'3px 0 0 0'}}/>
+          <div style={{position:'absolute',top:16,right:16,width:18,height:18,borderTop:'2px solid #c4a44a',borderRight:'2px solid #c4a44a',borderRadius:'0 3px 0 0'}}/>
+          <div style={{position:'absolute',bottom:16,left:16,width:18,height:18,borderBottom:'2px solid #c4a44a',borderLeft:'2px solid #c4a44a',borderRadius:'0 0 0 3px'}}/>
+          <div style={{position:'absolute',bottom:16,right:16,width:18,height:18,borderBottom:'2px solid #c4a44a',borderRight:'2px solid #c4a44a',borderRadius:'0 0 3px 0'}}/>
+          <div style={{fontSize:32,marginBottom:8}}>📷</div>
+          <div style={{color:'#5a6480',fontSize:12}}>Front label</div>
+        </>}
+      </div>
+      {error&&<div className="err" style={{margin:'10px 16px 0'}}>{error}</div>}
+      <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:8}}>
+        <label style={{display:'block',cursor:'pointer'}}>
+          <div className="btn" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>📷 Take front label photo</div>
+          <input type="file" accept="image/*" capture="environment" onChange={e=>handlePhoto(e,'front')} style={{display:'none'}}/>
+        </label>
+        <label style={{display:'block',cursor:'pointer'}}>
+          <div className="gbtn" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>🖼 Choose from library</div>
+          <input type="file" accept="image/*" onChange={e=>handlePhoto(e,'front')} style={{display:'none'}}/>
+        </label>
+        <button style={{background:'none',border:'none',color:'#5a6480',fontSize:12,cursor:'pointer',marginTop:4}} onClick={()=>{setManual(true);setError('');}}>
+          Type label text manually →
+        </button>
+      </div>
+    </> : <>
+      <div style={{padding:'0 16px',flex:1}}>
+        {frontImg&&<div style={{borderRadius:12,overflow:'hidden',maxHeight:140,marginBottom:12}}><img src={frontImg} style={{width:'100%',objectFit:'contain',maxHeight:140}}/></div>}
+        {error&&<div className="err" style={{marginBottom:12}}>{error}</div>}
+        <div className="sec">TYPE LABEL TEXT</div>
+        <textarea value={manualText} onChange={e=>setManualText(e.target.value)}
+          placeholder={"e.g. Barolo 2021, Domenico Clerico, del Comune di Monforte d'Alba, Piedmont, Italy, Nebbiolo"}
+          rows={4} style={{marginBottom:8}}/>
+        <div style={{color:'#5a6480',fontSize:11,marginBottom:12}}>Include producer · wine name · vintage · region · grape</div>
+        <button className="btn" onClick={handleManual} disabled={!manualText.trim()||loading}>Identify wine</button>
+        <button className="gbtn" style={{marginTop:8}} onClick={()=>{setManual(false);setError('');}}>← Back to camera</button>
+      </div>
+    </>}
+  </>, '');
+
+  // ── SCAN BACK ─────────────────────────────────────────────────────────────
+  if (view === 'scan-back') return wrap(<>
+    <div style={{padding:'18px 16px 10px',display:'flex',alignItems:'center',gap:10}}>
+      <button className="back" onClick={()=>setView('scan-front')}>←</button>
+      <span className="di" style={{color:'#f0ead8',fontSize:18}}>Back label</span>
+      <div style={{marginLeft:'auto',color:'#5a6480',fontSize:11}}>Step 2 of 2</div>
+    </div>
+    <div style={{margin:'0 16px',background:'#1e2640',borderRadius:16,border:'0.5px solid #2d3654',minHeight:160,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',overflow:'hidden'}}>
+      {backImg ? <img src={backImg} style={{width:'100%',maxHeight:180,objectFit:'contain'}}/> : (
+        <div style={{textAlign:'center',padding:24}}>
+          <div style={{fontSize:28,marginBottom:8}}>📋</div>
+          <div style={{color:'#8a96b8',fontSize:13,marginBottom:4}}>Back label (optional)</div>
+          <div style={{color:'#5a6480',fontSize:11}}>Adds tasting notes, grapes & more</div>
         </div>
       )}
-      <Nav cur="" />
     </div>
-  );
+    <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:8}}>
+      <label style={{display:'block',cursor:'pointer'}}>
+        <div className="btn" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>📷 Take back label photo</div>
+        <input type="file" accept="image/*" capture="environment" onChange={e=>handlePhoto(e,'back')} style={{display:'none'}}/>
+      </label>
+      <label style={{display:'block',cursor:'pointer'}}>
+        <div className="gbtn" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>🖼 Choose from library</div>
+        <input type="file" accept="image/*" onChange={e=>handlePhoto(e,'back')} style={{display:'none'}}/>
+      </label>
+      <button className="gbtn" onClick={()=>runIdentification(frontImg, null)} style={{borderColor:'#2d3654',color:'#8a96b8'}}>
+        Skip — identify from front label only
+      </button>
+    </div>
+  </>, '');
 
-  // ── SCANNING ─────────────────────────────────────────────────────────────────
+  // ── SCANNING ──────────────────────────────────────────────────────────────
   if (view === 'scanning') return (
-    <div style={{ background: '#161c2e', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', maxWidth: 440, margin: '0 auto' }}>
+    <div style={{background:'#161c2e',minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',maxWidth:440,margin:'0 auto'}}>
       <style>{CSS}</style>
-      <div style={{ fontSize: 44, marginBottom: 18 }}>🍷</div>
-      <div className="di" style={{ color: '#8a96b8', fontSize: 22, marginBottom: 8 }}>{loadMsg}</div>
-      <div style={{ color: '#5a6480', fontSize: 12, textAlign: 'center', lineHeight: 1.7 }}>
-        {loadMsg.includes('Reading') ? 'Running OCR on the label…' : 'Consulting the sommelier…'}
+      <div style={{fontSize:48,marginBottom:18}}>🍷</div>
+      <div className="di" style={{color:'#8a96b8',fontSize:22,marginBottom:8}}>{loadMsg}</div>
+      <div style={{color:'#5a6480',fontSize:12,textAlign:'center',lineHeight:1.7}}>
+        {loadMsg.includes('Reading')? 'Running OCR on the label…' : 'Searching wine database…'}
       </div>
-      <div style={{ width: 160, height: 2, background: '#1e2640', borderRadius: 2, overflow: 'hidden', marginTop: 28 }}>
-        <div style={{ height: '100%', background: 'linear-gradient(90deg, #c4a44a, #e8c870)', borderRadius: 2, width: '65%' }} />
+      <div style={{width:160,height:2,background:'#1e2640',borderRadius:2,overflow:'hidden',marginTop:28}}>
+        <div style={{height:'100%',background:'linear-gradient(90deg,#c4a44a,#e8c870)',borderRadius:2,width:'70%'}}/>
       </div>
     </div>
   );
 
-  // ── CONFIRM ────────────────────────────────────────────────────────────────
-  if (view === 'confirm' && pending) return (
-    <div style={{ background: '#161c2e', minHeight: '100vh', display: 'flex', flexDirection: 'column', maxWidth: 440, margin: '0 auto' }}>
-      <style>{CSS}</style>
-      <div style={{ padding: '18px 16px 10px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <button className="back" onClick={() => setView('scan')}>←</button>
-        <span className="di" style={{ color: '#f0ead8', fontSize: 18 }}>Confirm wine</span>
+  // ── IS THIS RIGHT? ────────────────────────────────────────────────────────
+  if (view === 'is-this-right' && pending) {
+    const p = editPending || pending;
+    const isEditing = !!editPending;
+    const FieldInput = ({label, field, multiline}) => (
+      <div className="field-row">
+        <div className="field-label">{label}</div>
+        {multiline
+          ? <textarea value={p[field]||''} rows={2} onChange={e=>setEditPending({...p,[field]:e.target.value})} style={{fontSize:13}}/>
+          : <input type="text" value={p[field]||''} onChange={e=>setEditPending({...p,[field]:e.target.value})} style={{fontSize:13}}/>
+        }
       </div>
+    );
 
-      <div style={{ padding: '0 16px', flex: 1, overflowY: 'auto' }}>
-        {pendingImg && (
-          <div style={{ borderRadius: 12, overflow: 'hidden', maxHeight: 180, marginBottom: 12 }}>
-            <img src={pendingImg} style={{ width: '100%', objectFit: 'contain', maxHeight: 180 }} />
-          </div>
-        )}
-
-        <div className="card" style={{ marginBottom: 10 }}>
-          <div style={{ color: '#5a6480', fontSize: 10, letterSpacing: '.1em', marginBottom: 2 }}>IDENTIFIED · {(pending.confidence || '').toUpperCase()}</div>
-          <div style={{ color: '#5a6480', fontSize: 10, letterSpacing: '.1em', marginBottom: 3 }}>{(pending.producer || '').toUpperCase()}</div>
-          <div className="di" style={{ color: '#f0ead8', fontSize: 22, lineHeight: 1.2, marginBottom: 6 }}>{pending.wineName}</div>
-          <div style={{ color: '#8a96b8', fontSize: 12 }}>{pending.vintage}{pending.region ? ` · ${pending.region}` : ''}</div>
-          {pending.appellation && <div style={{ color: '#5a6480', fontSize: 11, marginTop: 2 }}>{pending.appellation}</div>}
-          <div style={{ marginTop: 8, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-            {(pending.grapeVarieties || []).map(g => <span key={g} className={pillCls(pending.wineType)}>{g}</span>)}
-          </div>
+    return wrap(<>
+      <div style={{padding:'18px 16px 10px',display:'flex',alignItems:'center',gap:10}}>
+        <button className="back" onClick={()=>{setView('scan-back');setEditPending(null);}}>←</button>
+        <span className="di" style={{color:'#f0ead8',fontSize:18}}>Is this right?</span>
+        <div style={{marginLeft:'auto'}}>
+          <span className={statusCls(p.drinkingWindow?.status||'')+' '} style={{padding:'2px 8px',borderRadius:10,fontSize:10}}>
+            {(p.confidence||'').toUpperCase()} CONFIDENCE
+          </span>
         </div>
-
-        <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-          <div className="card" style={{ flex: 1, padding: 12 }}>
-            <div className="sec" style={{ marginBottom: 4 }}>RETAIL</div>
-            <div className="df" style={{ color: '#c4a44a', fontSize: 18 }}>${pending.retailPriceLow}–${pending.retailPriceHigh}</div>
-          </div>
-          <div className="card" style={{ flex: 1, padding: 12 }}>
-            <div className="sec" style={{ marginBottom: 4 }}>DRINK</div>
-            <div className="df" style={{ color: '#c47a2a', fontSize: 14, marginBottom: 4 }}>{pending.drinkingWindow?.start}–{pending.drinkingWindow?.end}</div>
-            <div className={statusCls(pending.drinkingWindow?.status || '')}>{pending.drinkingWindow?.status}</div>
-          </div>
-        </div>
-
-        <div className="card" style={{ marginBottom: 12 }}>
-          <div className="sec">HOW MANY BOTTLES?</div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ color: '#8a96b8', fontSize: 13 }}>Bottles to add</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <button className="qbtn" onClick={() => setPendingQty(q => Math.max(1, q - 1))}>−</button>
-              <span className="df" style={{ color: '#f0ead8', fontSize: 26, minWidth: 28, textAlign: 'center' }}>{pendingQty}</span>
-              <button className="qbtn" onClick={() => setPendingQty(q => q + 1)}>+</button>
-            </div>
-          </div>
-          {cellar.some(w => w.producer === pending.producer && w.wineName === pending.wineName && w.vintage === pending.vintage) && (
-            <div style={{ color: '#c4a44a', fontSize: 11, marginTop: 8 }}>⚠ Already in cave — count will be added to existing stock</div>
-          )}
-        </div>
-
-        <button className="btn" onClick={confirmAdd}>Save {pendingQty} bottle{pendingQty !== 1 ? 's' : ''} to cave</button>
-        <button className="gbtn" style={{ marginTop: 8 }} onClick={goScan}>Re-scan</button>
-        <div style={{ height: 20 }} />
       </div>
-      <Nav cur="" />
-    </div>
-  );
+      <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
+        {frontImg&&<div style={{borderRadius:12,overflow:'hidden',maxHeight:150,marginBottom:12}}>
+          <img src={frontImg} style={{width:'100%',objectFit:'contain',maxHeight:150}}/>
+        </div>}
 
-  // ── WINE DETAIL ─────────────────────────────────────────────────────────────
-  if (view === 'detail' && sel) return (
-    <div style={{ background: '#161c2e', minHeight: '100vh', display: 'flex', flexDirection: 'column', maxWidth: 440, margin: '0 auto' }}>
-      <style>{CSS}</style>
-      <div style={{ padding: '18px 16px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <button className="back" onClick={() => setView('cellar')}>←</button>
-        <button style={{ background: 'none', border: 'none', color: '#c44a4a', fontSize: 12, cursor: 'pointer', letterSpacing: '.05em' }}
-          onClick={() => { setLogAction('delete'); setView('log'); }}>Remove wine</button>
-      </div>
-
-      <div style={{ padding: '0 16px', flex: 1, overflowY: 'auto' }}>
-        <div style={{ display: 'flex', gap: 14, marginBottom: 16, alignItems: 'flex-start' }}>
-          <div style={{ width: 54, height: 74, borderRadius: 8, background: '#252d4a', border: '0.5px solid #3a4468', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, flexShrink: 0, overflow: 'hidden' }}>
-            {sel.image ? <img src={sel.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : wineEmoji(sel.wineType)}
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ color: '#5a6480', fontSize: 10, letterSpacing: '.1em', marginBottom: 2 }}>{(sel.producer || '').toUpperCase()}</div>
-            <div className="di" style={{ color: '#f0ead8', fontSize: 20, lineHeight: 1.2, marginBottom: 4 }}>{sel.wineName}</div>
-            <div style={{ color: '#8a96b8', fontSize: 11 }}>{sel.vintage}{sel.region ? ` · ${sel.region}` : ''}</div>
-            {sel.appellation && <div style={{ color: '#5a6480', fontSize: 10, marginTop: 1 }}>{sel.appellation}</div>}
-            <div style={{ marginTop: 6, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-              {(sel.grapeVarieties || []).map(g => <span key={g} className={pillCls(sel.wineType)}>{g}</span>)}
+        {!isEditing ? <>
+          <div className="card" style={{marginBottom:10}}>
+            <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.1em',marginBottom:2}}>{(p.producer||'').toUpperCase()}</div>
+            <div className="di" style={{color:'#f0ead8',fontSize:22,lineHeight:1.2,marginBottom:4}}>{p.wineName}</div>
+            <div style={{color:'#8a96b8',fontSize:12}}>{p.vintage}{p.region?` · ${p.region}`:''}</div>
+            {p.appellation&&<div style={{color:'#5a6480',fontSize:11,marginTop:2}}>{p.appellation}</div>}
+            <div style={{marginTop:8,display:'flex',gap:4,flexWrap:'wrap'}}>
+              {(p.grapeVarieties||[]).map(g=><span key={g} className={pillCls(p.wineType)}>{g}</span>)}
             </div>
           </div>
-        </div>
 
-        {/* Inventory card */}
-        <div className="card" style={{ marginBottom: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-            <div className="sec" style={{ marginBottom: 0 }}>INVENTORY</div>
-            <button onClick={() => { setLogAction(''); setLogNotes(''); setLogRating(0); setView('log'); }}
-              style={{ background: '#2a1010', border: '0.5px solid #4a2020', color: '#c44a4a', borderRadius: 8, padding: '4px 12px', fontSize: 11, cursor: 'pointer' }}>
-              Log a bottle
-            </button>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <span className="df" style={{ color: '#f0ead8', fontSize: 24 }}>{sel.bottles}</span>
-              <span style={{ color: '#5a6480', fontSize: 13 }}> bottles remaining</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button className="qbtn" onClick={() => adjustQty(-1)}>−</button>
-              <button className="qbtn" onClick={() => adjustQty(1)}>+</button>
-            </div>
-          </div>
-          {sel.drinkLog?.length > 0 && (
-            <div style={{ marginTop: 10, borderTop: '0.5px solid #2d3654', paddingTop: 8 }}>
-              <div style={{ color: '#5a6480', fontSize: 10, letterSpacing: '.08em', marginBottom: 4 }}>DRINK LOG</div>
-              {sel.drinkLog.slice(0, 3).map((l, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                  <span style={{ color: '#8a96b8', fontSize: 11 }}>
-                    {l.date} — {l.type === 'drank' ? '🥂 Drank' : l.type === 'gave' ? '🎁 Gave away' : '💔 Lost'}
-                  </span>
-                  {l.rating > 0 && <span style={{ color: '#c4a44a', fontSize: 11 }}>{'★'.repeat(l.rating)}</span>}
+          {/* Alternatives if medium/low confidence */}
+          {(p.alternatives||[]).length>0&&(
+            <div className="card" style={{marginBottom:10}}>
+              <div className="sec">COULD ALSO BE…</div>
+              {(p.alternatives||[]).map((alt,i)=>(
+                <div key={i} onClick={()=>{const merged={...p,...alt,alternatives:[]};setPending(merged);setEditPending(null);}}
+                  style={{display:'flex',alignItems:'center',gap:10,padding:'10px 0',borderBottom:i<p.alternatives.length-1?'0.5px solid #2d3654':'none',cursor:'pointer'}}>
+                  <div style={{flex:1}}>
+                    <div style={{color:'#f0ead8',fontSize:13}}>{alt.producer} {alt.wineName} {alt.vintage}</div>
+                    <div style={{color:'#5a6480',fontSize:11,marginTop:2,fontStyle:'italic'}}>{alt.reason}</div>
+                  </div>
+                  <div style={{color:'#c4a44a',fontSize:16}}>›</div>
                 </div>
               ))}
             </div>
           )}
-        </div>
 
-        {/* Price + window */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-          <div className="card" style={{ flex: 1, padding: 12 }}>
-            <div className="sec" style={{ marginBottom: 4 }}>RETAIL</div>
-            <div className="df" style={{ color: '#c4a44a', fontSize: 18 }}>${sel.retailPriceLow}–${sel.retailPriceHigh}</div>
-            {sel.priceNote && <div style={{ color: '#5a6480', fontSize: 10, marginTop: 2, fontStyle: 'italic' }}>{sel.priceNote}</div>}
-          </div>
-          <div className="card" style={{ flex: 1, padding: 12 }}>
-            <div className="sec" style={{ marginBottom: 4 }}>DRINK</div>
-            <div className="df" style={{ color: '#c47a2a', fontSize: 13, marginBottom: 5 }}>{sel.drinkingWindow?.start}–{sel.drinkingWindow?.end}</div>
-            <div className={statusCls(sel.drinkingWindow?.status || '')}>{sel.drinkingWindow?.status || '—'}</div>
-          </div>
-        </div>
-
-        {/* Tasting notes */}
-        {sel.tastingNotes && (
-          <div className="card" style={{ marginBottom: 10 }}>
-            <div className="sec">TASTING NOTES</div>
-            {[['Nose', sel.tastingNotes.nose], ['Palate', sel.tastingNotes.palate], ['Finish', sel.tastingNotes.finish]].map(([lbl, val]) => val ? (
-              <div key={lbl} style={{ marginBottom: 8 }}>
-                <div style={{ color: '#c4a44a', fontSize: 11, fontStyle: 'italic', marginBottom: 2 }}>{lbl}</div>
-                <div style={{ color: '#8a96b8', fontSize: 12, lineHeight: 1.5 }}>{val}</div>
-              </div>
-            ) : null)}
-          </div>
-        )}
-
-        {/* My notes */}
-        <div className="card" style={{ marginBottom: 10 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <div className="sec" style={{ marginBottom: 0 }}>MY NOTES</div>
-            {!editNotes && <button onClick={() => { setNotesDraft(sel.myNotes || ''); setEditNotes(true); }}
-              style={{ background: 'none', border: 'none', color: '#c4a44a', fontSize: 11, cursor: 'pointer' }}>Edit</button>}
-          </div>
-          {editNotes ? (
-            <>
-              <textarea value={notesDraft} onChange={e => setNotesDraft(e.target.value)} rows={3}
-                placeholder="Personal tasting notes, occasion, food pairing…" style={{ marginBottom: 8 }} />
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn" style={{ padding: 9 }} onClick={saveMyNotes}>Save</button>
-                <button className="gbtn" style={{ padding: 9 }} onClick={() => setEditNotes(false)}>Cancel</button>
-              </div>
-            </>
-          ) : (
-            <div style={{ color: sel.myNotes ? '#8a96b8' : '#5a6480', fontSize: 13, fontStyle: sel.myNotes ? 'normal' : 'italic' }}>
-              {sel.myNotes || 'Tap Edit to add personal notes…'}
+          <div style={{display:'flex',gap:8,marginBottom:10}}>
+            <div className="card" style={{flex:1,padding:12}}>
+              <div className="sec" style={{marginBottom:4}}>RETAIL</div>
+              <div className="df" style={{color:'#c4a44a',fontSize:18}}>${p.retailPriceLow}–${p.retailPriceHigh}</div>
             </div>
-          )}
-        </div>
-
-        {/* Cellaring advice */}
-        {sel.cellaring && (
-          <div style={{ background: '#251608', border: '0.5px solid #3d2810', borderRadius: 14, padding: 14, marginBottom: 10 }}>
-            <div style={{ color: '#c47a2a', fontSize: 10, letterSpacing: '.1em', marginBottom: 6 }}>CELLARING ADVICE</div>
-            <div style={{ color: '#e8c4a0', fontSize: 12, lineHeight: 1.6 }}>
-              {sel.cellaring.shouldCellar ? `Hold ${sel.cellaring.yearsToHold}. ` : 'Drink now — no need to cellar. '}
-              {sel.cellaring.storageNotes}
+            <div className="card" style={{flex:1,padding:12}}>
+              <div className="sec" style={{marginBottom:4}}>DRINK</div>
+              <div className="df" style={{color:'#c47a2a',fontSize:13,marginBottom:4}}>{p.drinkingWindow?.start}–{p.drinkingWindow?.end}</div>
+              <div className={statusCls(p.drinkingWindow?.status||'')}>{p.drinkingWindow?.status}</div>
             </div>
           </div>
-        )}
 
-        {/* Drinking window detail */}
-        {sel.drinkingWindow?.recommendation && (
-          <div className="card" style={{ marginBottom: 10 }}>
-            <div className="sec">DRINKING WINDOW</div>
-            <div style={{ color: '#8a96b8', fontSize: 12, lineHeight: 1.6 }}>{sel.drinkingWindow.recommendation}</div>
+          <div className="card" style={{marginBottom:12}}>
+            <div className="sec">HOW MANY BOTTLES?</div>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <div style={{color:'#8a96b8',fontSize:13}}>Bottles to add</div>
+              <div style={{display:'flex',alignItems:'center',gap:16}}>
+                <button className="qbtn" onClick={()=>setPendingQty(q=>Math.max(1,q-1))}>−</button>
+                <span className="df" style={{color:'#f0ead8',fontSize:26,minWidth:28,textAlign:'center'}}>{pendingQty}</span>
+                <button className="qbtn" onClick={()=>setPendingQty(q=>q+1)}>+</button>
+              </div>
+            </div>
           </div>
-        )}
 
-        {/* Service */}
-        {(sel.servingTemp || sel.decantingAdvice) && (
-          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-            {sel.servingTemp && (
-              <div className="card" style={{ flex: 1, padding: 12 }}>
-                <div className="sec" style={{ marginBottom: 4 }}>SERVE AT</div>
-                <div className="df" style={{ color: '#f0ead8', fontSize: 16 }}>{sel.servingTemp}</div>
-              </div>
-            )}
-            {sel.decantingAdvice && (
-              <div className="card" style={{ flex: 2, padding: 12 }}>
-                <div className="sec" style={{ marginBottom: 4 }}>DECANT</div>
-                <div style={{ color: '#8a96b8', fontSize: 12, lineHeight: 1.4 }}>{sel.decantingAdvice}</div>
-              </div>
-            )}
+          <button className="btn" onClick={()=>confirmAdd(p)} style={{marginBottom:8}}>
+            ✓ Yes, save {pendingQty} bottle{pendingQty!==1?'s':''} to cave
+          </button>
+          <button className="gbtn" onClick={()=>setEditPending({...p})} style={{marginBottom:8}}>
+            ✏ No — let me correct this
+          </button>
+          <button onClick={()=>{setEditPending(null);setView('scan-front');}} style={{background:'none',border:'none',color:'#5a6480',fontSize:12,cursor:'pointer',width:'100%',padding:'8px 0'}}>
+            Re-scan this bottle
+          </button>
+
+          {/* Wine-Searcher verification link */}
+          <div style={{textAlign:'center',marginTop:8,paddingBottom:8}}>
+            <a href={`https://www.wine-searcher.com/find/${encodeURIComponent(`${p.producer} ${p.wineName} ${p.vintage}`)}`}
+              target="_blank" style={{color:'#5a6480',fontSize:11,textDecoration:'underline'}}>
+              Verify on Wine-Searcher →
+            </a>
           </div>
-        )}
-        <div style={{ height: 8 }} />
+
+        </> : <>
+          <div className="card" style={{marginBottom:10}}>
+            <div className="sec" style={{marginBottom:10}}>CORRECT THE DETAILS</div>
+            <FieldInput label="PRODUCER" field="producer"/>
+            <FieldInput label="WINE NAME" field="wineName"/>
+            <FieldInput label="VINTAGE" field="vintage"/>
+            <FieldInput label="REGION" field="region"/>
+            <FieldInput label="APPELLATION" field="appellation"/>
+            <FieldInput label="GRAPE VARIETIES (comma separated)" field="grapeVarieties" multiline/>
+          </div>
+          <button className="btn" onClick={()=>{setPending(editPending);setEditPending(null);}} style={{marginBottom:8}}>
+            Save corrections
+          </button>
+          <button className="gbtn" onClick={()=>setEditPending(null)}>Cancel</button>
+        </>}
+        <div style={{height:16}}/>
       </div>
-      <Nav cur="cellar" />
+    </>, '');
+  }
+
+  // ── WINE DETAIL ───────────────────────────────────────────────────────────
+  if (view === 'detail' && sel) return wrap(<>
+    <div style={{padding:'18px 16px 10px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+      <button className="back" onClick={()=>setView('cellar')}>←</button>
+      <button style={{background:'none',border:'none',color:'#c44a4a',fontSize:12,cursor:'pointer'}} onClick={()=>{setLogAction('delete');setView('log');}}>Remove wine</button>
     </div>
-  );
-
-  // ── LOG BOTTLE ──────────────────────────────────────────────────────────────
-  if (view === 'log' && sel) return (
-    <div style={{ background: '#161c2e', minHeight: '100vh', display: 'flex', flexDirection: 'column', maxWidth: 440, margin: '0 auto' }}>
-      <style>{CSS}</style>
-      <div style={{ padding: '18px 16px 6px', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <button className="back" onClick={() => { setLogAction(''); setView('detail'); }}>←</button>
-        <span className="di" style={{ color: '#f0ead8', fontSize: 18 }}>Log a bottle</span>
+    <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
+      <div style={{display:'flex',gap:14,marginBottom:16,alignItems:'flex-start'}}>
+        <div style={{width:54,height:74,borderRadius:8,background:'#252d4a',border:'0.5px solid #3a4468',display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,flexShrink:0,overflow:'hidden'}}>
+          {sel.image?<img src={sel.image} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:wineEmoji(sel.wineType)}
+        </div>
+        <div style={{flex:1}}>
+          <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.1em',marginBottom:2}}>{(sel.producer||'').toUpperCase()}</div>
+          <div className="di" style={{color:'#f0ead8',fontSize:20,lineHeight:1.2,marginBottom:4}}>{sel.wineName}</div>
+          <div style={{color:'#8a96b8',fontSize:11}}>{sel.vintage}{sel.region?` · ${sel.region}`:''}</div>
+          {sel.appellation&&<div style={{color:'#5a6480',fontSize:10,marginTop:1}}>{sel.appellation}</div>}
+          <div style={{marginTop:6,display:'flex',gap:4,flexWrap:'wrap'}}>
+            {(sel.grapeVarieties||[]).map(g=><span key={g} className={pillCls(sel.wineType)}>{g}</span>)}
+          </div>
+        </div>
       </div>
-      <div style={{ padding: '4px 16px 14px', color: '#8a96b8', fontSize: 13 }}>
-        {sel.producer} {sel.wineName} {sel.vintage} · <span style={{ color: '#c4a44a' }}>{sel.bottles} remaining</span>
-      </div>
 
-      <div style={{ padding: '0 16px', flex: 1 }}>
-        {!logAction ? (
-          <>
-            <div className="sec">WHAT HAPPENED TO THIS BOTTLE?</div>
-            {[
-              { key: 'drank', icon: '🥂', bg: '#0e2318', bdr: '#1a3d28', label: 'Drank it', sub: 'Logs date + removes from count' },
-              { key: 'gave', icon: '🎁', bg: '#162038', bdr: '#1e3060', label: 'Gave away', sub: 'Gift or shared — removes from count' },
-              { key: 'lost', icon: '💔', bg: '#251608', bdr: '#3d2810', label: 'Lost / broken / corked', sub: 'Removes from count, no drink log' },
-              { key: 'delete', icon: '🗑', bg: '#2a1010', bdr: '#4a2020', label: 'Remove wine entirely', sub: 'Deletes all bottles from cave', danger: true },
-            ].map(o => (
-              <div key={o.key} className="lopt" style={{ borderColor: o.danger ? '#4a2020' : '#2d3654' }} onClick={() => setLogAction(o.key)}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: o.bg, border: `0.5px solid ${o.bdr}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>{o.icon}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ color: o.danger ? '#c44a4a' : '#f0ead8', fontSize: 13, fontWeight: 500 }}>{o.label}</div>
-                  <div style={{ color: '#5a6480', fontSize: 11, marginTop: 1 }}>{o.sub}</div>
-                </div>
-                <div style={{ color: '#5a6480' }}>›</div>
+      <div className="card" style={{marginBottom:10}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
+          <div className="sec" style={{marginBottom:0}}>INVENTORY</div>
+          <button onClick={()=>{setLogAction('');setLogNotes('');setLogRating(0);setView('log');}}
+            style={{background:'#2a1010',border:'0.5px solid #4a2020',color:'#c44a4a',borderRadius:8,padding:'4px 12px',fontSize:11,cursor:'pointer'}}>
+            Log a bottle
+          </button>
+        </div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <div>
+            <span className="df" style={{color:'#f0ead8',fontSize:24}}>{sel.bottles}</span>
+            <span style={{color:'#5a6480',fontSize:13}}> bottles remaining</span>
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:12}}>
+            <button className="qbtn" onClick={()=>adjustQty(-1)}>−</button>
+            <button className="qbtn" onClick={()=>adjustQty(1)}>+</button>
+          </div>
+        </div>
+        {sel.drinkLog?.length>0&&(
+          <div style={{marginTop:10,borderTop:'0.5px solid #2d3654',paddingTop:8}}>
+            <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:4}}>DRINK LOG</div>
+            {sel.drinkLog.slice(0,3).map((l,i)=>(
+              <div key={i} style={{display:'flex',justifyContent:'space-between',marginBottom:3}}>
+                <span style={{color:'#8a96b8',fontSize:11}}>{l.date} — {l.type==='drank'?'🥂 Drank':l.type==='gave'?'🎁 Gave':'💔 Lost'}</span>
+                {l.rating>0&&<span style={{color:'#c4a44a',fontSize:11}}>{'★'.repeat(l.rating)}</span>}
               </div>
             ))}
-          </>
-        ) : logAction === 'delete' ? (
-          <div className="card" style={{ textAlign: 'center', padding: 28 }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>🗑</div>
-            <div className="di" style={{ color: '#f0ead8', fontSize: 20, marginBottom: 8 }}>Remove wine entirely?</div>
-            <div style={{ color: '#8a96b8', fontSize: 13, marginBottom: 20, lineHeight: 1.5 }}>
-              This removes all {sel.bottles} bottle{sel.bottles !== 1 ? 's' : ''} of <em>{sel.wineName}</em> from your cave. Cannot be undone.
-            </div>
-            <button className="dbtn" style={{ marginBottom: 8 }} onClick={confirmLog}>Yes, remove it</button>
-            <button className="gbtn" onClick={() => setLogAction('')}>Cancel</button>
-          </div>
-        ) : (
-          <div className="card">
-            <div style={{ fontSize: 28, textAlign: 'center', marginBottom: 10 }}>{logAction === 'drank' ? '🥂' : '🎁'}</div>
-            <div className="di" style={{ color: '#f0ead8', fontSize: 18, textAlign: 'center', marginBottom: 14 }}>
-              {logAction === 'drank' ? 'Drank it' : 'Gave it away'}
-            </div>
-            {logAction === 'drank' && (
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ color: '#5a6480', fontSize: 10, letterSpacing: '.08em', marginBottom: 6 }}>RATE THIS BOTTLE</div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  {[1, 2, 3, 4, 5].map(n => (
-                    <span key={n} className="star" style={{ color: n <= logRating ? '#c4a44a' : '#252d4a' }} onClick={() => setLogRating(n)}>★</span>
-                  ))}
-                </div>
-              </div>
-            )}
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ color: '#5a6480', fontSize: 10, letterSpacing: '.08em', marginBottom: 6 }}>NOTES (OPTIONAL)</div>
-              <textarea value={logNotes} onChange={e => setLogNotes(e.target.value)} rows={3}
-                placeholder={logAction === 'drank' ? 'How was it? Food pairing, occasion…' : 'Who did you give it to?'} />
-            </div>
-            <button className="btn" onClick={confirmLog}>
-              Confirm — {Math.max(0, (sel.bottles || 0) - 1)} bottle{Math.max(0, (sel.bottles || 0) - 1) !== 1 ? 's' : ''} remaining
-            </button>
-            <button className="gbtn" style={{ marginTop: 8 }} onClick={() => setLogAction('')}>Back</button>
           </div>
         )}
       </div>
-      <Nav cur="cellar" />
-    </div>
-  );
 
-  // ── CELLAR LIST ─────────────────────────────────────────────────────────────
-  if (view === 'cellar') return (
-    <div style={{ background: '#161c2e', minHeight: '100vh', display: 'flex', flexDirection: 'column', maxWidth: 440, margin: '0 auto' }}>
-      <style>{CSS}</style>
-      <div style={{ padding: '20px 16px 10px' }}>
-        <div className="di" style={{ color: '#f0ead8', fontSize: 26, marginBottom: 12 }}>Cellar</div>
-
-        {/* Type filter */}
-        <div className="scrl" style={{ marginBottom: 8 }}>
-          {[['all', `All (${cellar.length})`], ['red', `Red (${cellar.filter(w => w.wineType === 'red').length})`],
-            ['white', `White (${cellar.filter(w => w.wineType === 'white').length})`],
-            ['sparkling', `Sparkling (${cellar.filter(w => w.wineType === 'sparkling').length})`],
-            ['rosé', `Rosé (${cellar.filter(w => w.wineType === 'rosé' || w.wineType === 'rose').length})`]
-          ].map(([v, l]) => (
-            <button key={v} className={`chip ${filterType === v ? 'chipon' : ''}`} onClick={() => setFilterType(v)}>{l}</button>
-          ))}
+      <div style={{display:'flex',gap:8,marginBottom:10}}>
+        <div className="card" style={{flex:1,padding:12}}>
+          <div className="sec" style={{marginBottom:4}}>RETAIL</div>
+          <div className="df" style={{color:'#c4a44a',fontSize:18}}>${sel.retailPriceLow}–${sel.retailPriceHigh}</div>
+          {sel.priceNote&&<div style={{color:'#5a6480',fontSize:10,marginTop:2,fontStyle:'italic'}}>{sel.priceNote}</div>}
         </div>
-
-        {/* Sort */}
-        <div className="scrl">
-          <span style={{ color: '#5a6480', fontSize: 11, alignSelf: 'center', flexShrink: 0 }}>Sort:</span>
-          {[['type', 'Type'], ['varietal', 'Varietal'], ['price↑', 'Price ↑'], ['price↓', 'Price ↓'], ['drink', 'Drink by']].map(([v, l]) => (
-            <button key={v} className={`chip ${sortBy === v ? 'chipon' : ''}`} onClick={() => setSortBy(v)}>{l}</button>
-          ))}
+        <div className="card" style={{flex:1,padding:12}}>
+          <div className="sec" style={{marginBottom:4}}>DRINK</div>
+          <div className="df" style={{color:'#c47a2a',fontSize:13,marginBottom:5}}>{sel.drinkingWindow?.start}–{sel.drinkingWindow?.end}</div>
+          <div className={statusCls(sel.drinkingWindow?.status||'')}>{sel.drinkingWindow?.status||'—'}</div>
         </div>
       </div>
 
-      <div style={{ padding: '0 16px', flex: 1, overflowY: 'auto' }}>
-        {filteredCellar.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '48px 0', color: '#5a6480' }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>🍷</div>
-            <div className="di" style={{ color: '#8a96b8', fontSize: 18 }}>No wines here yet</div>
+      {sel.tastingNotes&&(
+        <div className="card" style={{marginBottom:10}}>
+          <div className="sec">TASTING NOTES</div>
+          {[['Nose',sel.tastingNotes.nose],['Palate',sel.tastingNotes.palate],['Finish',sel.tastingNotes.finish]].map(([lbl,val])=>val?(
+            <div key={lbl} style={{marginBottom:8}}>
+              <div style={{color:'#c4a44a',fontSize:11,fontStyle:'italic',marginBottom:2}}>{lbl}</div>
+              <div style={{color:'#8a96b8',fontSize:12,lineHeight:1.5}}>{val}</div>
+            </div>
+          ):null)}
+        </div>
+      )}
+
+      <div className="card" style={{marginBottom:10}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+          <div className="sec" style={{marginBottom:0}}>MY NOTES</div>
+          {!editNotes&&<button onClick={()=>{setNotesDraft(sel.myNotes||'');setEditNotes(true);}} style={{background:'none',border:'none',color:'#c4a44a',fontSize:11,cursor:'pointer'}}>Edit</button>}
+        </div>
+        {editNotes ? <>
+          <textarea value={notesDraft} onChange={e=>setNotesDraft(e.target.value)} rows={3} placeholder="Personal tasting notes, occasion, food pairing…" style={{marginBottom:8}}/>
+          <div style={{display:'flex',gap:8}}>
+            <button className="btn" style={{padding:9}} onClick={saveMyNotes}>Save</button>
+            <button className="gbtn" style={{padding:9}} onClick={()=>setEditNotes(false)}>Cancel</button>
           </div>
-        ) : filteredCellar.map(w => (
-          <div key={w.id}>
-            <div className="row" onClick={() => { setSelId(w.id); setView('detail'); }}>
-              <div style={{ width: 34, height: 46, borderRadius: 5, background: '#252d4a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0, overflow: 'hidden' }}>
-                {w.image ? <img src={w.image} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 4 }} /> : wineEmoji(w.wineType)}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ color: '#f0ead8', fontSize: 13, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.producer}</div>
-                <div style={{ color: '#5a6480', fontSize: 11, marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.wineName} {w.vintage}</div>
-                <div style={{ marginTop: 3, display: 'flex', gap: 4, alignItems: 'center' }}>
-                  <span style={{ color: '#c4a44a', fontSize: 11 }}>{w.bottles} btl</span>
-                  <span style={{ color: '#3a4468' }}>·</span>
-                  {(w.grapeVarieties || []).slice(0, 1).map(g => <span key={g} className={pillCls(w.wineType)}>{g}</span>)}
-                </div>
-              </div>
-              <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <div style={{ color: '#c4a44a', fontSize: 13 }}>${Math.round(avg(w))}</div>
-                <div className={statusCls(w.drinkingWindow?.status || '')} style={{ marginTop: 4 }}>{w.drinkingWindow?.status || '—'}</div>
-              </div>
+        </> : <div style={{color:sel.myNotes?'#8a96b8':'#5a6480',fontSize:13,fontStyle:sel.myNotes?'normal':'italic'}}>{sel.myNotes||'Tap Edit to add personal notes…'}</div>}
+      </div>
+
+      {sel.cellaring&&(
+        <div style={{background:'#251608',border:'0.5px solid #3d2810',borderRadius:14,padding:14,marginBottom:10}}>
+          <div style={{color:'#c47a2a',fontSize:10,letterSpacing:'.1em',marginBottom:6}}>CELLARING ADVICE</div>
+          <div style={{color:'#e8c4a0',fontSize:12,lineHeight:1.6}}>
+            {sel.cellaring.shouldCellar?`Hold ${sel.cellaring.yearsToHold}. `:'Drink now — no need to cellar. '}{sel.cellaring.storageNotes}
+          </div>
+        </div>
+      )}
+
+      {sel.drinkingWindow?.recommendation&&(
+        <div className="card" style={{marginBottom:10}}>
+          <div className="sec">DRINKING WINDOW</div>
+          <div style={{color:'#8a96b8',fontSize:12,lineHeight:1.6}}>{sel.drinkingWindow.recommendation}</div>
+        </div>
+      )}
+
+      {(sel.servingTemp||sel.decantingAdvice)&&(
+        <div style={{display:'flex',gap:8,marginBottom:16}}>
+          {sel.servingTemp&&<div className="card" style={{flex:1,padding:12}}><div className="sec" style={{marginBottom:4}}>SERVE AT</div><div className="df" style={{color:'#f0ead8',fontSize:16}}>{sel.servingTemp}</div></div>}
+          {sel.decantingAdvice&&<div className="card" style={{flex:2,padding:12}}><div className="sec" style={{marginBottom:4}}>DECANT</div><div style={{color:'#8a96b8',fontSize:12,lineHeight:1.4}}>{sel.decantingAdvice}</div></div>}
+        </div>
+      )}
+      <div style={{height:8}}/>
+    </div>
+  </>, 'cellar');
+
+  // ── LOG ───────────────────────────────────────────────────────────────────
+  if (view === 'log' && sel) return wrap(<>
+    <div style={{padding:'18px 16px 6px',display:'flex',alignItems:'center',gap:10}}>
+      <button className="back" onClick={()=>{setLogAction('');setView('detail');}}>←</button>
+      <span className="di" style={{color:'#f0ead8',fontSize:18}}>Log a bottle</span>
+    </div>
+    <div style={{padding:'4px 16px 14px',color:'#8a96b8',fontSize:13}}>
+      {sel.producer} {sel.wineName} {sel.vintage} · <span style={{color:'#c4a44a'}}>{sel.bottles} remaining</span>
+    </div>
+    <div style={{padding:'0 16px',flex:1}}>
+      {!logAction ? <>
+        <div className="sec">WHAT HAPPENED TO THIS BOTTLE?</div>
+        {[
+          {key:'drank',icon:'🥂',bg:'#0e2318',bdr:'#1a3d28',label:'Drank it',sub:'Logs date + removes from count'},
+          {key:'gave',icon:'🎁',bg:'#162038',bdr:'#1e3060',label:'Gave away',sub:'Gift or shared — removes from count'},
+          {key:'lost',icon:'💔',bg:'#251608',bdr:'#3d2810',label:'Lost / broken / corked',sub:'Removes from count, no drink log'},
+          {key:'delete',icon:'🗑',bg:'#2a1010',bdr:'#4a2020',label:'Remove wine entirely',sub:'Deletes all bottles from cave',danger:true},
+        ].map(o=>(
+          <div key={o.key} className="lopt" style={{borderColor:o.danger?'#4a2020':'#2d3654'}} onClick={()=>setLogAction(o.key)}>
+            <div style={{width:36,height:36,borderRadius:10,background:o.bg,border:`0.5px solid ${o.bdr}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}}>{o.icon}</div>
+            <div style={{flex:1}}>
+              <div style={{color:o.danger?'#c44a4a':'#f0ead8',fontSize:13,fontWeight:500}}>{o.label}</div>
+              <div style={{color:'#5a6480',fontSize:11,marginTop:1}}>{o.sub}</div>
             </div>
-            {/* Quick actions */}
-            <div style={{ display: 'flex', gap: 6, padding: '4px 0 8px', marginLeft: 44 }}>
-              {[
-                { lbl: '🥂 Drank', action: 'drank', bg: '#0e2318', bdr: '#1a3d28', col: '#4a9e6a' },
-                { lbl: '🎁 Gave', action: 'gave', bg: '#162038', bdr: '#1e3060', col: '#7ab0e8' },
-                { lbl: '🗑', action: 'delete', bg: '#2a1010', bdr: '#4a2020', col: '#c44a4a' },
-              ].map(a => (
-                <button key={a.action}
-                  style={{ background: a.bg, border: `0.5px solid ${a.bdr}`, color: a.col, borderRadius: 8, padding: '4px 10px', fontSize: 11, cursor: 'pointer' }}
-                  onClick={e => { e.stopPropagation(); setSelId(w.id); setLogAction(a.action); setLogNotes(''); setLogRating(0); setView('log'); }}>
-                  {a.lbl}
-                </button>
-              ))}
-            </div>
+            <div style={{color:'#5a6480'}}>›</div>
           </div>
         ))}
-        <div style={{ height: 8 }} />
-      </div>
-
-      <div style={{ padding: '8px 16px' }}>
-        <button className="btn" onClick={goScan}>+ Scan new bottle</button>
-      </div>
-      <Nav cur="cellar" />
-    </div>
-  );
-
-  // ── CONCIERGE ───────────────────────────────────────────────────────────────
-  if (view === 'concierge') return (
-    <div style={{ background: '#161c2e', minHeight: '100vh', display: 'flex', flexDirection: 'column', maxWidth: 440, margin: '0 auto' }}>
-      <style>{CSS}</style>
-      <div style={{ padding: '20px 16px 12px' }}>
-        <div className="di" style={{ color: '#f0ead8', fontSize: 26, marginBottom: 3 }}>Concierge</div>
-        <div style={{ color: '#5a6480', fontSize: 13 }}>Tell me about your evening</div>
-      </div>
-
-      <div style={{ padding: '0 16px', flex: 1, overflowY: 'auto' }}>
-        <div className="card" style={{ marginBottom: 12 }}>
-          <div className="sec">WHAT'S HAPPENING TONIGHT?</div>
-          <textarea value={concText} onChange={e => { setConcText(e.target.value); setRecs(null); }} rows={4}
-            placeholder="e.g. Grilling portobello mushrooms for 4 guests, two prefer bold reds, one likes lighter wines, I'd like to open two bottles…" style={{ marginBottom: 10 }} />
-          <button className="btn" onClick={runConcierge} disabled={loading || !concText.trim() || cellar.length === 0}>
-            {loading ? 'Consulting the sommelier…' : 'Get recommendation'}
-          </button>
-          {cellar.length === 0 && <div style={{ color: '#5a6480', fontSize: 11, textAlign: 'center', marginTop: 8 }}>Add wines to your cave first</div>}
+      </> : logAction==='delete' ? (
+        <div className="card" style={{textAlign:'center',padding:28}}>
+          <div style={{fontSize:32,marginBottom:12}}>🗑</div>
+          <div className="di" style={{color:'#f0ead8',fontSize:20,marginBottom:8}}>Remove wine entirely?</div>
+          <div style={{color:'#8a96b8',fontSize:13,marginBottom:20,lineHeight:1.5}}>
+            Removes all {sel.bottles} bottle{sel.bottles!==1?'s':''} of <em>{sel.wineName}</em>. Cannot be undone.
+          </div>
+          <button className="dbtn" style={{marginBottom:8}} onClick={confirmLog}>Yes, remove it</button>
+          <button className="gbtn" onClick={()=>setLogAction('')}>Cancel</button>
         </div>
-
-        {error && <div className="err" style={{ marginBottom: 12 }}>{error}</div>}
-
-        {recs !== null && (
-          <div className="card">
-            <div className="sec">FROM YOUR CAVE</div>
-            {recs.length === 0 ? (
-              <div style={{ color: '#8a96b8', fontSize: 13, fontStyle: 'italic', lineHeight: 1.6 }}>
-                No wines in your cave are ready to drink right now. Check back when your "hold" wines enter their drinking window.
+      ) : (
+        <div className="card">
+          <div style={{fontSize:28,textAlign:'center',marginBottom:10}}>{logAction==='drank'?'🥂':'🎁'}</div>
+          <div className="di" style={{color:'#f0ead8',fontSize:18,textAlign:'center',marginBottom:14}}>{logAction==='drank'?'Drank it':'Gave it away'}</div>
+          {logAction==='drank'&&(
+            <div style={{marginBottom:12}}>
+              <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:6}}>RATE THIS BOTTLE</div>
+              <div style={{display:'flex',gap:6}}>
+                {[1,2,3,4,5].map(n=>(
+                  <span key={n} className="star" style={{color:n<=logRating?'#c4a44a':'#252d4a'}} onClick={()=>setLogRating(n)}>★</span>
+                ))}
               </div>
-            ) : recs.map(({ wine: w, reason }, i) => w && (
-              <div key={i} onClick={() => { setSelId(w.id); setView('detail'); }}
-                style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px', background: i === 0 ? '#252d4a' : '#1a2236', borderRadius: 10, border: `0.5px solid ${i === 0 ? '#3d3015' : '#2d3654'}`, marginBottom: 8, cursor: 'pointer' }}>
-                <div style={{ fontSize: 22, flexShrink: 0 }}>{wineEmoji(w.wineType)}</div>
-                <div style={{ flex: 1 }}>
-                  {i === 0 && <div style={{ color: '#c4a44a', fontSize: 10, letterSpacing: '.08em', marginBottom: 2 }}>TOP PICK</div>}
-                  <div style={{ color: '#f0ead8', fontSize: 13, fontWeight: 500 }}>{w.producer} {w.wineName} {w.vintage}</div>
-                  <div style={{ color: '#5a6480', fontSize: 11, marginTop: 1 }}>{w.bottles} bottle{w.bottles !== 1 ? 's' : ''} available · {w.drinkingWindow?.status}</div>
-                  <div style={{ color: '#8a96b8', fontSize: 12, marginTop: 5, lineHeight: 1.5 }}>{reason}</div>
-                </div>
-                <div style={{ color: '#c4a44a', fontSize: 16, flexShrink: 0 }}>›</div>
+            </div>
+          )}
+          <div style={{marginBottom:12}}>
+            <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:6}}>NOTES (OPTIONAL)</div>
+            <textarea value={logNotes} onChange={e=>setLogNotes(e.target.value)} rows={3}
+              placeholder={logAction==='drank'?'How was it? Occasion, food pairing…':'Who did you give it to?'}/>
+          </div>
+          <button className="btn" onClick={confirmLog}>
+            Confirm — {Math.max(0,(sel.bottles||0)-1)} bottle{Math.max(0,(sel.bottles||0)-1)!==1?'s':''} remaining
+          </button>
+          <button className="gbtn" style={{marginTop:8}} onClick={()=>setLogAction('')}>Back</button>
+        </div>
+      )}
+    </div>
+  </>, 'cellar');
+
+  // ── CELLAR ────────────────────────────────────────────────────────────────
+  if (view === 'cellar') return wrap(<>
+    <div style={{padding:'20px 16px 10px'}}>
+      <div className="di" style={{color:'#f0ead8',fontSize:26,marginBottom:12}}>Cellar</div>
+      <div className="scrl" style={{marginBottom:8}}>
+        {[['all',`All (${cellar.length})`],['red',`Red (${cellar.filter(w=>w.wineType==='red').length})`],
+          ['white',`White (${cellar.filter(w=>w.wineType==='white').length})`],
+          ['sparkling',`Sparkling (${cellar.filter(w=>w.wineType==='sparkling').length})`],
+          ['rose',`Rosé (${cellar.filter(w=>w.wineType==='rosé'||w.wineType==='rose').length})`]
+        ].map(([v,l])=>(
+          <button key={v} className={`chip ${filterType===v?'chipon':''}`} onClick={()=>setFilterType(v)}>{l}</button>
+        ))}
+      </div>
+      <div className="scrl">
+        <span style={{color:'#5a6480',fontSize:11,alignSelf:'center',flexShrink:0}}>Sort:</span>
+        {[['type','Type'],['varietal','Varietal'],['price↑','Price ↑'],['price↓','Price ↓'],['drink','Drink by']].map(([v,l])=>(
+          <button key={v} className={`chip ${sortBy===v?'chipon':''}`} onClick={()=>setSortBy(v)}>{l}</button>
+        ))}
+      </div>
+    </div>
+    <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
+      {filteredCellar.length===0 ? (
+        <div style={{textAlign:'center',padding:'48px 0',color:'#5a6480'}}>
+          <div style={{fontSize:32,marginBottom:8}}>🍷</div>
+          <div className="di" style={{color:'#8a96b8',fontSize:18}}>No wines here yet</div>
+        </div>
+      ) : filteredCellar.map(w=>(
+        <div key={w.id}>
+          <div className="row" onClick={()=>{setSelId(w.id);setView('detail');}}>
+            <div style={{width:34,height:46,borderRadius:5,background:'#252d4a',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0,overflow:'hidden'}}>
+              {w.image?<img src={w.image} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:4}}/>:wineEmoji(w.wineType)}
+            </div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{color:'#f0ead8',fontSize:13,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.producer}</div>
+              <div style={{color:'#5a6480',fontSize:11,marginTop:1,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.wineName} {w.vintage}</div>
+              <div style={{marginTop:3,display:'flex',gap:4,alignItems:'center'}}>
+                <span style={{color:'#c4a44a',fontSize:11}}>{w.bottles} btl</span>
+                <span style={{color:'#3a4468'}}>·</span>
+                {(w.grapeVarieties||[]).slice(0,1).map(g=><span key={g} className={pillCls(w.wineType)}>{g}</span>)}
               </div>
+            </div>
+            <div style={{textAlign:'right',flexShrink:0}}>
+              <div style={{color:'#c4a44a',fontSize:13}}>${Math.round(avg(w))}</div>
+              <div className={statusCls(w.drinkingWindow?.status||'')} style={{marginTop:4}}>{w.drinkingWindow?.status||'—'}</div>
+            </div>
+          </div>
+          <div style={{display:'flex',gap:6,padding:'4px 0 8px',marginLeft:44}}>
+            {[{lbl:'🥂 Drank',action:'drank',bg:'#0e2318',bdr:'#1a3d28',col:'#4a9e6a'},
+              {lbl:'🎁 Gave',action:'gave',bg:'#162038',bdr:'#1e3060',col:'#7ab0e8'},
+              {lbl:'🗑',action:'delete',bg:'#2a1010',bdr:'#4a2020',col:'#c44a4a'}].map(a=>(
+              <button key={a.action} style={{background:a.bg,border:`0.5px solid ${a.bdr}`,color:a.col,borderRadius:8,padding:'4px 10px',fontSize:11,cursor:'pointer'}}
+                onClick={e=>{e.stopPropagation();setSelId(w.id);setLogAction(a.action);setLogNotes('');setLogRating(0);setView('log');}}>
+                {a.lbl}
+              </button>
             ))}
           </div>
-        )}
-        <div style={{ height: 8 }} />
-      </div>
-      <Nav cur="concierge" />
+        </div>
+      ))}
+      <div style={{height:8}}/>
     </div>
-  );
+    <div style={{padding:'8px 16px'}}><button className="btn" onClick={goScan}>+ Scan new bottle</button></div>
+  </>, 'cellar');
+
+  // ── CONCIERGE ─────────────────────────────────────────────────────────────
+  if (view === 'concierge') return wrap(<>
+    <div style={{padding:'20px 16px 12px'}}>
+      <div className="di" style={{color:'#f0ead8',fontSize:26,marginBottom:3}}>Concierge</div>
+      <div style={{color:'#5a6480',fontSize:13}}>Tell me about your evening</div>
+    </div>
+    <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
+      <div className="card" style={{marginBottom:12}}>
+        <div className="sec">WHAT'S HAPPENING TONIGHT?</div>
+        <textarea value={concText} onChange={e=>{setConcText(e.target.value);setRecs(null);}} rows={4}
+          placeholder="e.g. Grilling portobello mushrooms for 4 guests, two prefer bold reds, one likes lighter wines…" style={{marginBottom:10}}/>
+        <button className="btn" onClick={runConcierge} disabled={loading||!concText.trim()||!cellar.length}>
+          {loading?'Consulting the sommelier…':'Get recommendation'}
+        </button>
+        {!cellar.length&&<div style={{color:'#5a6480',fontSize:11,textAlign:'center',marginTop:8}}>Add wines to your cave first</div>}
+      </div>
+      {error&&<div className="err" style={{marginBottom:12}}>{error}</div>}
+      {recs!==null&&(
+        <div className="card">
+          <div className="sec">FROM YOUR CAVE</div>
+          {recs.length===0 ? (
+            <div style={{color:'#8a96b8',fontSize:13,fontStyle:'italic',lineHeight:1.6}}>
+              No wines in your cave are ready to drink right now.
+            </div>
+          ) : recs.map(({wine:w,reason},i)=>w&&(
+            <div key={i} onClick={()=>{setSelId(w.id);setView('detail');}}
+              style={{display:'flex',alignItems:'flex-start',gap:10,padding:'10px 12px',background:i===0?'#252d4a':'#1a2236',borderRadius:10,border:`0.5px solid ${i===0?'#3d3015':'#2d3654'}`,marginBottom:8,cursor:'pointer'}}>
+              <div style={{fontSize:22,flexShrink:0}}>{wineEmoji(w.wineType)}</div>
+              <div style={{flex:1}}>
+                {i===0&&<div style={{color:'#c4a44a',fontSize:10,letterSpacing:'.08em',marginBottom:2}}>TOP PICK</div>}
+                <div style={{color:'#f0ead8',fontSize:13,fontWeight:500}}>{w.producer} {w.wineName} {w.vintage}</div>
+                <div style={{color:'#5a6480',fontSize:11,marginTop:1}}>{w.bottles} btl available · {w.drinkingWindow?.status}</div>
+                <div style={{color:'#8a96b8',fontSize:12,marginTop:5,lineHeight:1.5}}>{reason}</div>
+              </div>
+              <div style={{color:'#c4a44a',fontSize:16,flexShrink:0}}>›</div>
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{height:8}}/>
+    </div>
+  </>, 'concierge');
+
+  // ── SETTINGS ──────────────────────────────────────────────────────────────
+  if (view === 'settings') return wrap(<>
+    <div style={{padding:'20px 16px 12px'}}>
+      <div className="di" style={{color:'#f0ead8',fontSize:26,marginBottom:3}}>Settings</div>
+      <div style={{color:'#5a6480',fontSize:13}}>{profileName}</div>
+    </div>
+    <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
+      <SettingsPanel profileId={profileId} onSwitchProfile={onSwitchProfile}/>
+      <div style={{height:16}}/>
+    </div>
+  </>, 'settings');
 
   return null;
 }
 
+// ─── SETTINGS PANEL ───────────────────────────────────────────────────────────
+function SettingsPanel({ profileId, onSwitchProfile }) {
+  const { useState } = React;
+  const [key, setKey] = useState(getApiKey(profileId));
+  const [saved, setSaved] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [keyErr, setKeyErr] = useState('');
 
-// ── Setup Screen ──────────────────────────────────────────────────────────────
-function SetupScreen({ onSave }) {
-  const [key, setKey] = useState('');
+  async function saveKey() {
+    setTesting(true); setKeyErr('');
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':key.trim(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body: JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:10,messages:[{role:'user',content:'hi'}]})
+      });
+      if (!res.ok) { const t=await res.text(); throw new Error('Key rejected: '+t.slice(0,100)); }
+      store.set(`cave_key_${profileId}`, key.trim());
+      store.set('cave_api_key', key.trim());
+      setSaved(true); setTimeout(()=>setSaved(false),1500);
+    } catch(e) { setKeyErr(e.message); } finally { setTesting(false); }
+  }
+
+  function clearData() {
+    if (!confirm('Delete ALL wine data for this profile? This cannot be undone.')) return;
+    const prefix = getProfilePrefix(profileId);
+    store.keys(prefix+'wine:').forEach(k=>store.del(k));
+    window.location.reload();
+  }
+
+  const isPwaInstalled = isPWA();
+
+  return (
+    <>
+      {!isPwaInstalled&&(
+        <div style={{background:'#251f0e',border:'0.5px solid #3d3015',borderRadius:14,padding:16,marginBottom:14}}>
+          <div style={{color:'#c4a44a',fontSize:13,fontWeight:600,marginBottom:6}}>📲 Install Cave for data persistence</div>
+          <div style={{color:'#8a7a50',fontSize:12,lineHeight:1.6,marginBottom:10}}>
+            In Safari: tap the <strong style={{color:'#c4a44a'}}>Share button</strong> → <strong style={{color:'#c4a44a'}}>Add to Home Screen</strong>. This prevents Safari from clearing your data.
+          </div>
+          <div style={{color:'#5a6480',fontSize:11}}>Currently running in browser — data may not persist.</div>
+        </div>
+      )}
+      {isPwaInstalled&&(
+        <div style={{background:'#0e2318',border:'0.5px solid #1a3d28',borderRadius:14,padding:14,marginBottom:14}}>
+          <div style={{color:'#4a9e6a',fontSize:13,fontWeight:600}}>✓ Installed as PWA — data persists</div>
+        </div>
+      )}
+
+      <div className="card" style={{marginBottom:12}}>
+        <div className="sec">API KEY</div>
+        <input type="password" value={key} onChange={e=>setKey(e.target.value)} style={{marginBottom:8}}/>
+        {keyErr&&<div className="err" style={{marginBottom:8}}>{keyErr}</div>}
+        <button onClick={saveKey} disabled={!key.trim()||testing}
+          style={{background:saved?'#0e2318':(!key.trim()||testing)?'#252d4a':'#c4a44a',color:saved?'#4a9e6a':(!key.trim()||testing)?'#5a6480':'#0f0c05',border:'none',borderRadius:10,padding:12,fontSize:13,fontWeight:600,cursor:'pointer',width:'100%'}}>
+          {testing?'Verifying…':saved?'✓ Saved':'Update API key'}
+        </button>
+        <div style={{color:'#5a6480',fontSize:11,marginTop:8,lineHeight:1.6}}>
+          Get a key at <a href="https://console.anthropic.com/keys" target="_blank" style={{color:'#c4a44a'}}>console.anthropic.com/keys</a>
+        </div>
+      </div>
+
+      <div className="card" style={{marginBottom:12}}>
+        <div className="sec">PROFILES</div>
+        <div style={{color:'#8a96b8',fontSize:13,marginBottom:10}}>Switch profile or add a new one — perfect for sharing Cave with someone else.</div>
+        <button className="gbtn" onClick={onSwitchProfile} style={{marginBottom:8}}>Switch / manage profiles</button>
+      </div>
+
+      <div className="card" style={{marginBottom:12}}>
+        <div className="sec">DATA</div>
+        <button onClick={clearData} className="dbtn">Clear all data for this profile</button>
+      </div>
+
+      <div style={{color:'#5a6480',fontSize:11,textAlign:'center',padding:'8px 0'}}>Cave v2.0</div>
+    </>
+  );
+}
+
+// ─── PROFILE SELECT SCREEN ────────────────────────────────────────────────────
+function ProfileSelect({ onSelect }) {
+  const { useState } = React;
+  const profiles = getProfiles();
+  const [newName, setNewName] = useState('');
+  const [newKey, setNewKey] = useState('');
+  const [creating, setCreating] = useState(profiles.length === 0);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
 
-  async function save() {
-    const k = key.trim();
-    if (!k.startsWith('sk-ant-')) { setErr('Key should start with sk-ant-'); return; }
+  async function handleCreate() {
+    if (!newName.trim()) { setErr('Enter a name.'); return; }
+    if (!newKey.trim().startsWith('sk-ant-')) { setErr('Key should start with sk-ant-'); return; }
     setBusy(true); setErr('');
     try {
       const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': k, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-        body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 10, messages: [{ role: 'user', content: 'hi' }] })
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':newKey.trim(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body: JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:10,messages:[{role:'user',content:'hi'}]})
       });
-      if (!res.ok) { const t = await res.text(); throw new Error('Key rejected: ' + t.slice(0, 120)); }
-      localStorage.setItem('cave_api_key', k);
-      onSave();
+      if (!res.ok) { const t=await res.text(); throw new Error('Key rejected: '+t.slice(0,100)); }
+      const id = createProfile(newName.trim(), newKey.trim());
+      store.set('cave_api_key', newKey.trim());
+      onSelect(id, newName.trim());
     } catch(e) { setErr(e.message); } finally { setBusy(false); }
   }
 
   return (
     <div style={{background:'#161c2e',minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'32px 24px',maxWidth:440,margin:'0 auto'}}>
+      <style>{CSS}</style>
       <div style={{fontSize:52,marginBottom:16}}>🍷</div>
-      <div style={{fontFamily:'Cormorant Garamond,Georgia,serif',fontStyle:'italic',fontSize:34,color:'#f0ead8',marginBottom:6}}>Cave</div>
-      <div style={{color:'#5a6480',fontSize:13,marginBottom:40}}>Your personal wine cellar</div>
-      <div style={{width:'100%',background:'#1e2640',border:'0.5px solid #2d3654',borderRadius:16,padding:24}}>
-        <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.1em',marginBottom:8}}>ANTHROPIC API KEY</div>
-        <input type="password" value={key} onChange={e => setKey(e.target.value)} onKeyDown={e => e.key==='Enter' && save()}
-          placeholder="sk-ant-api03-..."
-          style={{width:'100%',background:'#252d4a',border:'0.5px solid #3a4468',borderRadius:10,padding:'11px 12px',fontSize:13,color:'#f0ead8',fontFamily:'system-ui',outline:'none',marginBottom:8}} />
-        <div style={{color:'#5a6480',fontSize:11,marginBottom:16,lineHeight:1.7}}>
-          Get your key at <a href="https://console.anthropic.com/keys" target="_blank" style={{color:'#c4a44a'}}>console.anthropic.com/keys</a>. Stored only on this device.
+      <div className="di" style={{color:'#f0ead8',fontSize:34,marginBottom:6}}>Cave</div>
+      <div style={{color:'#5a6480',fontSize:13,marginBottom:32}}>Your personal wine cellar</div>
+
+      {!creating && profiles.length > 0 ? (
+        <div style={{width:'100%'}}>
+          <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.1em',marginBottom:10}}>SELECT PROFILE</div>
+          {profiles.map(p=>(
+            <button key={p.id} onClick={()=>onSelect(p.id, p.name)}
+              style={{width:'100%',background:'#1e2640',border:'0.5px solid #2d3654',borderRadius:12,padding:'14px 16px',display:'flex',alignItems:'center',gap:12,cursor:'pointer',marginBottom:8,textAlign:'left'}}>
+              <div style={{width:38,height:38,borderRadius:'50%',background:'#252d4a',border:'0.5px solid #3a4468',display:'flex',alignItems:'center',justifyContent:'center',color:'#c4a44a',fontSize:16,fontWeight:600,flexShrink:0}}>
+                {p.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div style={{color:'#f0ead8',fontSize:15,fontWeight:500}}>{p.name}</div>
+                <div style={{color:'#5a6480',fontSize:11,marginTop:2}}>Cave profile</div>
+              </div>
+              <div style={{marginLeft:'auto',color:'#c4a44a',fontSize:18}}>›</div>
+            </button>
+          ))}
+          <button className="gbtn" style={{marginTop:8}} onClick={()=>setCreating(true)}>+ Add new profile</button>
         </div>
-        {err && <div style={{padding:'10px 12px',background:'#2a1010',border:'0.5px solid #4a2020',borderRadius:10,color:'#c44a4a',fontSize:12,marginBottom:12,lineHeight:1.5}}>{err}</div>}
-        <button onClick={save} disabled={!key.trim()||busy}
-          style={{background:(!key.trim()||busy)?'#252d4a':'#c4a44a',color:(!key.trim()||busy)?'#5a6480':'#0f0c05',border:'none',borderRadius:10,padding:13,fontSize:13,fontWeight:600,cursor:'pointer',width:'100%',letterSpacing:'.04em'}}>
-          {busy ? 'Verifying…' : 'Save & open Cave'}
-        </button>
-      </div>
+      ) : (
+        <div style={{width:'100%',background:'#1e2640',border:'0.5px solid #2d3654',borderRadius:16,padding:24}}>
+          <div style={{color:'#f0ead8',fontSize:16,fontWeight:500,marginBottom:16}}>
+            {profiles.length===0 ? 'Create your profile' : 'New profile'}
+          </div>
+          <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:5}}>YOUR NAME</div>
+          <input type="text" value={newName} onChange={e=>setNewName(e.target.value)} placeholder="e.g. Alok" style={{marginBottom:12}}/>
+          <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:5}}>ANTHROPIC API KEY</div>
+          <input type="password" value={newKey} onChange={e=>setNewKey(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleCreate()} placeholder="sk-ant-api03-..." style={{marginBottom:8}}/>
+          <div style={{color:'#5a6480',fontSize:11,marginBottom:14,lineHeight:1.7}}>
+            Get key at <a href="https://console.anthropic.com/keys" target="_blank" style={{color:'#c4a44a'}}>console.anthropic.com/keys</a>. Stored only on this device.
+          </div>
+          {err&&<div className="err" style={{marginBottom:12}}>{err}</div>}
+          <button className="btn" onClick={handleCreate} disabled={!newName.trim()||!newKey.trim()||busy}>
+            {busy?'Verifying…':'Create profile & open Cave'}
+          </button>
+          {profiles.length>0&&<button className="gbtn" style={{marginTop:8}} onClick={()=>setCreating(false)}>Cancel</button>}
+        </div>
+      )}
     </div>
   );
 }
 
-function SettingsOverlay({ onClose }) {
-  const [key, setKey] = useState(localStorage.getItem('cave_api_key') || '');
-  const [saved, setSaved] = useState(false);
-  function save() { localStorage.setItem('cave_api_key', key.trim()); setSaved(true); setTimeout(() => { setSaved(false); onClose(); }, 800); }
-  function clearData() {
-    if (!confirm('Delete all wine data from this device?')) return;
-    Object.keys(localStorage).filter(k => k.startsWith('cave:')).forEach(k => localStorage.removeItem(k));
-    onClose(); window.location.reload();
-  }
-  return (
-    <div style={{position:'fixed',inset:0,background:'rgba(8,10,18,0.88)',zIndex:200,display:'flex',alignItems:'flex-end',justifyContent:'center'}}
-      onClick={e => { if(e.target===e.currentTarget) onClose(); }}>
-      <div style={{background:'#1e2640',border:'0.5px solid #2d3654',borderRadius:'20px 20px 0 0',padding:24,width:'100%',maxWidth:440}}>
-        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
-          <div style={{fontFamily:'Cormorant Garamond,Georgia,serif',fontStyle:'italic',color:'#f0ead8',fontSize:22}}>Settings</div>
-          <button onClick={onClose} style={{background:'none',border:'none',color:'#5a6480',fontSize:24,cursor:'pointer'}}>×</button>
-        </div>
-        <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.1em',marginBottom:6}}>API KEY</div>
-        <input type="password" value={key} onChange={e => setKey(e.target.value)}
-          style={{width:'100%',background:'#252d4a',border:'0.5px solid #3a4468',borderRadius:10,padding:'11px 12px',fontSize:13,color:'#f0ead8',fontFamily:'system-ui',outline:'none',marginBottom:12}} />
-        <button onClick={save} style={{background:saved?'#0e2318':'#c4a44a',color:saved?'#4a9e6a':'#0f0c05',border:'none',borderRadius:10,padding:12,fontSize:13,fontWeight:600,cursor:'pointer',width:'100%',marginBottom:10}}>
-          {saved ? '✓ Saved' : 'Update key'}
-        </button>
-        <button onClick={clearData} style={{background:'transparent',color:'#c44a4a',border:'0.5px solid #4a2020',borderRadius:10,padding:12,fontSize:12,cursor:'pointer',width:'100%'}}>
-          Clear all cave data
-        </button>
-        <div style={{color:'#5a6480',fontSize:11,textAlign:'center',marginTop:14}}>Cave v1.0</div>
-      </div>
-    </div>
-  );
-}
-
+// ─── ROOT ─────────────────────────────────────────────────────────────────────
 function App() {
-  const [hasKey, setHasKey] = useState(!!localStorage.getItem('cave_api_key'));
-  const [showSettings, setShowSettings] = useState(false);
-  if (!hasKey) return <SetupScreen onSave={() => setHasKey(true)} />;
-  return (
-    <div style={{position:'relative'}}>
-      <button onClick={() => setShowSettings(true)}
-        style={{position:'fixed',top:'calc(18px + env(safe-area-inset-top))',right:14,zIndex:50,background:'none',border:'none',color:'#5a6480',fontSize:20,cursor:'pointer',padding:4}}>
-        ⚙
-      </button>
-      <Cave />
-      {showSettings && <SettingsOverlay onClose={() => setShowSettings(false)} />}
-    </div>
-  );
+  const { useState } = React;
+  const [profileId, setProfileId] = useState(() => {
+    const id = getCurrentProfileId();
+    const profiles = getProfiles();
+    if (id && profiles.find(p=>p.id===id)) return id;
+    if (profiles.length===1) return profiles[0].id;
+    return '';
+  });
+  const [profileName, setProfileName] = useState(() => {
+    const id = getCurrentProfileId();
+    const profiles = getProfiles();
+    const p = profiles.find(x=>x.id===id);
+    return p ? p.name : '';
+  });
+
+  function handleSelect(id, name) {
+    setCurrentProfileId(id);
+    buildStorage(id);
+    setProfileId(id);
+    setProfileName(name);
+  }
+
+  function handleSwitch() {
+    setProfileId('');
+    setProfileName('');
+  }
+
+  if (!profileId) {
+    return <ProfileSelect onSelect={handleSelect}/>;
+  }
+
+  return <Cave profileId={profileId} profileName={profileName} onSwitchProfile={handleSwitch}/>;
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 
   </script>
 </body>
