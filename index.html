@@ -415,11 +415,11 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
             wine.priceConfidence   = priceData.confidence;
             wine.livePriceFetched  = true;
           } else {
-            wine.priceNote        = 'No current US listings found — price is Claude's estimate';
+            wine.priceNote        = `No current US listings found — price is Claude's estimate`;
             wine.livePriceFetched  = false;
           }
         } catch(priceErr) {
-          wine.priceNote        = 'Live price lookup unavailable — price is Claude's estimate';
+          wine.priceNote        = `Live price lookup unavailable — price is Claude's estimate`;
           wine.livePriceFetched  = false;
         }
       }
