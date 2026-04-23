@@ -149,6 +149,23 @@ function buildStorage(profileId) {
   };
 }
 
+
+// ─── PROFILE MANAGEMENT ───────────────────────────────────────────────────────
+function getProfiles() {
+  try { return JSON.parse(store.get('cave_profiles')||'[]'); } catch { return []; }
+}
+function saveProfiles(profiles) { store.set('cave_profiles', JSON.stringify(profiles)); }
+function getCurrentProfileId() { return store.get('cave_current_profile') || ''; }
+function setCurrentProfileId(id) { store.set('cave_current_profile', id); }
+function createProfile(name, apiKey) {
+  const id = Date.now().toString();
+  const profiles = getProfiles();
+  profiles.push({ id, name, createdAt: Date.now() });
+  saveProfiles(profiles);
+  store.set(`cave_key_${id}`, apiKey);
+  return id;
+}
+
 // ─── VISION-BASED IDENTIFICATION (no OCR) ────────────────────────────────────
 
 function getApiKey(profileId) {
@@ -496,8 +513,30 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   </>, 'home');
 
   // ── SCAN ─────────────────────────────────────────────────────────────────
-  // Single screen: add front + back photos, then tap Identify
+  // iOS-safe: use refs + .click() instead of hidden inputs inside labels
+  const { useRef: _useRef } = React;
+  const frontCamRef = _useRef(null);
+  const frontLibRef = _useRef(null);
+  const backCamRef  = _useRef(null);
+  const backLibRef  = _useRef(null);
+  const retakeFrontRef = _useRef(null);
+  const retakeBackRef  = _useRef(null);
+
   if (view==='scan') return wrap(<>
+    {/* Hidden file inputs — never display:none on iOS, use opacity+position instead */}
+    <input ref={frontCamRef} type="file" accept="image/*" capture="environment" onChange={e=>handlePhoto(e,'front')}
+      style={{opacity:0,position:'fixed',top:-100,left:-100,width:1,height:1}}/>
+    <input ref={frontLibRef} type="file" accept="image/*" onChange={e=>handlePhoto(e,'front')}
+      style={{opacity:0,position:'fixed',top:-100,left:-100,width:1,height:1}}/>
+    <input ref={backCamRef}  type="file" accept="image/*" capture="environment" onChange={e=>handlePhoto(e,'back')}
+      style={{opacity:0,position:'fixed',top:-100,left:-100,width:1,height:1}}/>
+    <input ref={backLibRef}  type="file" accept="image/*" onChange={e=>handlePhoto(e,'back')}
+      style={{opacity:0,position:'fixed',top:-100,left:-100,width:1,height:1}}/>
+    <input ref={retakeFrontRef} type="file" accept="image/*" capture="environment" onChange={e=>handlePhoto(e,'front')}
+      style={{opacity:0,position:'fixed',top:-100,left:-100,width:1,height:1}}/>
+    <input ref={retakeBackRef}  type="file" accept="image/*" capture="environment" onChange={e=>handlePhoto(e,'back')}
+      style={{opacity:0,position:'fixed',top:-100,left:-100,width:1,height:1}}/>
+
     <div style={{padding:'18px 16px 12px',display:'flex',alignItems:'center',gap:10}}>
       <button className="back" onClick={()=>setView('home')}>←</button>
       <span className="di" style={{color:'#f0ead8',fontSize:18}}>Add to cave</span>
@@ -506,95 +545,88 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
 
       {/* Front label slot */}
-      <div style={{marginBottom:12}}>
+      <div style={{marginBottom:14}}>
         <div className="sec">FRONT LABEL <span style={{color:'#c44a4a'}}>*</span></div>
         {frontImg ? (
-          <div style={{position:'relative',borderRadius:12,overflow:'hidden',border:'0.5px solid #c4a44a',marginBottom:6}}>
+          <div style={{position:'relative',borderRadius:12,overflow:'hidden',border:'0.5px solid #c4a44a',marginBottom:4}}>
             <img src={frontImg} style={{width:'100%',maxHeight:180,objectFit:'contain',display:'block'}}/>
-            <div style={{position:'absolute',top:0,right:0,bottom:0,left:0,background:'rgba(0,0,0,0)'}}>
-              <label style={{position:'absolute',bottom:8,right:8,cursor:'pointer'}}>
-                <div style={{background:'rgba(22,28,46,0.85)',border:'0.5px solid #3a4468',borderRadius:8,padding:'5px 10px',color:'#c4a44a',fontSize:11}}>Retake</div>
-                <input type="file" accept="image/*" capture="environment" onChange={e=>handlePhoto(e,'front')} style={{display:'none'}}/>
-              </label>
-            </div>
             <div style={{position:'absolute',top:8,left:8,background:'#0e2318',border:'0.5px solid #1a3d28',borderRadius:20,padding:'3px 10px',color:'#4a9e6a',fontSize:11}}>✓ Front</div>
+            <button onClick={()=>retakeFrontRef.current&&retakeFrontRef.current.click()}
+              style={{position:'absolute',bottom:8,right:8,background:'rgba(22,28,46,0.9)',border:'0.5px solid #3a4468',borderRadius:8,padding:'6px 12px',color:'#c4a44a',fontSize:12,cursor:'pointer'}}>
+              Retake
+            </button>
           </div>
         ) : (
-          <div style={{display:'flex',gap:8}}>
-            <label style={{flex:1,cursor:'pointer'}}>
-              <div style={{background:'#1e2640',border:'1.5px dashed #3a4468',borderRadius:12,padding:'20px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
-                <div style={{fontSize:28}}>📷</div>
-                <div style={{color:'#8a96b8',fontSize:12}}>Take photo</div>
-              </div>
-              <input type="file" accept="image/*" capture="environment" onChange={e=>handlePhoto(e,'front')} style={{display:'none'}}/>
-            </label>
-            <label style={{flex:1,cursor:'pointer'}}>
-              <div style={{background:'#1e2640',border:'1.5px dashed #3a4468',borderRadius:12,padding:'20px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
-                <div style={{fontSize:28}}>🖼</div>
-                <div style={{color:'#8a96b8',fontSize:12}}>Library</div>
-              </div>
-              <input type="file" accept="image/*" onChange={e=>handlePhoto(e,'front')} style={{display:'none'}}/>
-            </label>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+            <button onClick={()=>frontCamRef.current&&frontCamRef.current.click()}
+              style={{background:'#1e2640',border:'1.5px dashed #3a4468',borderRadius:12,padding:'22px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:8,cursor:'pointer'}}>
+              <div style={{fontSize:30}}>📷</div>
+              <div style={{color:'#8a96b8',fontSize:13}}>Camera</div>
+            </button>
+            <button onClick={()=>frontLibRef.current&&frontLibRef.current.click()}
+              style={{background:'#1e2640',border:'1.5px dashed #3a4468',borderRadius:12,padding:'22px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:8,cursor:'pointer'}}>
+              <div style={{fontSize:30}}>🖼</div>
+              <div style={{color:'#8a96b8',fontSize:13}}>Library</div>
+            </button>
           </div>
         )}
       </div>
 
       {/* Back label slot */}
       <div style={{marginBottom:16}}>
-        <div className="sec">BACK LABEL <span style={{color:'#5a6480',fontSize:10,fontStyle:'italic',letterSpacing:'normal'}}>optional but recommended</span></div>
+        <div className="sec">BACK LABEL <span style={{color:'#5a6480',fontStyle:'italic',letterSpacing:'normal',textTransform:'none',fontSize:10}}>optional · adds tasting notes & grapes</span></div>
         {backImg ? (
-          <div style={{position:'relative',borderRadius:12,overflow:'hidden',border:'0.5px solid #3a4468',marginBottom:6}}>
+          <div style={{position:'relative',borderRadius:12,overflow:'hidden',border:'0.5px solid #3a4468',marginBottom:4}}>
             <img src={backImg} style={{width:'100%',maxHeight:150,objectFit:'contain',display:'block'}}/>
-            <div style={{position:'absolute',top:0,right:0,bottom:0,left:0}}>
-              <label style={{position:'absolute',bottom:8,right:8,cursor:'pointer'}}>
-                <div style={{background:'rgba(22,28,46,0.85)',border:'0.5px solid #3a4468',borderRadius:8,padding:'5px 10px',color:'#c4a44a',fontSize:11}}>Retake</div>
-                <input type="file" accept="image/*" capture="environment" onChange={e=>handlePhoto(e,'back')} style={{display:'none'}}/>
-              </label>
-            </div>
             <div style={{position:'absolute',top:8,left:8,background:'#0e2318',border:'0.5px solid #1a3d28',borderRadius:20,padding:'3px 10px',color:'#4a9e6a',fontSize:11}}>✓ Back</div>
+            <button onClick={()=>retakeBackRef.current&&retakeBackRef.current.click()}
+              style={{position:'absolute',bottom:8,right:8,background:'rgba(22,28,46,0.9)',border:'0.5px solid #3a4468',borderRadius:8,padding:'6px 12px',color:'#c4a44a',fontSize:12,cursor:'pointer'}}>
+              Retake
+            </button>
           </div>
         ) : (
-          <div style={{display:'flex',gap:8}}>
-            <label style={{flex:1,cursor:'pointer'}}>
-              <div style={{background:'#1a2236',border:'1px dashed #2d3654',borderRadius:12,padding:'16px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
-                <div style={{fontSize:22}}>📋</div>
-                <div style={{color:'#5a6480',fontSize:11}}>Take photo</div>
-              </div>
-              <input type="file" accept="image/*" capture="environment" onChange={e=>handlePhoto(e,'back')} style={{display:'none'}}/>
-            </label>
-            <label style={{flex:1,cursor:'pointer'}}>
-              <div style={{background:'#1a2236',border:'1px dashed #2d3654',borderRadius:12,padding:'16px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
-                <div style={{fontSize:22}}>🖼</div>
-                <div style={{color:'#5a6480',fontSize:11}}>Library</div>
-              </div>
-              <input type="file" accept="image/*" onChange={e=>handlePhoto(e,'back')} style={{display:'none'}}/>
-            </label>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+            <button onClick={()=>backCamRef.current&&backCamRef.current.click()}
+              style={{background:'#1a2236',border:'1px dashed #2d3654',borderRadius:12,padding:'18px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:6,cursor:'pointer'}}>
+              <div style={{fontSize:24}}>📷</div>
+              <div style={{color:'#5a6480',fontSize:12}}>Camera</div>
+            </button>
+            <button onClick={()=>backLibRef.current&&backLibRef.current.click()}
+              style={{background:'#1a2236',border:'1px dashed #2d3654',borderRadius:12,padding:'18px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:6,cursor:'pointer'}}>
+              <div style={{fontSize:24}}>🖼</div>
+              <div style={{color:'#5a6480',fontSize:12}}>Library</div>
+            </button>
           </div>
         )}
       </div>
 
-      {/* Manual text area */}
+      {/* Manual text */}
       <div style={{marginBottom:16}}>
-        <div className="sec">OR ADD LABEL TEXT <span style={{color:'#5a6480',fontSize:10,fontStyle:'italic',letterSpacing:'normal'}}>helps accuracy</span></div>
+        <div className="sec">ADD LABEL TEXT <span style={{color:'#5a6480',fontStyle:'italic',letterSpacing:'normal',textTransform:'none',fontSize:10}}>optional · improves accuracy</span></div>
         <textarea value={manualText} onChange={e=>setManualText(e.target.value)} rows={3}
           placeholder={"e.g. Barolo 2021, Domenico Clerico, Monforte d'Alba, Piedmont, Italy"}
           style={{fontSize:13}}/>
-        <div style={{color:'#5a6480',fontSize:11,marginTop:4}}>Producer · wine name · vintage · region · grape variety</div>
+        <div style={{color:'#5a6480',fontSize:11,marginTop:4}}>Producer · wine name · vintage · region · grape</div>
       </div>
 
       {error && (
         <div style={{padding:'12px 14px',background:'#1a0e0e',border:'0.5px solid #4a2020',borderRadius:10,marginBottom:12}}>
-          <div style={{color:'#c44a4a',fontSize:12,marginBottom:6,fontWeight:500}}>Couldn't identify — try these:</div>
-          <div style={{color:'#8a6060',fontSize:12,lineHeight:1.6}}>• Add the back label photo for more text<br/>• Type the wine name in the text box above<br/>• Try again — results vary with lighting</div>
+          <div style={{color:'#c44a4a',fontSize:12,marginBottom:6,fontWeight:600}}>Couldn't identify — try:</div>
+          <div style={{color:'#8a6060',fontSize:12,lineHeight:1.8}}>
+            • Add the back label photo<br/>
+            • Type the wine name below<br/>
+            • Tap Identify again with both photos
+          </div>
         </div>
       )}
 
-      {/* THE IDENTIFY BUTTON — user must tap this */}
       <button className="btn" onClick={runIdentification} disabled={loading||(!frontImg&&!manualText.trim())} style={{marginBottom:8}}>
         {loading ? 'Identifying…' : '🔍 Identify wine'}
       </button>
-      <div style={{color:'#5a6480',fontSize:11,textAlign:'center',lineHeight:1.5}}>
-        {frontImg||backImg ? `${frontImg?'Front':''}${frontImg&&backImg?' + ':''}${backImg?'Back':''} label${frontImg&&backImg?'s':''} ready` : 'Add at least a front label photo'}
+      <div style={{color:'#5a6480',fontSize:11,textAlign:'center',lineHeight:1.6,marginBottom:4}}>
+        {frontImg||backImg
+          ? `${[frontImg?'Front':null,backImg?'Back':null].filter(Boolean).join(' + ')} label${frontImg&&backImg?'s':''} ready ✓`
+          : 'Tap Camera or Library above to add a photo'}
       </div>
       <div style={{height:16}}/>
     </div>
