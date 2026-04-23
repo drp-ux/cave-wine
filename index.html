@@ -2672,7 +2672,7 @@ window.storage = {
 };
 
 // ─── React globals ────────────────────────────────────────────────────────────
-const { useState, useEffect, useRef } = React;
+var useState = React.useState, useEffect = React.useEffect, useRef = React.useRef, useCallback = React.useCallback, useMemo = React.useMemo;
 
 // ─── API key management ───────────────────────────────────────────────────────
 // Patch callAPI to use stored key + proper CORS headers
