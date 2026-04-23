@@ -281,24 +281,62 @@ async function getRecommendations(description, cellar, profileId) {
 }
 
 async function fetchLivePrice(producer, wineName, vintage, profileId) {
-  const wine = [producer, wineName, vintage].filter(Boolean).join(' ');
-  const prompt = `Search for the current US retail price of this wine: "${wine}"
+  const apiKey = getApiKey(profileId);
+  if (!apiKey) throw new Error('No API key');
 
-Search Wine-Searcher, Total Wine, and K&L Wines for current US retail listings. Use the actual prices you find.
+  // Build Wine-Searcher URLs to search
+  const exactQuery  = encodeURIComponent([producer, wineName, vintage].filter(Boolean).join(' '));
+  const broadQuery  = encodeURIComponent([producer, wineName].filter(Boolean).join(' '));
+  const wsExactUrl  = `https://www.wine-searcher.com/find/${exactQuery}/1/usa`;
+  const wsBroadUrl  = `https://www.wine-searcher.com/find/${broadQuery}/1/usa`;
 
-Return ONLY a raw JSON object — nothing before or after it:
-{"priceLow":45,"priceHigh":280,"priceMedian":218,"currency":"USD","sources":["Wine-Searcher","K&L Wines"],"listingsFound":8,"priceNote":"Based on 8 US listings across Wine-Searcher and K&L (April 2026)","confidence":"high"}
+  const prompt = `You must use the web_search tool to look up real current retail prices for this wine on Wine-Searcher.
+
+Wine to price: ${producer} ${wineName} ${vintage}
+
+STEP 1 — Search for the exact wine and vintage:
+Search URL: ${wsExactUrl}
+OR search query: "site:wine-searcher.com ${producer} ${wineName} ${vintage} price"
+
+STEP 2 — If exact vintage has fewer than 3 listings, also search the broader wine:
+Search URL: ${wsBroadUrl}
+
+STEP 3 — Extract the ACTUAL prices you see in the search results. Do NOT use your training data or make up prices. Only report prices that appear in the search results.
+
+Return ONLY a raw JSON object:
+{"priceLow":198,"priceHigh":265,"priceMedian":218,"listingsFound":14,"priceNote":"Wine-Searcher: 14 US listings for ${producer} ${wineName} ${vintage}, April 2026","confidence":"high","searchedExactVintage":true}
 
 Rules:
-- priceLow = lowest price found across all searched retailers
-- priceHigh = highest price found
-- priceMedian = the middle/typical price most people would pay
-- listingsFound = total number of US retail listings found
-- confidence: "high" (10+ listings), "medium" (3-9), "low" (1-2)
-- If no listings found at all: {"priceLow":null,"priceHigh":null,"priceMedian":null,"sources":[],"listingsFound":0,"priceNote":"No current US listings found","confidence":"none"}
-- Do not guess — only report prices you actually find from searching`;
+- priceLow = cheapest US listing found on Wine-Searcher
+- priceHigh = most expensive US listing found  
+- priceMedian = middle price (what most people would pay)
+- listingsFound = number of US merchant listings found
+- searchedExactVintage = true if ${vintage} listings found, false if used broader search
+- confidence: "high" (5+ listings), "medium" (2-4 listings), "low" (1 listing)
+- If Wine-Searcher shows NO listings at all: {"priceLow":null,"priceHigh":null,"priceMedian":null,"listingsFound":0,"priceNote":"No Wine-Searcher US listings found for ${producer} ${wineName}","confidence":"none","searchedExactVintage":false}
+- CRITICAL: Do not guess or use training data prices. Only report what Wine-Searcher actually shows.`;
 
-  const txt = await callAPI([{ role: 'user', content: prompt }], profileId, true);
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-5',
+      max_tokens: 1500,
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const raw = await res.text();
+  if (!res.ok) throw new Error(`Price lookup HTTP ${res.status}: ${raw.slice(0,150)}`);
+  const data = JSON.parse(raw);
+  if (data.error) throw new Error(data.error.message || 'Price lookup API error');
+  const txt = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
+  if (!txt) throw new Error('Empty price response');
   return parseJSON(txt);
 }
 
