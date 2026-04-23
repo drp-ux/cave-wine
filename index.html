@@ -280,6 +280,28 @@ async function getRecommendations(description, cellar, profileId) {
   return JSON.parse(m[0]);
 }
 
+async function fetchLivePrice(producer, wineName, vintage, profileId) {
+  const wine = [producer, wineName, vintage].filter(Boolean).join(' ');
+  const prompt = `Search for the current US retail price of this wine: "${wine}"
+
+Search Wine-Searcher, Total Wine, and K&L Wines for current US retail listings. Use the actual prices you find.
+
+Return ONLY a raw JSON object — nothing before or after it:
+{"priceLow":45,"priceHigh":280,"priceMedian":218,"currency":"USD","sources":["Wine-Searcher","K&L Wines"],"listingsFound":8,"priceNote":"Based on 8 US listings across Wine-Searcher and K&L (April 2026)","confidence":"high"}
+
+Rules:
+- priceLow = lowest price found across all searched retailers
+- priceHigh = highest price found
+- priceMedian = the middle/typical price most people would pay
+- listingsFound = total number of US retail listings found
+- confidence: "high" (10+ listings), "medium" (3-9), "low" (1-2)
+- If no listings found at all: {"priceLow":null,"priceHigh":null,"priceMedian":null,"sources":[],"listingsFound":0,"priceNote":"No current US listings found","confidence":"none"}
+- Do not guess — only report prices you actually find from searching`;
+
+  const txt = await callAPI([{ role: 'user', content: prompt }], profileId, true);
+  return parseJSON(txt);
+}
+
 async function compressForVision(dataUrl, maxDim=1200) {
   return new Promise(resolve => {
     const img = new Image();
@@ -379,6 +401,28 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     try {
       setLoadMsg('Identifying wine…');
       const wine = await identifyWine(frontImg, backImg, manualText, profileId);
+      if (wine.identified) {
+        setLoadMsg('Fetching live prices from Wine-Searcher, Total Wine, K&L…');
+        try {
+          const priceData = await fetchLivePrice(wine.producer, wine.wineName, wine.vintage, profileId);
+          if (priceData.listingsFound > 0) {
+            wine.retailPriceLow    = priceData.priceLow;
+            wine.retailPriceHigh   = priceData.priceHigh;
+            wine.priceMedian       = priceData.priceMedian;
+            wine.priceNote         = priceData.priceNote;
+            wine.priceSources      = priceData.sources || [];
+            wine.priceListings     = priceData.listingsFound;
+            wine.priceConfidence   = priceData.confidence;
+            wine.livePriceFetched  = true;
+          } else {
+            wine.priceNote        = 'No current US listings found — price is Claude's estimate';
+            wine.livePriceFetched  = false;
+          }
+        } catch(priceErr) {
+          wine.priceNote        = 'Live price lookup unavailable — price is Claude's estimate';
+          wine.livePriceFetched  = false;
+        }
+      }
       setPending(wine); setPendingQty(1); setView('is-this-right');
     } catch(err) {
       setError(err.message || 'Identification failed.');
@@ -699,8 +743,22 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 
           <div style={{display:'flex',gap:8,marginBottom:10}}>
             <div className="card" style={{flex:1,padding:12}}>
-              <div className="sec" style={{marginBottom:4}}>RETAIL</div>
-              <div className="df" style={{color:'#c4a44a',fontSize:18}}>${p.retailPriceLow}–${p.retailPriceHigh}</div>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+                <div className="sec" style={{marginBottom:0}}>RETAIL (US)</div>
+                {p.livePriceFetched
+                  ? <span style={{background:'#0e2318',color:'#4a9e6a',fontSize:9,padding:'2px 6px',borderRadius:8,border:'0.5px solid #1a3d28',letterSpacing:'.04em'}}>LIVE</span>
+                  : <span style={{background:'#252d4a',color:'#5a6480',fontSize:9,padding:'2px 6px',borderRadius:8,letterSpacing:'.04em'}}>EST.</span>
+                }
+              </div>
+              {p.priceMedian
+                ? <>
+                    <div className="df" style={{color:'#c4a44a',fontSize:18}}>${p.priceMedian} <span style={{fontSize:13,color:'#5a6480'}}>typical</span></div>
+                    <div style={{color:'#5a6480',fontSize:10,marginTop:1}}>${p.retailPriceLow}–${p.retailPriceHigh} range</div>
+                  </>
+                : <div className="df" style={{color:'#c4a44a',fontSize:18}}>${p.retailPriceLow}–${p.retailPriceHigh}</div>
+              }
+              {p.priceSources?.length>0 && <div style={{color:'#5a6480',fontSize:10,marginTop:3}}>{p.priceListings} listings · {p.priceSources.slice(0,2).join(', ')}</div>}
+              {p.priceNote && !p.livePriceFetched && <div style={{color:'#5a6480',fontSize:10,marginTop:3,fontStyle:'italic'}}>{p.priceNote}</div>}
             </div>
             <div className="card" style={{flex:1,padding:12}}>
               <div className="sec" style={{marginBottom:4}}>DRINK</div>
@@ -816,9 +874,22 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 
       <div style={{display:'flex',gap:8,marginBottom:10}}>
         <div className="card" style={{flex:1,padding:12}}>
-          <div className="sec" style={{marginBottom:4}}>RETAIL</div>
-          <div className="df" style={{color:'#c4a44a',fontSize:18}}>${sel.retailPriceLow}–${sel.retailPriceHigh}</div>
-          {sel.priceNote&&<div style={{color:'#5a6480',fontSize:10,marginTop:2,fontStyle:'italic'}}>{sel.priceNote}</div>}
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+            <div className="sec" style={{marginBottom:0}}>RETAIL (US)</div>
+            {sel.livePriceFetched
+              ? <span style={{background:'#0e2318',color:'#4a9e6a',fontSize:9,padding:'2px 6px',borderRadius:8,border:'0.5px solid #1a3d28',letterSpacing:'.04em'}}>LIVE</span>
+              : <span style={{background:'#252d4a',color:'#5a6480',fontSize:9,padding:'2px 6px',borderRadius:8,letterSpacing:'.04em'}}>EST.</span>
+            }
+          </div>
+          {sel.priceMedian
+            ? <>
+                <div className="df" style={{color:'#c4a44a',fontSize:18}}>${sel.priceMedian} <span style={{fontSize:13,color:'#5a6480'}}>typical</span></div>
+                <div style={{color:'#5a6480',fontSize:10,marginTop:1}}>${sel.retailPriceLow}–${sel.retailPriceHigh} range</div>
+              </>
+            : <div className="df" style={{color:'#c4a44a',fontSize:18}}>${sel.retailPriceLow}–${sel.retailPriceHigh}</div>
+          }
+          {sel.priceSources?.length>0 && <div style={{color:'#5a6480',fontSize:10,marginTop:3}}>{sel.priceListings} listings · {sel.priceSources.slice(0,2).join(', ')}</div>}
+          {sel.priceNote&&<div style={{color:'#5a6480',fontSize:10,marginTop:3,fontStyle:'italic'}}>{sel.priceNote}</div>}
         </div>
         <div className="card" style={{flex:1,padding:12}}>
           <div className="sec" style={{marginBottom:4}}>DRINK</div>
