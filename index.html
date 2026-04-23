@@ -45,9 +45,30 @@
       el.querySelector('div').textContent += 'PROMISE: ' + (e.reason ? (e.reason.stack || String(e.reason)) : String(e)) + '\n\n';
     });
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(function(){});
+
+    window.storage = {
+      list: async function(prefix) {
+        var keys = Object.keys(localStorage).filter(function(k){ return k.startsWith(prefix); });
+        return { keys: keys };
+      },
+      get: async function(key) {
+        var val = localStorage.getItem(key);
+        if (val === null) throw new Error('Key not found: ' + key);
+        return { value: val };
+      },
+      set: async function(key, value) {
+        localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+        return { key: key, value: value };
+      },
+      delete: async function(key) {
+        localStorage.removeItem(key);
+        return { key: key, deleted: true };
+      }
+    };
   </script>
 
   <script type="text/babel" data-presets="react,env">
+
 
 // Cave v2 — full rewrite
 // No imports (globals: React, ReactDOM via CDN)
@@ -401,8 +422,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [purchasePrice, setPurchasePrice] = useState('');
   const [purchaseWhere, setPurchaseWhere] = useState('');
-  const [showArchive, setShowArchive] = useState(false);
-  const [archive, setArchive] = useState([]);
+  
 
   // File input refs — must be at top level (Rules of Hooks)
   const { useRef } = React;
@@ -1312,12 +1332,10 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
             `${w.drinkingWindow?.start||''}–${w.drinkingWindow?.end||''}`,
             w.cellaring?.yearsToHold||'',
             (w.tastingNotes?.nose||'').replace(/,/g,' '),
-            (w.myNotes||'').replace(/,/g,' ').replace(/
-/g,' '),
+            (w.myNotes||'').replace(/,/g,' ').replace(/\n/g,' '),
             w.addedAt?new Date(w.addedAt).toLocaleDateString():''
           ].map(v=>`"${v}"`).join(','))
-        ].join('
-');
+        ].join('\n');
         const blob = new Blob([rows],{type:'text/csv'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -1508,8 +1526,7 @@ function SettingsPanel({ profileId, onSwitchProfile }) {
       w.addedAt ? new Date(w.addedAt).toLocaleDateString() : ''
     ].map(v => `"${String(v).replace(/"/g,'""')}"`));
 
-    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('
-');
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
@@ -1688,6 +1705,7 @@ function App() {
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
 
+  
   
   </script>
 </body>
