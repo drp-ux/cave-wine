@@ -142,7 +142,7 @@ const store = {
 function buildStorage(profileId) {
   const prefix = getProfilePrefix(profileId);
   window.storage = {
-    list: async p => ({ keys: store.keys(prefix+(p||'')) }),
+    list: async p => ({ keys: store.keys(prefix+(p||'')).map(k => k.slice(prefix.length)) }),
     get: async k => { const v=store.get(prefix+k); if(v===null) throw new Error('not found'); return {value:v}; },
     set: async (k,v) => { store.set(prefix+k, v); return {key:k,value:v}; },
     delete: async k => { store.del(prefix+k); return {key:k,deleted:true}; }
