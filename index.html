@@ -762,7 +762,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   }
 
   // ── WINE DETAIL ───────────────────────────────────────────────────────────
-  if (view === 'detail' && sel) return wrap(<>
+  if (view==='detail' && sel) return wrap(<>
     <div style={{padding:'18px 16px 10px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
       <button className="back" onClick={()=>setView('cellar')}>←</button>
       <button style={{background:'none',border:'none',color:'#c44a4a',fontSize:12,cursor:'pointer'}} onClick={()=>{setLogAction('delete');setView('log');}}>Remove wine</button>
@@ -880,7 +880,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   </>, 'cellar');
 
   // ── LOG ───────────────────────────────────────────────────────────────────
-  if (view === 'log' && sel) return wrap(<>
+  if (view==='log' && sel) return wrap(<>
     <div style={{padding:'18px 16px 6px',display:'flex',alignItems:'center',gap:10}}>
       <button className="back" onClick={()=>{setLogAction('');setView('detail');}}>←</button>
       <span className="di" style={{color:'#f0ead8',fontSize:18}}>Log a bottle</span>
@@ -945,7 +945,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   </>, 'cellar');
 
   // ── CELLAR ────────────────────────────────────────────────────────────────
-  if (view === 'cellar') return wrap(<>
+  if (view==='cellar') return wrap(<>
     <div style={{padding:'20px 16px 10px'}}>
       <div className="di" style={{color:'#f0ead8',fontSize:26,marginBottom:12}}>Cellar</div>
       <div className="scrl" style={{marginBottom:8}}>
@@ -1008,7 +1008,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   </>, 'cellar');
 
   // ── CONCIERGE ─────────────────────────────────────────────────────────────
-  if (view === 'concierge') return wrap(<>
+  if (view==='concierge') return wrap(<>
     <div style={{padding:'20px 16px 12px'}}>
       <div className="di" style={{color:'#f0ead8',fontSize:26,marginBottom:3}}>Concierge</div>
       <div style={{color:'#5a6480',fontSize:13}}>Tell me about your evening</div>
@@ -1051,7 +1051,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   </>, 'concierge');
 
   // ── SETTINGS ──────────────────────────────────────────────────────────────
-  if (view === 'settings') return wrap(<>
+  if (view==='settings') return wrap(<>
     <div style={{padding:'20px 16px 12px'}}>
       <div className="di" style={{color:'#f0ead8',fontSize:26,marginBottom:3}}>Settings</div>
       <div style={{color:'#5a6480',fontSize:13}}>{profileName}</div>
