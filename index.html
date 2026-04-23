@@ -321,6 +321,15 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   const [editNotes, setEditNotes] = useState(false);
   const [editPending, setEditPending] = useState(null);
 
+  // File input refs — must be at top level (Rules of Hooks)
+  const { useRef } = React;
+  const frontCamRef    = useRef(null);
+  const frontLibRef    = useRef(null);
+  const backCamRef     = useRef(null);
+  const backLibRef     = useRef(null);
+  const retakeFrontRef = useRef(null);
+  const retakeBackRef  = useRef(null);
+
   const sel = cellar.find(w => w.id === selId);
   const stats = {
     bottles: cellar.reduce((s,w)=>s+(w.bottles||0),0),
@@ -513,15 +522,6 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   </>, 'home');
 
   // ── SCAN ─────────────────────────────────────────────────────────────────
-  // iOS-safe: use refs + .click() instead of hidden inputs inside labels
-  const { useRef: _useRef } = React;
-  const frontCamRef = _useRef(null);
-  const frontLibRef = _useRef(null);
-  const backCamRef  = _useRef(null);
-  const backLibRef  = _useRef(null);
-  const retakeFrontRef = _useRef(null);
-  const retakeBackRef  = _useRef(null);
-
   if (view==='scan') return wrap(<>
     {/* Hidden file inputs — never display:none on iOS, use opacity+position instead */}
     <input ref={frontCamRef} type="file" accept="image/*" capture="environment" onChange={e=>handlePhoto(e,'front')}
