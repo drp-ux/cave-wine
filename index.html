@@ -1,0 +1,2851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#161c2e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Cave" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <title>Cave — Wine Cellar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #161c2e; }
+    #root { min-height: 100%; }
+    /* iOS safe area padding */
+    body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+
+  <script>
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArray(r) { if ("undefined" != typeof Symbol && null != r[Symbol.iterator] || null != r["@@iterator"]) return Array.from(r); }
+function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(r); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _regenerator() { /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */ var e, t, r = "function" == typeof Symbol ? Symbol : {}, n = r.iterator || "@@iterator", o = r.toStringTag || "@@toStringTag"; function i(r, n, o, i) { var c = n && n.prototype instanceof Generator ? n : Generator, u = Object.create(c.prototype); return _regeneratorDefine2(u, "_invoke", function (r, n, o) { var i, c, u, f = 0, p = o || [], y = !1, G = { p: 0, n: 0, v: e, a: d, f: d.bind(e, 4), d: function d(t, r) { return i = t, c = 0, u = e, G.n = r, a; } }; function d(r, n) { for (c = r, u = n, t = 0; !y && f && !o && t < p.length; t++) { var o, i = p[t], d = G.p, l = i[2]; r > 3 ? (o = l === n) && (u = i[(c = i[4]) ? 5 : (c = 3, 3)], i[4] = i[5] = e) : i[0] <= d && ((o = r < 2 && d < i[1]) ? (c = 0, G.v = n, G.n = i[1]) : d < l && (o = r < 3 || i[0] > n || n > l) && (i[4] = r, i[5] = n, G.n = l, c = 0)); } if (o || r > 1) return a; throw y = !0, n; } return function (o, p, l) { if (f > 1) throw TypeError("Generator is already running"); for (y && 1 === p && d(p, l), c = p, u = l; (t = c < 2 ? e : u) || !y;) { i || (c ? c < 3 ? (c > 1 && (G.n = -1), d(c, u)) : G.n = u : G.v = u); try { if (f = 2, i) { if (c || (o = "next"), t = i[o]) { if (!(t = t.call(i, u))) throw TypeError("iterator result is not an object"); if (!t.done) return t; u = t.value, c < 2 && (c = 0); } else 1 === c && (t = i.return) && t.call(i), c < 2 && (u = TypeError("The iterator does not provide a '" + o + "' method"), c = 1); i = e; } else if ((t = (y = G.n < 0) ? u : r.call(n, G)) !== a) break; } catch (t) { i = e, c = 1, u = t; } finally { f = 1; } } return { value: t, done: y }; }; }(r, o, i), !0), u; } var a = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} t = Object.getPrototypeOf; var c = [][n] ? t(t([][n]())) : (_regeneratorDefine2(t = {}, n, function () { return this; }), t), u = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(c); function f(e) { return Object.setPrototypeOf ? Object.setPrototypeOf(e, GeneratorFunctionPrototype) : (e.__proto__ = GeneratorFunctionPrototype, _regeneratorDefine2(e, o, "GeneratorFunction")), e.prototype = Object.create(u), e; } return GeneratorFunction.prototype = GeneratorFunctionPrototype, _regeneratorDefine2(u, "constructor", GeneratorFunctionPrototype), _regeneratorDefine2(GeneratorFunctionPrototype, "constructor", GeneratorFunction), GeneratorFunction.displayName = "GeneratorFunction", _regeneratorDefine2(GeneratorFunctionPrototype, o, "GeneratorFunction"), _regeneratorDefine2(u), _regeneratorDefine2(u, o, "Generator"), _regeneratorDefine2(u, n, function () { return this; }), _regeneratorDefine2(u, "toString", function () { return "[object Generator]"; }), (_regenerator = function _regenerator() { return { w: i, m: f }; })(); }
+function _regeneratorDefine2(e, r, n, t) { var i = Object.defineProperty; try { i({}, "", {}); } catch (e) { i = 0; } _regeneratorDefine2 = function _regeneratorDefine(e, r, n, t) { function o(r, n) { _regeneratorDefine2(e, r, function (e) { return this._invoke(r, n, e); }); } r ? i ? i(e, r, { value: n, enumerable: !t, configurable: !t, writable: !t }) : e[r] = n : (o("next", 0), o("throw", 1), o("return", 2)); }, _regeneratorDefine2(e, r, n, t); }
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t.return || t.return(); } finally { if (u) throw o; } } }; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function asyncGeneratorStep(n, t, e, r, o, a, c) { try { var i = n[a](c), u = i.value; } catch (n) { return void e(n); } i.done ? t(u) : Promise.resolve(u).then(r, o); }
+function _asyncToGenerator(n) { return function () { var t = this, e = arguments; return new Promise(function (r, o) { var a = n.apply(t, e); function _next(n) { asyncGeneratorStep(a, r, o, _next, _throw, "next", n); } function _throw(n) { asyncGeneratorStep(a, r, o, _next, _throw, "throw", n); } _next(void 0); }); }; }
+// ─── CSS ─────────────────────────────────────────────────────────────────────
+var CSS = "\n@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap');\n*{box-sizing:border-box;margin:0;padding:0}\nbody{background:#161c2e;color:#f0ead8;font-family:system-ui,sans-serif}\n.df{font-family:'Cormorant Garamond',Georgia,serif}\n.di{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic}\ntextarea,input[type=text]{background:#252d4a;border:0.5px solid #3a4468;border-radius:10px;padding:10px 12px;width:100%;font-size:13px;color:#f0ead8;font-family:system-ui,sans-serif;outline:none;resize:none}\ntextarea::placeholder,input::placeholder{color:#5a6480}\n.btn{background:#c4a44a;color:#0f0c05;border:none;border-radius:10px;padding:12px;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.04em;width:100%}\n.btn:disabled{background:#252d4a;color:#5a6480;cursor:not-allowed}\n.gbtn{background:transparent;color:#c4a44a;border:0.5px solid #3d3015;border-radius:10px;padding:11px;font-size:12px;cursor:pointer;width:100%}\n.dbtn{background:#2a1010;color:#c44a4a;border:0.5px solid #4a2020;border-radius:10px;padding:11px;font-size:12px;cursor:pointer;width:100%}\n.chip{background:#1e2640;border:0.5px solid #2d3654;color:#5a6480;border-radius:20px;padding:5px 12px;font-size:11px;cursor:pointer;white-space:nowrap}\n.chipon{background:#251f0e;border-color:#c4a44a;color:#c4a44a}\n.card{background:#1e2640;border:0.5px solid #2d3654;border-radius:14px;padding:14px}\n.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid #2d3654;cursor:pointer}\n.sec{color:#5a6480;font-size:10px;letter-spacing:.1em;margin-bottom:8px}\n.bhold{background:#251608;color:#c47a2a;font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid #3d2810;white-space:nowrap;display:inline-block}\n.bdrink{background:#0e2318;color:#4a9e6a;font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid #1a3d28;white-space:nowrap;display:inline-block}\n.bdanger{background:#2a1010;color:#c44a4a;font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid #4a2020;white-space:nowrap;display:inline-block}\n.pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;letter-spacing:.04em;font-weight:500}\n.pr{background:#3d1a14;color:#e8917a}\n.pw{background:#2a2918;color:#d4d09a}\n.ps{background:#162038;color:#7ab0e8}\n.prs{background:#3d1a28;color:#e89ab0}\n.nav{display:flex;justify-content:space-around;padding:10px 0 16px;border-top:0.5px solid #2d3654;background:#161c2e;flex-shrink:0}\n.nb{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;color:#5a6480;font-size:10px;letter-spacing:.04em;padding:0 14px}\n.nbon{color:#c4a44a}\n.ndot{width:4px;height:4px;border-radius:50%;background:#c4a44a;opacity:0;margin-top:1px}\n.ndoton{opacity:1}\n.qbtn{width:30px;height:30px;border-radius:8px;background:#252d4a;border:0.5px solid #3a4468;color:#f0ead8;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}\n.lopt{display:flex;align-items:center;gap:12px;padding:12px;background:#1e2640;border:0.5px solid #2d3654;border-radius:12px;cursor:pointer;margin-bottom:8px}\n.back{background:none;border:none;color:#5a6480;font-size:22px;cursor:pointer;padding:0;line-height:1;flex-shrink:0}\n.star{cursor:pointer;font-size:20px;user-select:none}\n.err{padding:10px 12px;background:#2a1010;border:0.5px solid #4a2020;border-radius:10px;color:#c44a4a;font-size:12px;line-height:1.5}\n.scrl{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}\n.scrl::-webkit-scrollbar{display:none}\n";
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+
+var pillCls = function pillCls() {
+  var t = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+  var s = t.toLowerCase();
+  if (s === 'red') return 'pill pr';
+  if (s === 'white') return 'pill pw';
+  if (s === 'sparkling') return 'pill ps';
+  if (s === 'rosé' || s === 'rose') return 'pill prs';
+  return 'pill pw';
+};
+var statusCls = function statusCls() {
+  var s = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+  var v = s.toLowerCase();
+  if (v.includes('now') || v.includes('soon') || v.includes('peak') && !v.includes('past')) return 'bdrink';
+  if (v.includes('past')) return 'bdanger';
+  return 'bhold';
+};
+var wineEmoji = function wineEmoji() {
+  var t = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+  return {
+    red: '🍷',
+    white: '🍾',
+    sparkling: '🥂',
+    rosé: '🌸',
+    dessert: '🍯',
+    fortified: '🥃'
+  }[t.toLowerCase()] || '🍷';
+};
+var avg = function avg(w) {
+  return ((w.retailPriceLow || 0) + (w.retailPriceHigh || 0)) / 2;
+};
+function compressImage(dataUrl) {
+  var maxDim = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1400;
+  return new Promise(function (resolve) {
+    var img = new Image();
+    img.onload = function () {
+      var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+      var c = document.createElement('canvas');
+      c.width = Math.round(img.width * scale);
+      c.height = Math.round(img.height * scale);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      resolve(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = function () {
+      return resolve(dataUrl);
+    };
+    img.src = dataUrl;
+  });
+}
+function makeThumbnail(dataUrl) {
+  var size = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 140;
+  return new Promise(function (resolve) {
+    var img = new Image();
+    img.onload = function () {
+      var s = Math.min(size / img.width, size / img.height);
+      var c = document.createElement('canvas');
+      c.width = Math.round(img.width * s);
+      c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      resolve(c.toDataURL('image/jpeg', 0.75));
+    };
+    img.onerror = function () {
+      return resolve('');
+    };
+    img.src = dataUrl;
+  });
+}
+
+// ─── OCR ─────────────────────────────────────────────────────────────────────
+function loadTesseract() {
+  return _loadTesseract.apply(this, arguments);
+}
+function _loadTesseract() {
+  _loadTesseract = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee10() {
+    return _regenerator().w(function (_context10) {
+      while (1) switch (_context10.n) {
+        case 0:
+          if (!window.Tesseract) {
+            _context10.n = 1;
+            break;
+          }
+          return _context10.a(2, window.Tesseract);
+        case 1:
+          return _context10.a(2, new Promise(function (resolve, reject) {
+            var s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+            s.onload = function () {
+              return resolve(window.Tesseract);
+            };
+            s.onerror = function () {
+              return reject(new Error('Could not load OCR engine'));
+            };
+            document.head.appendChild(s);
+          }));
+      }
+    }, _callee10);
+  }));
+  return _loadTesseract.apply(this, arguments);
+}
+function runOCR(_x) {
+  return _runOCR.apply(this, arguments);
+} // ─── API ──────────────────────────────────────────────────────────────────────
+function _runOCR() {
+  _runOCR = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee11(imageDataUrl) {
+    var T, worker, _yield$worker$recogni, text;
+    return _regenerator().w(function (_context11) {
+      while (1) switch (_context11.p = _context11.n) {
+        case 0:
+          _context11.n = 1;
+          return loadTesseract();
+        case 1:
+          T = _context11.v;
+          _context11.n = 2;
+          return T.createWorker('eng', 1, {
+            workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js',
+            corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core-simd-lstm.wasm.js',
+            logger: function logger() {}
+          });
+        case 2:
+          worker = _context11.v;
+          _context11.p = 3;
+          _context11.n = 4;
+          return worker.recognize(imageDataUrl);
+        case 4:
+          _yield$worker$recogni = _context11.v;
+          text = _yield$worker$recogni.data.text;
+          return _context11.a(2, text.trim());
+        case 5:
+          _context11.p = 5;
+          _context11.n = 6;
+          return worker.terminate();
+        case 6:
+          return _context11.f(5);
+        case 7:
+          return _context11.a(2);
+      }
+    }, _callee11, null, [[3,, 5, 7]]);
+  }));
+  return _runOCR.apply(this, arguments);
+}
+function callAPI(_x2) {
+  return _callAPI.apply(this, arguments);
+}
+function _callAPI() {
+  _callAPI = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee12(prompt) {
+    var res, raw, data, txt, _t8;
+    return _regenerator().w(function (_context12) {
+      while (1) switch (_context12.p = _context12.n) {
+        case 0:
+          _context12.n = 1;
+          return fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: 'claude-haiku-4-5-20251001',
+              max_tokens: 1000,
+              messages: [{
+                role: 'user',
+                content: prompt
+              }]
+            })
+          });
+        case 1:
+          res = _context12.v;
+          _context12.n = 2;
+          return res.text();
+        case 2:
+          raw = _context12.v;
+          if (res.ok) {
+            _context12.n = 3;
+            break;
+          }
+          throw new Error("HTTP ".concat(res.status, ": ").concat(raw.slice(0, 200)));
+        case 3:
+          _context12.p = 3;
+          data = JSON.parse(raw);
+          _context12.n = 5;
+          break;
+        case 4:
+          _context12.p = 4;
+          _t8 = _context12.v;
+          throw new Error("Non-JSON: ".concat(raw.slice(0, 150)));
+        case 5:
+          if (!data.error) {
+            _context12.n = 6;
+            break;
+          }
+          throw new Error(JSON.stringify(data.error).slice(0, 200));
+        case 6:
+          txt = (data.content || []).filter(function (b) {
+            return b.type === 'text';
+          }).map(function (b) {
+            return b.text;
+          }).join('').trim();
+          if (txt) {
+            _context12.n = 7;
+            break;
+          }
+          throw new Error("Empty response. Full: ".concat(JSON.stringify(data).slice(0, 200)));
+        case 7:
+          return _context12.a(2, txt);
+      }
+    }, _callee12, null, [[3, 4]]);
+  }));
+  return _callAPI.apply(this, arguments);
+}
+function parseJSON(txt) {
+  var fence = txt.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fence) return JSON.parse(fence[1].trim());
+  var s = txt.indexOf('{'),
+    e = txt.lastIndexOf('}');
+  if (s !== -1 && e > s) return JSON.parse(txt.slice(s, e + 1));
+  throw new Error("No JSON in: ".concat(txt.slice(0, 120)));
+}
+function identifyWine(_x3) {
+  return _identifyWine.apply(this, arguments);
+}
+function _identifyWine() {
+  _identifyWine = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee13(labelText) {
+    var prompt, txt;
+    return _regenerator().w(function (_context13) {
+      while (1) switch (_context13.n) {
+        case 0:
+          prompt = "You are an expert sommelier. Text was extracted via OCR from a wine bottle label: \"".concat(labelText.slice(0, 600), "\"\n\nIdentify this wine and reply with ONLY a raw JSON object \u2014 no markdown, no explanation, nothing else before or after the JSON.\n\n{\"identified\":true,\"confidence\":\"high\",\"producer\":\"exact producer\",\"wineName\":\"exact wine name\",\"vintage\":\"2021\",\"region\":\"region, country\",\"appellation\":\"appellation\",\"grapeVarieties\":[\"Nebbiolo\"],\"wineType\":\"red\",\"style\":\"Full-bodied, tannic\",\"retailPriceLow\":45,\"retailPriceHigh\":65,\"priceNote\":\"varies by vintage\",\"tastingNotes\":{\"nose\":\"dried rose, tar, cherry\",\"palate\":\"full body, firm tannins, red fruit\",\"finish\":\"long, grippy, savory\"},\"drinkingWindow\":{\"status\":\"hold\",\"start\":\"2027\",\"end\":\"2038\",\"recommendation\":\"Needs 3-5 more years to fully integrate\"},\"cellaring\":{\"shouldCellar\":true,\"yearsToHold\":\"3-5 more years\",\"storageNotes\":\"55\xB0F, 70% humidity, lay flat\"},\"servingTemp\":\"62-65\xB0F\",\"decantingAdvice\":\"Decant 2 hours before serving\"}\n\nFill in all fields accurately for the wine on this label. wineType must be: red, white, ros\xE9, sparkling, dessert, or fortified. Realistic US retail prices. Current year is 2026.\nIf unidentifiable: {\"identified\":false,\"reason\":\"what you can see and what's unclear\"}");
+          _context13.n = 1;
+          return callAPI(prompt);
+        case 1:
+          txt = _context13.v;
+          return _context13.a(2, parseJSON(txt));
+      }
+    }, _callee13);
+  }));
+  return _identifyWine.apply(this, arguments);
+}
+function getRecommendations(_x4, _x5) {
+  return _getRecommendations.apply(this, arguments);
+} // ─── COMPONENT ────────────────────────────────────────────────────────────────
+function _getRecommendations() {
+  _getRecommendations = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee14(description, cellar) {
+    var list, prompt, txt, arrMatch;
+    return _regenerator().w(function (_context14) {
+      while (1) switch (_context14.n) {
+        case 0:
+          list = cellar.map(function (w, i) {
+            var _w$drinkingWindow7;
+            return "".concat(i + 1, ". ").concat(w.producer, " \"").concat(w.wineName, "\" ").concat(w.vintage, " \u2014 ").concat(w.wineType, ", ").concat((w.grapeVarieties || []).join('/'), " \u2014 Status: ").concat(((_w$drinkingWindow7 = w.drinkingWindow) === null || _w$drinkingWindow7 === void 0 ? void 0 : _w$drinkingWindow7.status) || 'unknown', " \u2014 ").concat(w.bottles, " bottle(s) available");
+          }).join('\n');
+          prompt = "You are an expert sommelier. The host says: \"".concat(description, "\"\n\nTheir cellar:\n").concat(list, "\n\nRecommend 1-3 wines from this list that best fit the evening. Prioritize \"drink now\", \"drink soon\", or \"peak\" status. Reply with ONLY a raw JSON array \u2014 no markdown, nothing else:\n[{\"index\":1,\"reason\":\"specific reason why this wine works for tonight\"}]\n\nOnly recommend wines that are appropriate to drink now. If none qualify, return an empty array [].");
+          _context14.n = 1;
+          return callAPI(prompt);
+        case 1:
+          txt = _context14.v;
+          arrMatch = txt.match(/\[[\s\S]*\]/);
+          if (arrMatch) {
+            _context14.n = 2;
+            break;
+          }
+          throw new Error('No recommendation list found');
+        case 2:
+          return _context14.a(2, JSON.parse(arrMatch[0]));
+      }
+    }, _callee14);
+  }));
+  return _getRecommendations.apply(this, arguments);
+}
+function Cave() {
+  var _pending$drinkingWind, _pending$drinkingWind2, _pending$drinkingWind3, _pending$drinkingWind4, _sel$drinkLog, _sel$drinkingWindow, _sel$drinkingWindow2, _sel$drinkingWindow3, _sel$drinkingWindow4, _sel$drinkingWindow5;
+  var _useState = useState('home'),
+    _useState2 = _slicedToArray(_useState, 2),
+    view = _useState2[0],
+    setView = _useState2[1];
+  var _useState3 = useState([]),
+    _useState4 = _slicedToArray(_useState3, 2),
+    cellar = _useState4[0],
+    setCellar = _useState4[1];
+  var _useState5 = useState(null),
+    _useState6 = _slicedToArray(_useState5, 2),
+    selId = _useState6[0],
+    setSelId = _useState6[1];
+  var _useState7 = useState(null),
+    _useState8 = _slicedToArray(_useState7, 2),
+    pending = _useState8[0],
+    setPending = _useState8[1];
+  var _useState9 = useState(null),
+    _useState0 = _slicedToArray(_useState9, 2),
+    pendingImg = _useState0[0],
+    setPendingImg = _useState0[1];
+  var _useState1 = useState(1),
+    _useState10 = _slicedToArray(_useState1, 2),
+    pendingQty = _useState10[0],
+    setPendingQty = _useState10[1];
+  var _useState11 = useState(''),
+    _useState12 = _slicedToArray(_useState11, 2),
+    scanText = _useState12[0],
+    setScanText = _useState12[1];
+  var _useState13 = useState(false),
+    _useState14 = _slicedToArray(_useState13, 2),
+    manual = _useState14[0],
+    setManual = _useState14[1];
+  var _useState15 = useState(false),
+    _useState16 = _slicedToArray(_useState15, 2),
+    loading = _useState16[0],
+    setLoading = _useState16[1];
+  var _useState17 = useState(''),
+    _useState18 = _slicedToArray(_useState17, 2),
+    loadMsg = _useState18[0],
+    setLoadMsg = _useState18[1];
+  var _useState19 = useState(''),
+    _useState20 = _slicedToArray(_useState19, 2),
+    error = _useState20[0],
+    setError = _useState20[1];
+  var _useState21 = useState(''),
+    _useState22 = _slicedToArray(_useState21, 2),
+    logAction = _useState22[0],
+    setLogAction = _useState22[1];
+  var _useState23 = useState(''),
+    _useState24 = _slicedToArray(_useState23, 2),
+    logNotes = _useState24[0],
+    setLogNotes = _useState24[1];
+  var _useState25 = useState(0),
+    _useState26 = _slicedToArray(_useState25, 2),
+    logRating = _useState26[0],
+    setLogRating = _useState26[1];
+  var _useState27 = useState('all'),
+    _useState28 = _slicedToArray(_useState27, 2),
+    filterType = _useState28[0],
+    setFilterType = _useState28[1];
+  var _useState29 = useState('type'),
+    _useState30 = _slicedToArray(_useState29, 2),
+    sortBy = _useState30[0],
+    setSortBy = _useState30[1];
+  var _useState31 = useState(''),
+    _useState32 = _slicedToArray(_useState31, 2),
+    concText = _useState32[0],
+    setConcText = _useState32[1];
+  var _useState33 = useState(null),
+    _useState34 = _slicedToArray(_useState33, 2),
+    recs = _useState34[0],
+    setRecs = _useState34[1];
+  var _useState35 = useState(''),
+    _useState36 = _slicedToArray(_useState35, 2),
+    notesDraft = _useState36[0],
+    setNotesDraft = _useState36[1];
+  var _useState37 = useState(false),
+    _useState38 = _slicedToArray(_useState37, 2),
+    editNotes = _useState38[0],
+    setEditNotes = _useState38[1];
+  var sel = cellar.find(function (w) {
+    return w.id === selId;
+  });
+  var stats = {
+    bottles: cellar.reduce(function (s, w) {
+      return s + (w.bottles || 0);
+    }, 0),
+    value: Math.round(cellar.reduce(function (s, w) {
+      return s + (w.bottles || 0) * avg(w);
+    }, 0)),
+    ready: cellar.filter(function (w) {
+      var _w$drinkingWindow;
+      return statusCls(((_w$drinkingWindow = w.drinkingWindow) === null || _w$drinkingWindow === void 0 ? void 0 : _w$drinkingWindow.status) || '') === 'bdrink';
+    }).length
+  };
+  useEffect(function () {
+    loadCellar();
+  }, []);
+  function loadCellar() {
+    return _loadCellar.apply(this, arguments);
+  }
+  function _loadCellar() {
+    _loadCellar = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+      var _res$keys, res, wines, _iterator, _step, key, r, _t, _t2, _t3;
+      return _regenerator().w(function (_context) {
+        while (1) switch (_context.p = _context.n) {
+          case 0:
+            _context.p = 0;
+            _context.n = 1;
+            return window.storage.list('cave:');
+          case 1:
+            res = _context.v;
+            if (res !== null && res !== void 0 && (_res$keys = res.keys) !== null && _res$keys !== void 0 && _res$keys.length) {
+              _context.n = 2;
+              break;
+            }
+            return _context.a(2);
+          case 2:
+            wines = [];
+            _iterator = _createForOfIteratorHelper(res.keys);
+            _context.p = 3;
+            _iterator.s();
+          case 4:
+            if ((_step = _iterator.n()).done) {
+              _context.n = 9;
+              break;
+            }
+            key = _step.value;
+            _context.p = 5;
+            _context.n = 6;
+            return window.storage.get(key);
+          case 6:
+            r = _context.v;
+            if (r) wines.push(JSON.parse(r.value));
+            _context.n = 8;
+            break;
+          case 7:
+            _context.p = 7;
+            _t = _context.v;
+          case 8:
+            _context.n = 4;
+            break;
+          case 9:
+            _context.n = 11;
+            break;
+          case 10:
+            _context.p = 10;
+            _t2 = _context.v;
+            _iterator.e(_t2);
+          case 11:
+            _context.p = 11;
+            _iterator.f();
+            return _context.f(11);
+          case 12:
+            wines.sort(function (a, b) {
+              return (b.addedAt || 0) - (a.addedAt || 0);
+            });
+            setCellar(wines);
+            _context.n = 14;
+            break;
+          case 13:
+            _context.p = 13;
+            _t3 = _context.v;
+          case 14:
+            return _context.a(2);
+        }
+      }, _callee, null, [[5, 7], [3, 10, 11, 12], [0, 13]]);
+    }));
+    return _loadCellar.apply(this, arguments);
+  }
+  function saveWine(_x6) {
+    return _saveWine.apply(this, arguments);
+  }
+  function _saveWine() {
+    _saveWine = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2(wine) {
+      return _regenerator().w(function (_context2) {
+        while (1) switch (_context2.n) {
+          case 0:
+            _context2.n = 1;
+            return window.storage.set("cave:".concat(wine.id), JSON.stringify(wine));
+          case 1:
+            _context2.n = 2;
+            return loadCellar();
+          case 2:
+            return _context2.a(2);
+        }
+      }, _callee2);
+    }));
+    return _saveWine.apply(this, arguments);
+  }
+  function removeWine(_x7) {
+    return _removeWine.apply(this, arguments);
+  }
+  function _removeWine() {
+    _removeWine = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3(id) {
+      return _regenerator().w(function (_context3) {
+        while (1) switch (_context3.n) {
+          case 0:
+            _context3.n = 1;
+            return window.storage.delete("cave:".concat(id));
+          case 1:
+            _context3.n = 2;
+            return loadCellar();
+          case 2:
+            return _context3.a(2);
+        }
+      }, _callee3);
+    }));
+    return _removeWine.apply(this, arguments);
+  }
+  function goScan() {
+    setManual(false);
+    setScanText('');
+    setError('');
+    setPendingImg(null);
+    setPending(null);
+    setView('scan');
+  }
+  function handlePhoto(_x8) {
+    return _handlePhoto.apply(this, arguments);
+  }
+  function _handlePhoto() {
+    _handlePhoto = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee5(e) {
+      var _e$target$files;
+      var file, reader;
+      return _regenerator().w(function (_context5) {
+        while (1) switch (_context5.n) {
+          case 0:
+            file = (_e$target$files = e.target.files) === null || _e$target$files === void 0 ? void 0 : _e$target$files[0];
+            e.target.value = '';
+            if (file) {
+              _context5.n = 1;
+              break;
+            }
+            return _context5.a(2);
+          case 1:
+            setError('');
+            reader = new FileReader();
+            reader.onload = /*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee4() {
+              var compressed, ocrText, wine, _t4;
+              return _regenerator().w(function (_context4) {
+                while (1) switch (_context4.p = _context4.n) {
+                  case 0:
+                    _context4.n = 1;
+                    return compressImage(reader.result);
+                  case 1:
+                    compressed = _context4.v;
+                    setPendingImg(compressed);
+                    setView('scanning');
+                    setLoadMsg('Reading label…');
+                    setLoading(true);
+                    _context4.p = 2;
+                    _context4.n = 3;
+                    return runOCR(compressed);
+                  case 3:
+                    ocrText = _context4.v;
+                    if (!(!ocrText || ocrText.length < 4)) {
+                      _context4.n = 4;
+                      break;
+                    }
+                    throw new Error('OCR returned too little text');
+                  case 4:
+                    setScanText(ocrText);
+                    setLoadMsg('Identifying wine…');
+                    _context4.n = 5;
+                    return identifyWine(ocrText);
+                  case 5:
+                    wine = _context4.v;
+                    if (!wine.identified) {
+                      setError(wine.reason || 'Could not identify — try typing the label text below.');
+                      setManual(true);
+                      setView('scan');
+                    } else {
+                      setPending(wine);
+                      setPendingQty(1);
+                      setView('confirm');
+                    }
+                    _context4.n = 7;
+                    break;
+                  case 6:
+                    _context4.p = 6;
+                    _t4 = _context4.v;
+                    setError('OCR could not read the label — please type what you see below.');
+                    setManual(true);
+                    setView('scan');
+                  case 7:
+                    _context4.p = 7;
+                    setLoading(false);
+                    return _context4.f(7);
+                  case 8:
+                    return _context4.a(2);
+                }
+              }, _callee4, null, [[2, 6, 7, 8]]);
+            }));
+            reader.readAsDataURL(file);
+          case 2:
+            return _context5.a(2);
+        }
+      }, _callee5);
+    }));
+    return _handlePhoto.apply(this, arguments);
+  }
+  function handleManualIdentify() {
+    return _handleManualIdentify.apply(this, arguments);
+  }
+  function _handleManualIdentify() {
+    _handleManualIdentify = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee6() {
+      var wine, _t5;
+      return _regenerator().w(function (_context6) {
+        while (1) switch (_context6.p = _context6.n) {
+          case 0:
+            if (scanText.trim()) {
+              _context6.n = 1;
+              break;
+            }
+            return _context6.a(2);
+          case 1:
+            setLoading(true);
+            setError('');
+            setView('scanning');
+            setLoadMsg('Identifying wine…');
+            _context6.p = 2;
+            _context6.n = 3;
+            return identifyWine(scanText);
+          case 3:
+            wine = _context6.v;
+            if (!wine.identified) {
+              setError(wine.reason || 'Could not identify. Add more label details.');
+              setView('scan');
+            } else {
+              setPending(wine);
+              setPendingQty(1);
+              setView('confirm');
+            }
+            _context6.n = 5;
+            break;
+          case 4:
+            _context6.p = 4;
+            _t5 = _context6.v;
+            setError(_t5.message);
+            setView('scan');
+          case 5:
+            _context6.p = 5;
+            setLoading(false);
+            return _context6.f(5);
+          case 6:
+            return _context6.a(2);
+        }
+      }, _callee6, null, [[2, 4, 5, 6]]);
+    }));
+    return _handleManualIdentify.apply(this, arguments);
+  }
+  function confirmAdd() {
+    return _confirmAdd.apply(this, arguments);
+  }
+  function _confirmAdd() {
+    _confirmAdd = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee7() {
+      var thumb, existing, id, _t6;
+      return _regenerator().w(function (_context7) {
+        while (1) switch (_context7.n) {
+          case 0:
+            if (pending) {
+              _context7.n = 1;
+              break;
+            }
+            return _context7.a(2);
+          case 1:
+            if (!pendingImg) {
+              _context7.n = 3;
+              break;
+            }
+            _context7.n = 2;
+            return makeThumbnail(pendingImg);
+          case 2:
+            _t6 = _context7.v;
+            _context7.n = 4;
+            break;
+          case 3:
+            _t6 = '';
+          case 4:
+            thumb = _t6;
+            existing = cellar.find(function (w) {
+              return w.producer === pending.producer && w.wineName === pending.wineName && w.vintage === pending.vintage;
+            });
+            if (!existing) {
+              _context7.n = 6;
+              break;
+            }
+            _context7.n = 5;
+            return saveWine(_objectSpread(_objectSpread({}, existing), {}, {
+              bottles: (existing.bottles || 0) + pendingQty
+            }));
+          case 5:
+            _context7.n = 7;
+            break;
+          case 6:
+            id = Date.now().toString();
+            _context7.n = 7;
+            return saveWine(_objectSpread(_objectSpread({
+              id: id
+            }, pending), {}, {
+              bottles: pendingQty,
+              myNotes: '',
+              rating: 0,
+              image: thumb,
+              addedAt: Date.now(),
+              drinkLog: []
+            }));
+          case 7:
+            setPending(null);
+            setPendingImg(null);
+            setScanText('');
+            setManual(false);
+            setView('home');
+          case 8:
+            return _context7.a(2);
+        }
+      }, _callee7);
+    }));
+    return _confirmAdd.apply(this, arguments);
+  }
+  function confirmLog() {
+    return _confirmLog.apply(this, arguments);
+  }
+  function _confirmLog() {
+    _confirmLog = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee8() {
+      var entry, updated;
+      return _regenerator().w(function (_context8) {
+        while (1) switch (_context8.n) {
+          case 0:
+            if (sel) {
+              _context8.n = 1;
+              break;
+            }
+            return _context8.a(2);
+          case 1:
+            if (!(logAction === 'delete')) {
+              _context8.n = 3;
+              break;
+            }
+            _context8.n = 2;
+            return removeWine(sel.id);
+          case 2:
+            setSelId(null);
+            setLogAction('');
+            setView('cellar');
+            return _context8.a(2);
+          case 3:
+            entry = {
+              date: new Date().toLocaleDateString(),
+              type: logAction,
+              notes: logNotes,
+              rating: logRating
+            };
+            updated = _objectSpread(_objectSpread({}, sel), {}, {
+              bottles: Math.max(0, (sel.bottles || 0) - 1),
+              drinkLog: [entry].concat(_toConsumableArray(sel.drinkLog || []))
+            });
+            _context8.n = 4;
+            return saveWine(updated);
+          case 4:
+            setLogAction('');
+            setLogNotes('');
+            setLogRating(0);
+            setView('detail');
+          case 5:
+            return _context8.a(2);
+        }
+      }, _callee8);
+    }));
+    return _confirmLog.apply(this, arguments);
+  }
+  function adjustQty(_x9) {
+    return _adjustQty.apply(this, arguments);
+  }
+  function _adjustQty() {
+    _adjustQty = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee9(delta) {
+      return _regenerator().w(function (_context9) {
+        while (1) switch (_context9.n) {
+          case 0:
+            if (sel) {
+              _context9.n = 1;
+              break;
+            }
+            return _context9.a(2);
+          case 1:
+            _context9.n = 2;
+            return saveWine(_objectSpread(_objectSpread({}, sel), {}, {
+              bottles: Math.max(0, (sel.bottles || 0) + delta)
+            }));
+          case 2:
+            return _context9.a(2);
+        }
+      }, _callee9);
+    }));
+    return _adjustQty.apply(this, arguments);
+  }
+  function saveMyNotes() {
+    return _saveMyNotes.apply(this, arguments);
+  }
+  function _saveMyNotes() {
+    _saveMyNotes = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee0() {
+      return _regenerator().w(function (_context0) {
+        while (1) switch (_context0.n) {
+          case 0:
+            if (sel) {
+              _context0.n = 1;
+              break;
+            }
+            return _context0.a(2);
+          case 1:
+            _context0.n = 2;
+            return saveWine(_objectSpread(_objectSpread({}, sel), {}, {
+              myNotes: notesDraft
+            }));
+          case 2:
+            setEditNotes(false);
+          case 3:
+            return _context0.a(2);
+        }
+      }, _callee0);
+    }));
+    return _saveMyNotes.apply(this, arguments);
+  }
+  function runConcierge() {
+    return _runConcierge.apply(this, arguments);
+  }
+  function _runConcierge() {
+    _runConcierge = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee1() {
+      var idxs, matched, _t7;
+      return _regenerator().w(function (_context1) {
+        while (1) switch (_context1.p = _context1.n) {
+          case 0:
+            if (!(!concText.trim() || cellar.length === 0)) {
+              _context1.n = 1;
+              break;
+            }
+            return _context1.a(2);
+          case 1:
+            setLoading(true);
+            setError('');
+            setRecs(null);
+            _context1.p = 2;
+            _context1.n = 3;
+            return getRecommendations(concText, cellar);
+          case 3:
+            idxs = _context1.v;
+            matched = idxs.map(function (r) {
+              return {
+                wine: cellar[r.index - 1],
+                reason: r.reason
+              };
+            }).filter(function (r) {
+              return r.wine;
+            });
+            setRecs(matched);
+            _context1.n = 5;
+            break;
+          case 4:
+            _context1.p = 4;
+            _t7 = _context1.v;
+            setError(_t7.message);
+          case 5:
+            _context1.p = 5;
+            setLoading(false);
+            return _context1.f(5);
+          case 6:
+            return _context1.a(2);
+        }
+      }, _callee1, null, [[2, 4, 5, 6]]);
+    }));
+    return _runConcierge.apply(this, arguments);
+  }
+  var filteredCellar = cellar.filter(function (w) {
+    return filterType === 'all' || (w.wineType || '').toLowerCase() === filterType;
+  }).sort(function (a, b) {
+    var _a$drinkingWindow, _b$drinkingWindow;
+    if (sortBy === 'type') return (a.wineType || '').localeCompare(b.wineType || '');
+    if (sortBy === 'varietal') return ((a.grapeVarieties || [])[0] || '').localeCompare((b.grapeVarieties || [])[0] || '');
+    if (sortBy === 'price↑') return avg(a) - avg(b);
+    if (sortBy === 'price↓') return avg(b) - avg(a);
+    if (sortBy === 'drink') return (((_a$drinkingWindow = a.drinkingWindow) === null || _a$drinkingWindow === void 0 ? void 0 : _a$drinkingWindow.start) || '9999').localeCompare(((_b$drinkingWindow = b.drinkingWindow) === null || _b$drinkingWindow === void 0 ? void 0 : _b$drinkingWindow.start) || '9999');
+    return 0;
+  });
+  function Nav(_ref) {
+    var cur = _ref.cur;
+    return /*#__PURE__*/React.createElement("div", {
+      className: "nav"
+    }, [['home', '⌂', 'Home'], ['cellar', '▤', 'Cellar'], ['concierge', '✦', 'Concierge']].map(function (_ref2) {
+      var _ref3 = _slicedToArray(_ref2, 3),
+        v = _ref3[0],
+        ic = _ref3[1],
+        lb = _ref3[2];
+      return /*#__PURE__*/React.createElement("button", {
+        key: v,
+        className: "nb ".concat(cur === v ? 'nbon' : ''),
+        onClick: function onClick() {
+          if (v === 'concierge') {
+            setRecs(null);
+          }
+          setView(v);
+        }
+      }, /*#__PURE__*/React.createElement("span", {
+        style: {
+          fontSize: 16
+        }
+      }, ic), lb, /*#__PURE__*/React.createElement("span", {
+        className: "ndot ".concat(cur === v ? 'ndoton' : '')
+      }));
+    }));
+  }
+
+  // ── HOME ────────────────────────────────────────────────────────────────────
+  if (view === 'home') return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#161c2e',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      maxWidth: 440,
+      margin: '0 auto'
+    }
+  }, /*#__PURE__*/React.createElement("style", null, CSS), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '20px 16px 12px',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#5a6480',
+      fontSize: 10,
+      letterSpacing: '.12em',
+      marginBottom: 2
+    }
+  }, "YOUR"), /*#__PURE__*/React.createElement("div", {
+    className: "di",
+    style: {
+      color: '#f0ead8',
+      fontSize: 28
+    }
+  }, "Cave")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#252d4a',
+      border: '0.5px solid #3a4468',
+      borderRadius: '50%',
+      width: 36,
+      height: 36,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: '#c4a44a',
+      fontSize: 14,
+      fontWeight: 600
+    }
+  }, "A")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 16px 14px',
+      display: 'flex',
+      gap: 8
+    }
+  }, [{
+    label: 'BOTTLES',
+    val: stats.bottles,
+    color: '#f0ead8'
+  }, {
+    label: 'VALUE',
+    val: stats.value > 0 ? "$".concat(stats.value.toLocaleString()) : '—',
+    color: '#c4a44a'
+  }, {
+    label: 'READY',
+    val: stats.ready,
+    color: '#4a9e6a'
+  }].map(function (s) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: s.label,
+      className: "card",
+      style: {
+        flex: 1,
+        textAlign: 'center',
+        padding: 12
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#5a6480',
+        fontSize: 10,
+        letterSpacing: '.06em',
+        marginBottom: 4
+      }
+    }, s.label), /*#__PURE__*/React.createElement("div", {
+      className: "df",
+      style: {
+        color: s.color,
+        fontSize: 22
+      }
+    }, s.val));
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 16px',
+      flex: 1,
+      overflowY: 'auto'
+    }
+  }, cellar.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      padding: '48px 0'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 40,
+      marginBottom: 14
+    }
+  }, "\uD83C\uDF77"), /*#__PURE__*/React.createElement("div", {
+    className: "di",
+    style: {
+      color: '#8a96b8',
+      fontSize: 20,
+      marginBottom: 8
+    }
+  }, "Your cave is empty."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#5a6480',
+      fontSize: 13
+    }
+  }, "Scan your first bottle to begin.")) : cellar.slice(0, 8).map(function (w) {
+    var _w$drinkingWindow2, _w$drinkingWindow3;
+    return /*#__PURE__*/React.createElement("div", {
+      key: w.id,
+      className: "row",
+      onClick: function onClick() {
+        setSelId(w.id);
+        setView('detail');
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 34,
+        height: 46,
+        borderRadius: 5,
+        background: '#252d4a',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 20,
+        flexShrink: 0,
+        overflow: 'hidden'
+      }
+    }, w.image ? /*#__PURE__*/React.createElement("img", {
+      src: w.image,
+      style: {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        borderRadius: 4
+      }
+    }) : wineEmoji(w.wineType)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#f0ead8',
+        fontSize: 13,
+        fontWeight: 500,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      }
+    }, w.producer), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#5a6480',
+        fontSize: 11,
+        marginTop: 1,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      }
+    }, w.wineName, " ", w.vintage, " \xB7 ", /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: '#8a96b8'
+      }
+    }, w.bottles, " btl"))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: 'right',
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#c4a44a',
+        fontSize: 13
+      }
+    }, "$", Math.round(avg(w))), /*#__PURE__*/React.createElement("div", {
+      className: statusCls((_w$drinkingWindow2 = w.drinkingWindow) === null || _w$drinkingWindow2 === void 0 ? void 0 : _w$drinkingWindow2.status),
+      style: {
+        marginTop: 4
+      }
+    }, ((_w$drinkingWindow3 = w.drinkingWindow) === null || _w$drinkingWindow3 === void 0 ? void 0 : _w$drinkingWindow3.status) || '—')));
+  }), cellar.length > 8 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#5a6480',
+      fontSize: 11,
+      textAlign: 'center',
+      padding: '10px 0'
+    }
+  }, "+ ", cellar.length - 8, " more \xB7 see Cellar tab")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '10px 16px'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: goScan
+  }, "+ Scan new bottle")), /*#__PURE__*/React.createElement(Nav, {
+    cur: "home"
+  }));
+
+  // ── SCAN ─────────────────────────────────────────────────────────────────────
+  if (view === 'scan') return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#161c2e',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      maxWidth: 440,
+      margin: '0 auto'
+    }
+  }, /*#__PURE__*/React.createElement("style", null, CSS), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '18px 16px 10px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "back",
+    onClick: function onClick() {
+      return setView('home');
+    }
+  }, "\u2190"), /*#__PURE__*/React.createElement("span", {
+    className: "di",
+    style: {
+      color: '#f0ead8',
+      fontSize: 18
+    }
+  }, "Add to cave")), !manual ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      margin: '0 16px',
+      background: '#1e2640',
+      borderRadius: 16,
+      border: '0.5px solid #2d3654',
+      minHeight: 200,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      position: 'relative',
+      overflow: 'hidden'
+    }
+  }, pendingImg ? /*#__PURE__*/React.createElement("img", {
+    src: pendingImg,
+    style: {
+      width: '100%',
+      maxHeight: 220,
+      objectFit: 'contain'
+    }
+  }) : /*#__PURE__*/React.createElement(React.Fragment, null, ['top-left', 'top-right', 'bottom-left', 'bottom-right'].map(function (pos) {
+    var _pos$split = pos.split('-'),
+      _pos$split2 = _slicedToArray(_pos$split, 2),
+      v = _pos$split2[0],
+      h = _pos$split2[1];
+    return /*#__PURE__*/React.createElement("div", {
+      key: pos,
+      style: _defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty(_defineProperty({
+        position: 'absolute'
+      }, v, 16), h, 16), "width", 18), "height", 18), "borderTop", v === 'top' ? '2px solid #c4a44a' : 'none'), "borderBottom", v === 'bottom' ? '2px solid #c4a44a' : 'none'), "borderLeft", h === 'left' ? '2px solid #c4a44a' : 'none'), "borderRight", h === 'right' ? '2px solid #c4a44a' : 'none'), "borderRadius", "".concat(v === 'top' && h === 'left' ? '3px' : '0', " ").concat(v === 'top' && h === 'right' ? '3px' : '0', " ").concat(v === 'bottom' && h === 'right' ? '3px' : '0', " ").concat(v === 'bottom' && h === 'left' ? '3px' : '0'))
+    });
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 32,
+      marginBottom: 8
+    }
+  }, "\uD83D\uDCF7"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#5a6480',
+      fontSize: 12
+    }
+  }, "Point at the front label"))), error && /*#__PURE__*/React.createElement("div", {
+    className: "err",
+    style: {
+      margin: '10px 16px 0'
+    }
+  }, error), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '12px 16px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'block',
+      cursor: 'pointer'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "btn",
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8
+    }
+  }, "\uD83D\uDCF7 Take photo"), /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: "image/*",
+    capture: "environment",
+    onChange: handlePhoto,
+    style: {
+      display: 'none'
+    }
+  })), /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'block',
+      cursor: 'pointer'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "gbtn",
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      textAlign: 'center'
+    }
+  }, "\uD83D\uDDBC Choose from library"), /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: "image/*",
+    onChange: handlePhoto,
+    style: {
+      display: 'none'
+    }
+  })), /*#__PURE__*/React.createElement("button", {
+    style: {
+      background: 'none',
+      border: 'none',
+      color: '#5a6480',
+      fontSize: 12,
+      cursor: 'pointer',
+      marginTop: 4
+    },
+    onClick: function onClick() {
+      setManual(true);
+      setError('');
+    }
+  }, "Type label manually \u2192"))) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 16px',
+      flex: 1
+    }
+  }, pendingImg && /*#__PURE__*/React.createElement("div", {
+    style: {
+      borderRadius: 12,
+      overflow: 'hidden',
+      maxHeight: 150,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("img", {
+    src: pendingImg,
+    style: {
+      width: '100%',
+      objectFit: 'contain',
+      maxHeight: 150
+    }
+  })), error && /*#__PURE__*/React.createElement("div", {
+    className: "err",
+    style: {
+      marginBottom: 12
+    }
+  }, error), /*#__PURE__*/React.createElement("div", {
+    className: "sec"
+  }, "TYPE WHAT'S ON THE LABEL"), /*#__PURE__*/React.createElement("textarea", {
+    value: scanText,
+    onChange: function onChange(e) {
+      return setScanText(e.target.value);
+    },
+    placeholder: "e.g. Barolo 2021, Domenico Clerico, del Comune di Monforte d'Alba, Piedmont Italy",
+    rows: 4,
+    style: {
+      marginBottom: 8
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#5a6480',
+      fontSize: 11,
+      marginBottom: 12
+    }
+  }, "Include producer \xB7 wine name \xB7 vintage \xB7 region"), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: handleManualIdentify,
+    disabled: !scanText.trim() || loading
+  }, "Identify wine"), /*#__PURE__*/React.createElement("button", {
+    className: "gbtn",
+    style: {
+      marginTop: 8
+    },
+    onClick: function onClick() {
+      setManual(false);
+      setError('');
+    }
+  }, "\u2190 Back to camera")), /*#__PURE__*/React.createElement(Nav, {
+    cur: ""
+  }));
+
+  // ── SCANNING ─────────────────────────────────────────────────────────────────
+  if (view === 'scanning') return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#161c2e',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      maxWidth: 440,
+      margin: '0 auto'
+    }
+  }, /*#__PURE__*/React.createElement("style", null, CSS), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 44,
+      marginBottom: 18
+    }
+  }, "\uD83C\uDF77"), /*#__PURE__*/React.createElement("div", {
+    className: "di",
+    style: {
+      color: '#8a96b8',
+      fontSize: 22,
+      marginBottom: 8
+    }
+  }, loadMsg), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#5a6480',
+      fontSize: 12,
+      textAlign: 'center',
+      lineHeight: 1.7
+    }
+  }, loadMsg.includes('Reading') ? 'Running OCR on the label…' : 'Consulting the sommelier…'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 160,
+      height: 2,
+      background: '#1e2640',
+      borderRadius: 2,
+      overflow: 'hidden',
+      marginTop: 28
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: '100%',
+      background: 'linear-gradient(90deg, #c4a44a, #e8c870)',
+      borderRadius: 2,
+      width: '65%'
+    }
+  })));
+
+  // ── CONFIRM ────────────────────────────────────────────────────────────────
+  if (view === 'confirm' && pending) return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#161c2e',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      maxWidth: 440,
+      margin: '0 auto'
+    }
+  }, /*#__PURE__*/React.createElement("style", null, CSS), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '18px 16px 10px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "back",
+    onClick: function onClick() {
+      return setView('scan');
+    }
+  }, "\u2190"), /*#__PURE__*/React.createElement("span", {
+    className: "di",
+    style: {
+      color: '#f0ead8',
+      fontSize: 18
+    }
+  }, "Confirm wine")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 16px',
+      flex: 1,
+      overflowY: 'auto'
+    }
+  }, pendingImg && /*#__PURE__*/React.createElement("div", {
+    style: {
+      borderRadius: 12,
+      overflow: 'hidden',
+      maxHeight: 180,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("img", {
+    src: pendingImg,
+    style: {
+      width: '100%',
+      objectFit: 'contain',
+      maxHeight: 180
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#5a6480',
+      fontSize: 10,
+      letterSpacing: '.1em',
+      marginBottom: 2
+    }
+  }, "IDENTIFIED \xB7 ", (pending.confidence || '').toUpperCase()), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#5a6480',
+      fontSize: 10,
+      letterSpacing: '.1em',
+      marginBottom: 3
+    }
+  }, (pending.producer || '').toUpperCase()), /*#__PURE__*/React.createElement("div", {
+    className: "di",
+    style: {
+      color: '#f0ead8',
+      fontSize: 22,
+      lineHeight: 1.2,
+      marginBottom: 6
+    }
+  }, pending.wineName), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#8a96b8',
+      fontSize: 12
+    }
+  }, pending.vintage, pending.region ? " \xB7 ".concat(pending.region) : ''), pending.appellation && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#5a6480',
+      fontSize: 11,
+      marginTop: 2
+    }
+  }, pending.appellation), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 8,
+      display: 'flex',
+      gap: 4,
+      flexWrap: 'wrap'
+    }
+  }, (pending.grapeVarieties || []).map(function (g) {
+    return /*#__PURE__*/React.createElement("span", {
+      key: g,
+      className: pillCls(pending.wineType)
+    }, g);
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      flex: 1,
+      padding: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sec",
+    style: {
+      marginBottom: 4
+    }
+  }, "RETAIL"), /*#__PURE__*/React.createElement("div", {
+    className: "df",
+    style: {
+      color: '#c4a44a',
+      fontSize: 18
+    }
+  }, "$", pending.retailPriceLow, "\u2013$", pending.retailPriceHigh)), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      flex: 1,
+      padding: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sec",
+    style: {
+      marginBottom: 4
+    }
+  }, "DRINK"), /*#__PURE__*/React.createElement("div", {
+    className: "df",
+    style: {
+      color: '#c47a2a',
+      fontSize: 14,
+      marginBottom: 4
+    }
+  }, (_pending$drinkingWind = pending.drinkingWindow) === null || _pending$drinkingWind === void 0 ? void 0 : _pending$drinkingWind.start, "\u2013", (_pending$drinkingWind2 = pending.drinkingWindow) === null || _pending$drinkingWind2 === void 0 ? void 0 : _pending$drinkingWind2.end), /*#__PURE__*/React.createElement("div", {
+    className: statusCls(((_pending$drinkingWind3 = pending.drinkingWindow) === null || _pending$drinkingWind3 === void 0 ? void 0 : _pending$drinkingWind3.status) || '')
+  }, (_pending$drinkingWind4 = pending.drinkingWindow) === null || _pending$drinkingWind4 === void 0 ? void 0 : _pending$drinkingWind4.status))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sec"
+  }, "HOW MANY BOTTLES?"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#8a96b8',
+      fontSize: 13
+    }
+  }, "Bottles to add"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 16
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "qbtn",
+    onClick: function onClick() {
+      return setPendingQty(function (q) {
+        return Math.max(1, q - 1);
+      });
+    }
+  }, "\u2212"), /*#__PURE__*/React.createElement("span", {
+    className: "df",
+    style: {
+      color: '#f0ead8',
+      fontSize: 26,
+      minWidth: 28,
+      textAlign: 'center'
+    }
+  }, pendingQty), /*#__PURE__*/React.createElement("button", {
+    className: "qbtn",
+    onClick: function onClick() {
+      return setPendingQty(function (q) {
+        return q + 1;
+      });
+    }
+  }, "+"))), cellar.some(function (w) {
+    return w.producer === pending.producer && w.wineName === pending.wineName && w.vintage === pending.vintage;
+  }) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#c4a44a',
+      fontSize: 11,
+      marginTop: 8
+    }
+  }, "\u26A0 Already in cave \u2014 count will be added to existing stock")), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: confirmAdd
+  }, "Save ", pendingQty, " bottle", pendingQty !== 1 ? 's' : '', " to cave"), /*#__PURE__*/React.createElement("button", {
+    className: "gbtn",
+    style: {
+      marginTop: 8
+    },
+    onClick: goScan
+  }, "Re-scan"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 20
+    }
+  })), /*#__PURE__*/React.createElement(Nav, {
+    cur: ""
+  }));
+
+  // ── WINE DETAIL ─────────────────────────────────────────────────────────────
+  if (view === 'detail' && sel) return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#161c2e',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      maxWidth: 440,
+      margin: '0 auto'
+    }
+  }, /*#__PURE__*/React.createElement("style", null, CSS), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '18px 16px 10px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "back",
+    onClick: function onClick() {
+      return setView('cellar');
+    }
+  }, "\u2190"), /*#__PURE__*/React.createElement("button", {
+    style: {
+      background: 'none',
+      border: 'none',
+      color: '#c44a4a',
+      fontSize: 12,
+      cursor: 'pointer',
+      letterSpacing: '.05em'
+    },
+    onClick: function onClick() {
+      setLogAction('delete');
+      setView('log');
+    }
+  }, "Remove wine")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 16px',
+      flex: 1,
+      overflowY: 'auto'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 14,
+      marginBottom: 16,
+      alignItems: 'flex-start'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 54,
+      height: 74,
+      borderRadius: 8,
+      background: '#252d4a',
+      border: '0.5px solid #3a4468',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 28,
+      flexShrink: 0,
+      overflow: 'hidden'
+    }
+  }, sel.image ? /*#__PURE__*/React.createElement("img", {
+    src: sel.image,
+    style: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover'
+    }
+  }) : wineEmoji(sel.wineType)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#5a6480',
+      fontSize: 10,
+      letterSpacing: '.1em',
+      marginBottom: 2
+    }
+  }, (sel.producer || '').toUpperCase()), /*#__PURE__*/React.createElement("div", {
+    className: "di",
+    style: {
+      color: '#f0ead8',
+      fontSize: 20,
+      lineHeight: 1.2,
+      marginBottom: 4
+    }
+  }, sel.wineName), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#8a96b8',
+      fontSize: 11
+    }
+  }, sel.vintage, sel.region ? " \xB7 ".concat(sel.region) : ''), sel.appellation && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#5a6480',
+      fontSize: 10,
+      marginTop: 1
+    }
+  }, sel.appellation), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 6,
+      display: 'flex',
+      gap: 4,
+      flexWrap: 'wrap'
+    }
+  }, (sel.grapeVarieties || []).map(function (g) {
+    return /*#__PURE__*/React.createElement("span", {
+      key: g,
+      className: pillCls(sel.wineType)
+    }, g);
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sec",
+    style: {
+      marginBottom: 0
+    }
+  }, "INVENTORY"), /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      setLogAction('');
+      setLogNotes('');
+      setLogRating(0);
+      setView('log');
+    },
+    style: {
+      background: '#2a1010',
+      border: '0.5px solid #4a2020',
+      color: '#c44a4a',
+      borderRadius: 8,
+      padding: '4px 12px',
+      fontSize: 11,
+      cursor: 'pointer'
+    }
+  }, "Log a bottle")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between'
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    className: "df",
+    style: {
+      color: '#f0ead8',
+      fontSize: 24
+    }
+  }, sel.bottles), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: '#5a6480',
+      fontSize: 13
+    }
+  }, " bottles remaining")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "qbtn",
+    onClick: function onClick() {
+      return adjustQty(-1);
+    }
+  }, "\u2212"), /*#__PURE__*/React.createElement("button", {
+    className: "qbtn",
+    onClick: function onClick() {
+      return adjustQty(1);
+    }
+  }, "+"))), ((_sel$drinkLog = sel.drinkLog) === null || _sel$drinkLog === void 0 ? void 0 : _sel$drinkLog.length) > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      borderTop: '0.5px solid #2d3654',
+      paddingTop: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#5a6480',
+      fontSize: 10,
+      letterSpacing: '.08em',
+      marginBottom: 4
+    }
+  }, "DRINK LOG"), sel.drinkLog.slice(0, 3).map(function (l, i) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        marginBottom: 3
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: '#8a96b8',
+        fontSize: 11
+      }
+    }, l.date, " \u2014 ", l.type === 'drank' ? '🥂 Drank' : l.type === 'gave' ? '🎁 Gave away' : '💔 Lost'), l.rating > 0 && /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: '#c4a44a',
+        fontSize: 11
+      }
+    }, '★'.repeat(l.rating)));
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      flex: 1,
+      padding: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sec",
+    style: {
+      marginBottom: 4
+    }
+  }, "RETAIL"), /*#__PURE__*/React.createElement("div", {
+    className: "df",
+    style: {
+      color: '#c4a44a',
+      fontSize: 18
+    }
+  }, "$", sel.retailPriceLow, "\u2013$", sel.retailPriceHigh), sel.priceNote && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#5a6480',
+      fontSize: 10,
+      marginTop: 2,
+      fontStyle: 'italic'
+    }
+  }, sel.priceNote)), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      flex: 1,
+      padding: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sec",
+    style: {
+      marginBottom: 4
+    }
+  }, "DRINK"), /*#__PURE__*/React.createElement("div", {
+    className: "df",
+    style: {
+      color: '#c47a2a',
+      fontSize: 13,
+      marginBottom: 5
+    }
+  }, (_sel$drinkingWindow = sel.drinkingWindow) === null || _sel$drinkingWindow === void 0 ? void 0 : _sel$drinkingWindow.start, "\u2013", (_sel$drinkingWindow2 = sel.drinkingWindow) === null || _sel$drinkingWindow2 === void 0 ? void 0 : _sel$drinkingWindow2.end), /*#__PURE__*/React.createElement("div", {
+    className: statusCls(((_sel$drinkingWindow3 = sel.drinkingWindow) === null || _sel$drinkingWindow3 === void 0 ? void 0 : _sel$drinkingWindow3.status) || '')
+  }, ((_sel$drinkingWindow4 = sel.drinkingWindow) === null || _sel$drinkingWindow4 === void 0 ? void 0 : _sel$drinkingWindow4.status) || '—'))), sel.tastingNotes && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sec"
+  }, "TASTING NOTES"), [['Nose', sel.tastingNotes.nose], ['Palate', sel.tastingNotes.palate], ['Finish', sel.tastingNotes.finish]].map(function (_ref5) {
+    var _ref6 = _slicedToArray(_ref5, 2),
+      lbl = _ref6[0],
+      val = _ref6[1];
+    return val ? /*#__PURE__*/React.createElement("div", {
+      key: lbl,
+      style: {
+        marginBottom: 8
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#c4a44a',
+        fontSize: 11,
+        fontStyle: 'italic',
+        marginBottom: 2
+      }
+    }, lbl), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#8a96b8',
+        fontSize: 12,
+        lineHeight: 1.5
+      }
+    }, val)) : null;
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sec",
+    style: {
+      marginBottom: 0
+    }
+  }, "MY NOTES"), !editNotes && /*#__PURE__*/React.createElement("button", {
+    onClick: function onClick() {
+      setNotesDraft(sel.myNotes || '');
+      setEditNotes(true);
+    },
+    style: {
+      background: 'none',
+      border: 'none',
+      color: '#c4a44a',
+      fontSize: 11,
+      cursor: 'pointer'
+    }
+  }, "Edit")), editNotes ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("textarea", {
+    value: notesDraft,
+    onChange: function onChange(e) {
+      return setNotesDraft(e.target.value);
+    },
+    rows: 3,
+    placeholder: "Personal tasting notes, occasion, food pairing\u2026",
+    style: {
+      marginBottom: 8
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    style: {
+      padding: 9
+    },
+    onClick: saveMyNotes
+  }, "Save"), /*#__PURE__*/React.createElement("button", {
+    className: "gbtn",
+    style: {
+      padding: 9
+    },
+    onClick: function onClick() {
+      return setEditNotes(false);
+    }
+  }, "Cancel"))) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: sel.myNotes ? '#8a96b8' : '#5a6480',
+      fontSize: 13,
+      fontStyle: sel.myNotes ? 'normal' : 'italic'
+    }
+  }, sel.myNotes || 'Tap Edit to add personal notes…')), sel.cellaring && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#251608',
+      border: '0.5px solid #3d2810',
+      borderRadius: 14,
+      padding: 14,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#c47a2a',
+      fontSize: 10,
+      letterSpacing: '.1em',
+      marginBottom: 6
+    }
+  }, "CELLARING ADVICE"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#e8c4a0',
+      fontSize: 12,
+      lineHeight: 1.6
+    }
+  }, sel.cellaring.shouldCellar ? "Hold ".concat(sel.cellaring.yearsToHold, ". ") : 'Drink now — no need to cellar. ', sel.cellaring.storageNotes)), ((_sel$drinkingWindow5 = sel.drinkingWindow) === null || _sel$drinkingWindow5 === void 0 ? void 0 : _sel$drinkingWindow5.recommendation) && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sec"
+  }, "DRINKING WINDOW"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#8a96b8',
+      fontSize: 12,
+      lineHeight: 1.6
+    }
+  }, sel.drinkingWindow.recommendation)), (sel.servingTemp || sel.decantingAdvice) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      marginBottom: 16
+    }
+  }, sel.servingTemp && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      flex: 1,
+      padding: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sec",
+    style: {
+      marginBottom: 4
+    }
+  }, "SERVE AT"), /*#__PURE__*/React.createElement("div", {
+    className: "df",
+    style: {
+      color: '#f0ead8',
+      fontSize: 16
+    }
+  }, sel.servingTemp)), sel.decantingAdvice && /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      flex: 2,
+      padding: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sec",
+    style: {
+      marginBottom: 4
+    }
+  }, "DECANT"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#8a96b8',
+      fontSize: 12,
+      lineHeight: 1.4
+    }
+  }, sel.decantingAdvice))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 8
+    }
+  })), /*#__PURE__*/React.createElement(Nav, {
+    cur: "cellar"
+  }));
+
+  // ── LOG BOTTLE ──────────────────────────────────────────────────────────────
+  if (view === 'log' && sel) return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#161c2e',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      maxWidth: 440,
+      margin: '0 auto'
+    }
+  }, /*#__PURE__*/React.createElement("style", null, CSS), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '18px 16px 6px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "back",
+    onClick: function onClick() {
+      setLogAction('');
+      setView('detail');
+    }
+  }, "\u2190"), /*#__PURE__*/React.createElement("span", {
+    className: "di",
+    style: {
+      color: '#f0ead8',
+      fontSize: 18
+    }
+  }, "Log a bottle")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '4px 16px 14px',
+      color: '#8a96b8',
+      fontSize: 13
+    }
+  }, sel.producer, " ", sel.wineName, " ", sel.vintage, " \xB7 ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: '#c4a44a'
+    }
+  }, sel.bottles, " remaining")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 16px',
+      flex: 1
+    }
+  }, !logAction ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "sec"
+  }, "WHAT HAPPENED TO THIS BOTTLE?"), [{
+    key: 'drank',
+    icon: '🥂',
+    bg: '#0e2318',
+    bdr: '#1a3d28',
+    label: 'Drank it',
+    sub: 'Logs date + removes from count'
+  }, {
+    key: 'gave',
+    icon: '🎁',
+    bg: '#162038',
+    bdr: '#1e3060',
+    label: 'Gave away',
+    sub: 'Gift or shared — removes from count'
+  }, {
+    key: 'lost',
+    icon: '💔',
+    bg: '#251608',
+    bdr: '#3d2810',
+    label: 'Lost / broken / corked',
+    sub: 'Removes from count, no drink log'
+  }, {
+    key: 'delete',
+    icon: '🗑',
+    bg: '#2a1010',
+    bdr: '#4a2020',
+    label: 'Remove wine entirely',
+    sub: 'Deletes all bottles from cave',
+    danger: true
+  }].map(function (o) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: o.key,
+      className: "lopt",
+      style: {
+        borderColor: o.danger ? '#4a2020' : '#2d3654'
+      },
+      onClick: function onClick() {
+        return setLogAction(o.key);
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        background: o.bg,
+        border: "0.5px solid ".concat(o.bdr),
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 18
+      }
+    }, o.icon), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: o.danger ? '#c44a4a' : '#f0ead8',
+        fontSize: 13,
+        fontWeight: 500
+      }
+    }, o.label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#5a6480',
+        fontSize: 11,
+        marginTop: 1
+      }
+    }, o.sub)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#5a6480'
+      }
+    }, "\u203A"));
+  })) : logAction === 'delete' ? /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      textAlign: 'center',
+      padding: 28
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 32,
+      marginBottom: 12
+    }
+  }, "\uD83D\uDDD1"), /*#__PURE__*/React.createElement("div", {
+    className: "di",
+    style: {
+      color: '#f0ead8',
+      fontSize: 20,
+      marginBottom: 8
+    }
+  }, "Remove wine entirely?"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#8a96b8',
+      fontSize: 13,
+      marginBottom: 20,
+      lineHeight: 1.5
+    }
+  }, "This removes all ", sel.bottles, " bottle", sel.bottles !== 1 ? 's' : '', " of ", /*#__PURE__*/React.createElement("em", null, sel.wineName), " from your cave. Cannot be undone."), /*#__PURE__*/React.createElement("button", {
+    className: "dbtn",
+    style: {
+      marginBottom: 8
+    },
+    onClick: confirmLog
+  }, "Yes, remove it"), /*#__PURE__*/React.createElement("button", {
+    className: "gbtn",
+    onClick: function onClick() {
+      return setLogAction('');
+    }
+  }, "Cancel")) : /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 28,
+      textAlign: 'center',
+      marginBottom: 10
+    }
+  }, logAction === 'drank' ? '🥂' : '🎁'), /*#__PURE__*/React.createElement("div", {
+    className: "di",
+    style: {
+      color: '#f0ead8',
+      fontSize: 18,
+      textAlign: 'center',
+      marginBottom: 14
+    }
+  }, logAction === 'drank' ? 'Drank it' : 'Gave it away'), logAction === 'drank' && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#5a6480',
+      fontSize: 10,
+      letterSpacing: '.08em',
+      marginBottom: 6
+    }
+  }, "RATE THIS BOTTLE"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6
+    }
+  }, [1, 2, 3, 4, 5].map(function (n) {
+    return /*#__PURE__*/React.createElement("span", {
+      key: n,
+      className: "star",
+      style: {
+        color: n <= logRating ? '#c4a44a' : '#252d4a'
+      },
+      onClick: function onClick() {
+        return setLogRating(n);
+      }
+    }, "\u2605");
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#5a6480',
+      fontSize: 10,
+      letterSpacing: '.08em',
+      marginBottom: 6
+    }
+  }, "NOTES (OPTIONAL)"), /*#__PURE__*/React.createElement("textarea", {
+    value: logNotes,
+    onChange: function onChange(e) {
+      return setLogNotes(e.target.value);
+    },
+    rows: 3,
+    placeholder: logAction === 'drank' ? 'How was it? Food pairing, occasion…' : 'Who did you give it to?'
+  })), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: confirmLog
+  }, "Confirm \u2014 ", Math.max(0, (sel.bottles || 0) - 1), " bottle", Math.max(0, (sel.bottles || 0) - 1) !== 1 ? 's' : '', " remaining"), /*#__PURE__*/React.createElement("button", {
+    className: "gbtn",
+    style: {
+      marginTop: 8
+    },
+    onClick: function onClick() {
+      return setLogAction('');
+    }
+  }, "Back"))), /*#__PURE__*/React.createElement(Nav, {
+    cur: "cellar"
+  }));
+
+  // ── CELLAR LIST ─────────────────────────────────────────────────────────────
+  if (view === 'cellar') return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#161c2e',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      maxWidth: 440,
+      margin: '0 auto'
+    }
+  }, /*#__PURE__*/React.createElement("style", null, CSS), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '20px 16px 10px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "di",
+    style: {
+      color: '#f0ead8',
+      fontSize: 26,
+      marginBottom: 12
+    }
+  }, "Cellar"), /*#__PURE__*/React.createElement("div", {
+    className: "scrl",
+    style: {
+      marginBottom: 8
+    }
+  }, [['all', "All (".concat(cellar.length, ")")], ['red', "Red (".concat(cellar.filter(function (w) {
+    return w.wineType === 'red';
+  }).length, ")")], ['white', "White (".concat(cellar.filter(function (w) {
+    return w.wineType === 'white';
+  }).length, ")")], ['sparkling', "Sparkling (".concat(cellar.filter(function (w) {
+    return w.wineType === 'sparkling';
+  }).length, ")")], ['rosé', "Ros\xE9 (".concat(cellar.filter(function (w) {
+    return w.wineType === 'rosé' || w.wineType === 'rose';
+  }).length, ")")]].map(function (_ref7) {
+    var _ref8 = _slicedToArray(_ref7, 2),
+      v = _ref8[0],
+      l = _ref8[1];
+    return /*#__PURE__*/React.createElement("button", {
+      key: v,
+      className: "chip ".concat(filterType === v ? 'chipon' : ''),
+      onClick: function onClick() {
+        return setFilterType(v);
+      }
+    }, l);
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "scrl"
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: '#5a6480',
+      fontSize: 11,
+      alignSelf: 'center',
+      flexShrink: 0
+    }
+  }, "Sort:"), [['type', 'Type'], ['varietal', 'Varietal'], ['price↑', 'Price ↑'], ['price↓', 'Price ↓'], ['drink', 'Drink by']].map(function (_ref9) {
+    var _ref0 = _slicedToArray(_ref9, 2),
+      v = _ref0[0],
+      l = _ref0[1];
+    return /*#__PURE__*/React.createElement("button", {
+      key: v,
+      className: "chip ".concat(sortBy === v ? 'chipon' : ''),
+      onClick: function onClick() {
+        return setSortBy(v);
+      }
+    }, l);
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 16px',
+      flex: 1,
+      overflowY: 'auto'
+    }
+  }, filteredCellar.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      padding: '48px 0',
+      color: '#5a6480'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 32,
+      marginBottom: 8
+    }
+  }, "\uD83C\uDF77"), /*#__PURE__*/React.createElement("div", {
+    className: "di",
+    style: {
+      color: '#8a96b8',
+      fontSize: 18
+    }
+  }, "No wines here yet")) : filteredCellar.map(function (w) {
+    var _w$drinkingWindow4, _w$drinkingWindow5;
+    return /*#__PURE__*/React.createElement("div", {
+      key: w.id
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "row",
+      onClick: function onClick() {
+        setSelId(w.id);
+        setView('detail');
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 34,
+        height: 46,
+        borderRadius: 5,
+        background: '#252d4a',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 20,
+        flexShrink: 0,
+        overflow: 'hidden'
+      }
+    }, w.image ? /*#__PURE__*/React.createElement("img", {
+      src: w.image,
+      style: {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        borderRadius: 4
+      }
+    }) : wineEmoji(w.wineType)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#f0ead8',
+        fontSize: 13,
+        fontWeight: 500,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      }
+    }, w.producer), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#5a6480',
+        fontSize: 11,
+        marginTop: 1,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      }
+    }, w.wineName, " ", w.vintage), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 3,
+        display: 'flex',
+        gap: 4,
+        alignItems: 'center'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: '#c4a44a',
+        fontSize: 11
+      }
+    }, w.bottles, " btl"), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: '#3a4468'
+      }
+    }, "\xB7"), (w.grapeVarieties || []).slice(0, 1).map(function (g) {
+      return /*#__PURE__*/React.createElement("span", {
+        key: g,
+        className: pillCls(w.wineType)
+      }, g);
+    }))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: 'right',
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#c4a44a',
+        fontSize: 13
+      }
+    }, "$", Math.round(avg(w))), /*#__PURE__*/React.createElement("div", {
+      className: statusCls(((_w$drinkingWindow4 = w.drinkingWindow) === null || _w$drinkingWindow4 === void 0 ? void 0 : _w$drinkingWindow4.status) || ''),
+      style: {
+        marginTop: 4
+      }
+    }, ((_w$drinkingWindow5 = w.drinkingWindow) === null || _w$drinkingWindow5 === void 0 ? void 0 : _w$drinkingWindow5.status) || '—'))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        gap: 6,
+        padding: '4px 0 8px',
+        marginLeft: 44
+      }
+    }, [{
+      lbl: '🥂 Drank',
+      action: 'drank',
+      bg: '#0e2318',
+      bdr: '#1a3d28',
+      col: '#4a9e6a'
+    }, {
+      lbl: '🎁 Gave',
+      action: 'gave',
+      bg: '#162038',
+      bdr: '#1e3060',
+      col: '#7ab0e8'
+    }, {
+      lbl: '🗑',
+      action: 'delete',
+      bg: '#2a1010',
+      bdr: '#4a2020',
+      col: '#c44a4a'
+    }].map(function (a) {
+      return /*#__PURE__*/React.createElement("button", {
+        key: a.action,
+        style: {
+          background: a.bg,
+          border: "0.5px solid ".concat(a.bdr),
+          color: a.col,
+          borderRadius: 8,
+          padding: '4px 10px',
+          fontSize: 11,
+          cursor: 'pointer'
+        },
+        onClick: function onClick(e) {
+          e.stopPropagation();
+          setSelId(w.id);
+          setLogAction(a.action);
+          setLogNotes('');
+          setLogRating(0);
+          setView('log');
+        }
+      }, a.lbl);
+    })));
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 8
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '8px 16px'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: goScan
+  }, "+ Scan new bottle")), /*#__PURE__*/React.createElement(Nav, {
+    cur: "cellar"
+  }));
+
+  // ── CONCIERGE ───────────────────────────────────────────────────────────────
+  if (view === 'concierge') return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#161c2e',
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      maxWidth: 440,
+      margin: '0 auto'
+    }
+  }, /*#__PURE__*/React.createElement("style", null, CSS), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '20px 16px 12px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "di",
+    style: {
+      color: '#f0ead8',
+      fontSize: 26,
+      marginBottom: 3
+    }
+  }, "Concierge"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#5a6480',
+      fontSize: 13
+    }
+  }, "Tell me about your evening")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 16px',
+      flex: 1,
+      overflowY: 'auto'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sec"
+  }, "WHAT'S HAPPENING TONIGHT?"), /*#__PURE__*/React.createElement("textarea", {
+    value: concText,
+    onChange: function onChange(e) {
+      setConcText(e.target.value);
+      setRecs(null);
+    },
+    rows: 4,
+    placeholder: "e.g. Grilling portobello mushrooms for 4 guests, two prefer bold reds, one likes lighter wines, I'd like to open two bottles\u2026",
+    style: {
+      marginBottom: 10
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    className: "btn",
+    onClick: runConcierge,
+    disabled: loading || !concText.trim() || cellar.length === 0
+  }, loading ? 'Consulting the sommelier…' : 'Get recommendation'), cellar.length === 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#5a6480',
+      fontSize: 11,
+      textAlign: 'center',
+      marginTop: 8
+    }
+  }, "Add wines to your cave first")), error && /*#__PURE__*/React.createElement("div", {
+    className: "err",
+    style: {
+      marginBottom: 12
+    }
+  }, error), recs !== null && /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "sec"
+  }, "FROM YOUR CAVE"), recs.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#8a96b8',
+      fontSize: 13,
+      fontStyle: 'italic',
+      lineHeight: 1.6
+    }
+  }, "No wines in your cave are ready to drink right now. Check back when your \"hold\" wines enter their drinking window.") : recs.map(function (_ref1, i) {
+    var _w$drinkingWindow6;
+    var w = _ref1.wine,
+      reason = _ref1.reason;
+    return w && /*#__PURE__*/React.createElement("div", {
+      key: i,
+      onClick: function onClick() {
+        setSelId(w.id);
+        setView('detail');
+      },
+      style: {
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 10,
+        padding: '10px 12px',
+        background: i === 0 ? '#252d4a' : '#1a2236',
+        borderRadius: 10,
+        border: "0.5px solid ".concat(i === 0 ? '#3d3015' : '#2d3654'),
+        marginBottom: 8,
+        cursor: 'pointer'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 22,
+        flexShrink: 0
+      }
+    }, wineEmoji(w.wineType)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1
+      }
+    }, i === 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#c4a44a',
+        fontSize: 10,
+        letterSpacing: '.08em',
+        marginBottom: 2
+      }
+    }, "TOP PICK"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#f0ead8',
+        fontSize: 13,
+        fontWeight: 500
+      }
+    }, w.producer, " ", w.wineName, " ", w.vintage), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#5a6480',
+        fontSize: 11,
+        marginTop: 1
+      }
+    }, w.bottles, " bottle", w.bottles !== 1 ? 's' : '', " available \xB7 ", (_w$drinkingWindow6 = w.drinkingWindow) === null || _w$drinkingWindow6 === void 0 ? void 0 : _w$drinkingWindow6.status), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#8a96b8',
+        fontSize: 12,
+        marginTop: 5,
+        lineHeight: 1.5
+      }
+    }, reason)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        color: '#c4a44a',
+        fontSize: 16,
+        flexShrink: 0
+      }
+    }, "\u203A"));
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 8
+    }
+  })), /*#__PURE__*/React.createElement(Nav, {
+    cur: "concierge"
+  }));
+  return null;
+}
+
+// ─── localStorage storage adapter (mirrors window.storage API) ───────────────
+window.storage = {
+  async list(prefix) {
+    const keys = Object.keys(localStorage).filter(k => k.startsWith(prefix));
+    return { keys };
+  },
+  async get(key) {
+    const val = localStorage.getItem(key);
+    if (val === null) throw new Error('Not found: ' + key);
+    return { value: val };
+  },
+  async set(key, value) {
+    localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+    return { key, value };
+  },
+  async delete(key) {
+    localStorage.removeItem(key);
+    return { key, deleted: true };
+  }
+};
+
+// ─── React globals ────────────────────────────────────────────────────────────
+const { useState, useEffect, useRef } = React;
+
+// ─── API key management ───────────────────────────────────────────────────────
+// Patch callAPI to use stored key + proper CORS headers
+const _origCallAPI = callAPI;
+async function callAPI(prompt) {
+  const apiKey = localStorage.getItem('cave_api_key') || '';
+  if (!apiKey) throw new Error('No API key — tap ⚙ Settings to add your Anthropic key.');
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  const raw = await res.text();
+  if (!res.ok) throw new Error('HTTP ' + res.status + ': ' + raw.slice(0, 200));
+  let data;
+  try { data = JSON.parse(raw); } catch(e) { throw new Error('Non-JSON: ' + raw.slice(0, 150)); }
+  if (data.error) throw new Error(JSON.stringify(data.error).slice(0, 200));
+  const txt = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
+  if (!txt) throw new Error('Empty response');
+  return txt;
+}
+
+// ─── Setup / Settings screen ─────────────────────────────────────────────────
+function SetupScreen({ onSave }) {
+  const [key, setKey] = React.useState('');
+  const [err, setErr] = React.useState('');
+  const [testing, setTesting] = React.useState(false);
+
+  async function handleSave() {
+    if (!key.trim().startsWith('sk-ant-')) {
+      setErr('Anthropic API keys start with sk-ant-  — check you copied the full key.');
+      return;
+    }
+    setTesting(true); setErr('');
+    try {
+      // Quick test call
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': key.trim(),
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 10, messages: [{ role: 'user', content: 'hi' }] })
+      });
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error('Key rejected: ' + t.slice(0, 100));
+      }
+      localStorage.setItem('cave_api_key', key.trim());
+      onSave();
+    } catch(e) {
+      setErr(e.message);
+    } finally {
+      setTesting(false);
+    }
+  }
+
+  return React.createElement('div', {
+    style: { background: '#161c2e', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px', maxWidth: 440, margin: '0 auto' }
+  },
+    React.createElement('div', { style: { fontSize: 48, marginBottom: 16 } }, '🍷'),
+    React.createElement('div', { style: { fontFamily: 'Cormorant Garamond, Georgia, serif', fontStyle: 'italic', fontSize: 32, color: '#f0ead8', marginBottom: 6 } }, 'Cave'),
+    React.createElement('div', { style: { color: '#5a6480', fontSize: 13, marginBottom: 36, textAlign: 'center', lineHeight: 1.6 } }, 'Your personal wine cellar'),
+    React.createElement('div', { style: { width: '100%', background: '#1e2640', border: '0.5px solid #2d3654', borderRadius: 16, padding: 24 } },
+      React.createElement('div', { style: { color: '#5a6480', fontSize: 10, letterSpacing: '.1em', marginBottom: 8 } }, 'ANTHROPIC API KEY'),
+      React.createElement('input', {
+        type: 'password',
+        value: key,
+        onChange: e => setKey(e.target.value),
+        placeholder: 'sk-ant-api03-...',
+        style: { width: '100%', background: '#252d4a', border: '0.5px solid #3a4468', borderRadius: 10, padding: '10px 12px', fontSize: 13, color: '#f0ead8', fontFamily: 'system-ui', outline: 'none', marginBottom: 8 }
+      }),
+      React.createElement('div', { style: { color: '#5a6480', fontSize: 11, marginBottom: 16, lineHeight: 1.6 } },
+        'Get your key at ',
+        React.createElement('a', { href: 'https://console.anthropic.com/keys', target: '_blank', style: { color: '#c4a44a' } }, 'console.anthropic.com/keys'),
+        '. It's stored only on this device.'
+      ),
+      err && React.createElement('div', { style: { padding: '10px 12px', background: '#2a1010', border: '0.5px solid #4a2020', borderRadius: 10, color: '#c44a4a', fontSize: 12, marginBottom: 12, lineHeight: 1.5 } }, err),
+      React.createElement('button', {
+        onClick: handleSave,
+        disabled: !key.trim() || testing,
+        style: { background: testing || !key.trim() ? '#252d4a' : '#c4a44a', color: testing || !key.trim() ? '#5a6480' : '#0f0c05', border: 'none', borderRadius: 10, padding: 12, fontSize: 13, fontWeight: 600, cursor: key.trim() && !testing ? 'pointer' : 'not-allowed', width: '100%', letterSpacing: '.04em' }
+      }, testing ? 'Testing key…' : 'Save & open Cave')
+    )
+  );
+}
+
+// ─── Settings overlay ─────────────────────────────────────────────────────────
+function SettingsOverlay({ onClose }) {
+  const [key, setKey] = React.useState(localStorage.getItem('cave_api_key') || '');
+  const [saved, setSaved] = React.useState(false);
+
+  function handleSave() {
+    localStorage.setItem('cave_api_key', key.trim());
+    setSaved(true);
+    setTimeout(() => { setSaved(false); onClose(); }, 800);
+  }
+
+  function handleClear() {
+    if (confirm('Clear all wine data from this device?')) {
+      Object.keys(localStorage).filter(k => k.startsWith('cave:')).forEach(k => localStorage.removeItem(k));
+      onClose();
+      window.location.reload();
+    }
+  }
+
+  return React.createElement('div', {
+    style: { position: 'fixed', inset: 0, background: 'rgba(10,12,20,0.85)', zIndex: 100, display: 'flex', alignItems: 'flex-end', justifyContent: 'center' },
+    onClick: e => { if (e.target === e.currentTarget) onClose(); }
+  },
+    React.createElement('div', { style: { background: '#1e2640', border: '0.5px solid #2d3654', borderRadius: '20px 20px 0 0', padding: 24, width: '100%', maxWidth: 440 } },
+      React.createElement('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 } },
+        React.createElement('div', { style: { fontFamily: 'Cormorant Garamond, Georgia, serif', fontStyle: 'italic', color: '#f0ead8', fontSize: 20 } }, 'Settings'),
+        React.createElement('button', { onClick: onClose, style: { background: 'none', border: 'none', color: '#5a6480', fontSize: 22, cursor: 'pointer' } }, '×')
+      ),
+      React.createElement('div', { style: { color: '#5a6480', fontSize: 10, letterSpacing: '.1em', marginBottom: 6 } }, 'API KEY'),
+      React.createElement('input', {
+        type: 'password',
+        value: key,
+        onChange: e => setKey(e.target.value),
+        style: { width: '100%', background: '#252d4a', border: '0.5px solid #3a4468', borderRadius: 10, padding: '10px 12px', fontSize: 13, color: '#f0ead8', fontFamily: 'system-ui', outline: 'none', marginBottom: 12 }
+      }),
+      React.createElement('button', {
+        onClick: handleSave,
+        style: { background: saved ? '#0e2318' : '#c4a44a', color: saved ? '#4a9e6a' : '#0f0c05', border: 'none', borderRadius: 10, padding: 11, fontSize: 13, fontWeight: 600, cursor: 'pointer', width: '100%', marginBottom: 10, letterSpacing: '.04em' }
+      }, saved ? '✓ Saved' : 'Update key'),
+      React.createElement('button', {
+        onClick: handleClear,
+        style: { background: 'transparent', color: '#c44a4a', border: '0.5px solid #4a2020', borderRadius: 10, padding: 11, fontSize: 12, cursor: 'pointer', width: '100%' }
+      }, 'Clear all cave data'),
+      React.createElement('div', { style: { color: '#5a6480', fontSize: 11, textAlign: 'center', marginTop: 12 } }, 'v1.0 · Cave Wine Cellar')
+    )
+  );
+}
+
+// ─── Root app wrapper ─────────────────────────────────────────────────────────
+function App() {
+  const [hasKey, setHasKey] = React.useState(!!localStorage.getItem('cave_api_key'));
+  const [showSettings, setShowSettings] = React.useState(false);
+
+  if (!hasKey) return React.createElement(SetupScreen, { onSave: () => setHasKey(true) });
+
+  return React.createElement('div', { style: { position: 'relative' } },
+    // Settings gear in top-right — rendered over the Cave app
+    React.createElement('button', {
+      onClick: () => setShowSettings(true),
+      style: { position: 'fixed', top: 18, right: 16, zIndex: 50, background: 'none', border: 'none', color: '#5a6480', fontSize: 18, cursor: 'pointer', padding: 4 }
+    }, '⚙'),
+    React.createElement(Cave, null),
+    showSettings && React.createElement(SettingsOverlay, { onClose: () => setShowSettings(false) })
+  );
+}
+
+// ─── Mount ────────────────────────────────────────────────────────────────────
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(React.createElement(App, null));
+
+// ─── Service worker ───────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+  </script>
+</body>
+</html>
