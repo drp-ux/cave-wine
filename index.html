@@ -149,47 +149,21 @@ function buildStorage(profileId) {
   };
 }
 
-// ─── OCR ─────────────────────────────────────────────────────────────────────
-async function loadTesseract() {
-  if (window.Tesseract) return window.Tesseract;
-  return new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-    s.onload = () => resolve(window.Tesseract);
-    s.onerror = () => reject(new Error('OCR engine failed to load'));
-    document.head.appendChild(s);
-  });
-}
+// ─── VISION-BASED IDENTIFICATION (no OCR) ────────────────────────────────────
 
-async function runOCR(imageDataUrl) {
-  const T = await loadTesseract();
-  const worker = await T.createWorker('eng', 1, {
-    workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js',
-    corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core-simd-lstm.wasm.js',
-    logger: () => {}
-  });
-  try {
-    const { data: { text } } = await worker.recognize(imageDataUrl);
-    return text.trim();
-  } finally {
-    await worker.terminate();
-  }
-}
-
-// ─── API ──────────────────────────────────────────────────────────────────────
 function getApiKey(profileId) {
   return store.get(`cave_key_${profileId}`) || store.get('cave_api_key') || '';
 }
 
-async function callAPI(prompt, profileId, useWebSearch=false) {
+async function callAPI(messages, profileId, useSearch=false) {
   const apiKey = getApiKey(profileId);
-  if (!apiKey) throw new Error('No API key — go to Settings to add your Anthropic key.');
+  if (!apiKey) throw new Error('No API key — go to Settings.');
   const body = {
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 1500,
-    messages: [{ role: 'user', content: prompt }]
+    messages
   };
-  if (useWebSearch) {
+  if (useSearch) {
     body.tools = [{ type: 'web_search_20250305', name: 'web_search' }];
     body.max_tokens = 2000;
   }
@@ -208,13 +182,10 @@ async function callAPI(prompt, profileId, useWebSearch=false) {
   let data;
   try { data = JSON.parse(raw); } catch { throw new Error(`Bad response: ${raw.slice(0,100)}`); }
   if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
-  // Handle web search multi-turn if needed
-  if (data.stop_reason === 'tool_use' && useWebSearch) {
-    // Web search results embedded — extract text from all blocks
-    const texts = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
-    if (texts) return texts;
-    // If no text yet, retry without web search
-    return callAPI(prompt, profileId, false);
+  if (data.stop_reason === 'tool_use') {
+    // Web search executed server-side — re-extract text from all blocks
+    const txt = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+    if (txt) return txt;
   }
   const txt = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
   if (!txt) throw new Error('Empty response from API');
@@ -225,57 +196,87 @@ function parseJSON(txt) {
   const fence = txt.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fence) return JSON.parse(fence[1].trim());
   const s = txt.indexOf('{'), e = txt.lastIndexOf('}');
-  if (s!==-1 && e>s) return JSON.parse(txt.slice(s,e+1));
-  throw new Error(`No JSON in: ${txt.slice(0,120)}`);
+  if (s !== -1 && e > s) return JSON.parse(txt.slice(s, e+1));
+  throw new Error(`No JSON found: ${txt.slice(0,120)}`);
 }
 
-async function identifyWine(frontText, backText, profileId) {
-  const combined = [frontText, backText].filter(Boolean).join('\n\n--- BACK LABEL ---\n\n');
-  const prompt = `You are an expert sommelier and wine database. OCR text extracted from a wine bottle label:
+function imgToBase64(dataUrl) {
+  return dataUrl.split(',')[1];
+}
 
-${combined}
+async function identifyWine(frontDataUrl, backDataUrl, manualText, profileId) {
+  const prompt = `You are an expert sommelier with access to a comprehensive wine database. Analyze the wine label image(s) provided and identify the wine.
 
-Search your knowledge (and the web if needed) to identify this exact wine. Return ONLY a raw JSON object.
+CRITICAL RULES:
+1. ALWAYS return a best guess — never refuse or say you cannot identify it
+2. If the label is partially readable, use what you can see plus your wine knowledge
+3. Only set identified:false if the image is completely unreadable (solid blur, no text at all)
+4. Use confidence: "high" (you're certain), "medium" (likely correct), "low" (best guess)
+5. When confidence is medium or low, populate the alternatives array
 
-{"identified":true,"confidence":"high","producer":"exact producer name","wineName":"exact wine/cuvee name","vintage":"2021","region":"region, country","appellation":"appellation DOCG/AOC etc","grapeVarieties":["Nebbiolo"],"wineType":"red","style":"Full-bodied, tannic, age-worthy","retailPriceLow":45,"retailPriceHigh":65,"priceNote":"US retail varies by vintage","tastingNotes":{"nose":"specific aromas","palate":"specific flavors and texture","finish":"finish description"},"drinkingWindow":{"status":"hold","start":"2027","end":"2038","recommendation":"2-sentence drink advice"},"cellaring":{"shouldCellar":true,"yearsToHold":"3-5 more years","storageNotes":"55F, 70% humidity, lay flat"},"servingTemp":"62-65F","decantingAdvice":"Decant 2 hours before serving","alternatives":[]}
+Return ONLY a raw JSON object, nothing before or after it:
 
-Rules:
-- wineType: red | white | rose | sparkling | dessert | fortified
-- confidence: high (certain) | medium (likely) | low (guessing)  
-- If medium/low confidence, populate "alternatives" with 2-3 other possible wines: [{"producer":"...","wineName":"...","vintage":"...","reason":"why it might be this"}]
-- Give realistic current US retail prices
-- Current year is 2026
-- If truly unidentifiable: {"identified":false,"reason":"what you can read and why it's unclear","rawText":"${combined.slice(0,200)}"}`;
+{"identified":true,"confidence":"high","producer":"exact producer","wineName":"exact wine or cuvee name","vintage":"2021","region":"region, country","appellation":"Barolo DOCG","grapeVarieties":["Nebbiolo"],"wineType":"red","style":"Full-bodied, tannic","retailPriceLow":45,"retailPriceHigh":65,"priceNote":"US retail varies","tastingNotes":{"nose":"aromas","palate":"flavors and texture","finish":"finish"},"drinkingWindow":{"status":"hold","start":"2027","end":"2038","recommendation":"Hold 3-5 more years, peak 2028-2032"},"cellaring":{"shouldCellar":true,"yearsToHold":"3-5 years","storageNotes":"55F, 70% humidity"},"servingTemp":"62-65F","decantingAdvice":"Decant 2 hours","alternatives":[]}
 
-  const txt = await callAPI(prompt, profileId, true);
+For alternatives (when not high confidence): [{"producer":"...","wineName":"...","vintage":"...","region":"...","reason":"why it could be this"}]
+wineType must be: red | white | rose | sparkling | dessert | fortified
+Current year: 2026. Realistic US retail prices.
+If truly unreadable image only: {"identified":false,"reason":"specific reason"}`;
+
+  const content = [];
+
+  // Add front image if available
+  if (frontDataUrl) {
+    content.push({
+      type: 'image',
+      source: { type: 'base64', media_type: 'image/jpeg', data: imgToBase64(frontDataUrl) }
+    });
+  }
+
+  // Add back image if available
+  if (backDataUrl) {
+    content.push({
+      type: 'image',
+      source: { type: 'base64', media_type: 'image/jpeg', data: imgToBase64(backDataUrl) }
+    });
+  }
+
+  // Add any manual text the user typed
+  const textPrompt = manualText
+    ? `${prompt}\n\nAdditional text from the user about this label: "${manualText}"`
+    : prompt;
+
+  content.push({ type: 'text', text: textPrompt });
+
+  const txt = await callAPI([{ role: 'user', content }], profileId, false);
   return parseJSON(txt);
 }
 
 async function getRecommendations(description, cellar, profileId) {
   const list = cellar.map((w,i) =>
-    `${i+1}. ${w.producer} "${w.wineName}" ${w.vintage} — ${w.wineType}, ${(w.grapeVarieties||[]).join('/')} — Status: ${w.drinkingWindow?.status||'unknown'} — ${w.bottles} btl`
+    `${i+1}. ${w.producer} "${w.wineName}" ${w.vintage} — ${w.wineType}, ${(w.grapeVarieties||[]).join('/')} — ${w.drinkingWindow?.status||'unknown'} — ${w.bottles} btl`
   ).join('\n');
-  const prompt = `You are an expert sommelier. Host says: "${description}"\n\nCellar:\n${list}\n\nRecommend 1-3 wines best for tonight. Prioritize drink-now/soon/peak. Return ONLY a JSON array:\n[{"index":1,"reason":"specific reason"}]\n\nIf none are ready to drink now, return [].`;
-  const txt = await callAPI(prompt, profileId, false);
+  const prompt = `You are an expert sommelier. The host says: "${description}"\n\nTheir cellar:\n${list}\n\nRecommend 1-3 wines that best fit tonight. Prioritize drink-now/soon/peak. Return ONLY a JSON array:\n[{"index":1,"reason":"why this wine fits perfectly"}]\n\nIf none are ready, return [].`;
+  const txt = await callAPI([{ role: 'user', content: prompt }], profileId, false);
   const m = txt.match(/\[[\s\S]*\]/);
   if (!m) return [];
   return JSON.parse(m[0]);
 }
 
-// ─── PROFILE MANAGEMENT ───────────────────────────────────────────────────────
-function getProfiles() {
-  try { return JSON.parse(store.get('cave_profiles')||'[]'); } catch { return []; }
-}
-function saveProfiles(profiles) { store.set('cave_profiles', JSON.stringify(profiles)); }
-function getCurrentProfileId() { return store.get('cave_current_profile') || ''; }
-function setCurrentProfileId(id) { store.set('cave_current_profile', id); }
-function createProfile(name, apiKey) {
-  const id = Date.now().toString();
-  const profiles = getProfiles();
-  profiles.push({ id, name, createdAt: Date.now() });
-  saveProfiles(profiles);
-  store.set(`cave_key_${id}`, apiKey);
-  return id;
+async function compressForVision(dataUrl, maxDim=1200) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxDim/Math.max(img.width,img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width*scale);
+      c.height = Math.round(img.height*scale);
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      resolve(c.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
 }
 
 // ─── CAVE COMPONENT ───────────────────────────────────────────────────────────
@@ -286,10 +287,9 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   const [selId, setSelId] = useState(null);
   const [frontImg, setFrontImg] = useState(null);
   const [backImg, setBackImg] = useState(null);
+  const [manualText, setManualText] = useState('');
   const [pending, setPending] = useState(null);
   const [pendingQty, setPendingQty] = useState(1);
-  const [manual, setManual] = useState(false);
-  const [manualText, setManualText] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadMsg, setLoadMsg] = useState('');
   const [error, setError] = useState('');
@@ -319,28 +319,18 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       if (!res?.keys?.length) { setCellar([]); return; }
       const wines = [];
       for (const key of res.keys) {
-        try { const r = await window.storage.get(key); if(r) wines.push(JSON.parse(r.value)); } catch {}
+        try { const r = await window.storage.get(key); if (r) wines.push(JSON.parse(r.value)); } catch {}
       }
       wines.sort((a,b)=>(b.addedAt||0)-(a.addedAt||0));
       setCellar(wines);
     } catch { setCellar([]); }
   }
 
-  async function saveWine(wine) {
-    await window.storage.set(`wine:${wine.id}`, JSON.stringify(wine));
-    await loadCellar();
-  }
-  async function removeWine(id) {
-    await window.storage.delete(`wine:${id}`);
-    await loadCellar();
-  }
+  async function saveWine(wine) { await window.storage.set(`wine:${wine.id}`, JSON.stringify(wine)); await loadCellar(); }
+  async function removeWine(id) { await window.storage.delete(`wine:${id}`); await loadCellar(); }
 
-  function resetScan() {
-    setFrontImg(null); setBackImg(null); setPending(null);
-    setManual(false); setManualText(''); setError('');
-  }
-
-  function goScan() { resetScan(); setView('scan-front'); }
+  function resetScan() { setFrontImg(null); setBackImg(null); setManualText(''); setPending(null); setError(''); }
+  function goScan() { resetScan(); setView('scan'); }
 
   async function handlePhoto(e, side) {
     const file = e.target.files?.[0]; e.target.value='';
@@ -348,44 +338,45 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     setError('');
     const reader = new FileReader();
     reader.onload = async () => {
-      const compressed = await compressImage(reader.result);
-      if (side === 'front') { setFrontImg(compressed); setView('scan-back'); }
-      else { setBackImg(compressed); await runIdentification(frontImg, compressed); }
+      const compressed = await compressForVision(reader.result);
+      if (side === 'front') setFrontImg(compressed);
+      else setBackImg(compressed);
+      // DO NOT auto-identify — user taps the button
     };
     reader.readAsDataURL(file);
   }
 
-  async function runIdentification(front, back) {
-    setView('scanning'); setLoadMsg('Reading label…'); setLoading(true); setError('');
+  async function runIdentification() {
+    if (!frontImg && !manualText.trim()) { setError('Add a front label photo or type the wine details.'); return; }
+    setView('scanning'); setLoadMsg('Reading label…'); setError('');
+    setLoading(true);
     try {
-      let frontText = '', backText = '';
-      if (front) { setLoadMsg('Reading front label…'); frontText = await runOCR(front); }
-      if (back) { setLoadMsg('Reading back label…'); backText = await runOCR(back); }
-      const text = frontText || backText || manualText;
-      if (!text || text.length < 3) throw new Error('Could not read text from label');
-      setLoadMsg('Searching wine database…');
-      const wine = await identifyWine(frontText, backText || manualText, profileId);
-      if (!wine.identified) {
-        setError(wine.reason || 'Could not identify this wine.');
-        setManual(true); setManualText(wine.rawText || '');
-        setView('scan-front');
-      } else {
-        setPending(wine); setPendingQty(1); setView('is-this-right');
-      }
-    } catch (err) {
+      setLoadMsg('Identifying wine…');
+      const wine = await identifyWine(frontImg, backImg, manualText, profileId);
+      setPending(wine); setPendingQty(1); setView('is-this-right');
+    } catch(err) {
       setError(err.message || 'Identification failed.');
-      setManual(true); setView('scan-front');
+      setView('scan');
     } finally { setLoading(false); }
-  }
-
-  async function handleManual() {
-    if (!manualText.trim()) return;
-    await runIdentification(frontImg, backImg);
   }
 
   async function confirmAdd(wineData) {
     const w = wineData || pending; if (!w) return;
-    const thumb = frontImg ? await makeThumbnail(frontImg) : '';
+    let thumb = '';
+    if (frontImg) {
+      thumb = await new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => {
+          const s = Math.min(140/img.width, 140/img.height);
+          const c = document.createElement('canvas');
+          c.width = Math.round(img.width*s); c.height = Math.round(img.height*s);
+          c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+          resolve(c.toDataURL('image/jpeg',0.75));
+        };
+        img.onerror = () => resolve('');
+        img.src = frontImg;
+      });
+    }
     const existing = cellar.find(x => x.producer===w.producer && x.wineName===w.wineName && x.vintage===w.vintage);
     if (existing) {
       await saveWine({ ...existing, bottles: (existing.bottles||0)+pendingQty });
@@ -398,7 +389,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 
   async function confirmLog() {
     if (!sel) return;
-    if (logAction === 'delete') { await removeWine(sel.id); setSelId(null); setLogAction(''); setView('cellar'); return; }
+    if (logAction==='delete') { await removeWine(sel.id); setSelId(null); setLogAction(''); setView('cellar'); return; }
     const entry = { date: new Date().toLocaleDateString(), type: logAction, notes: logNotes, rating: logRating };
     await saveWine({ ...sel, bottles: Math.max(0,(sel.bottles||0)-1), drinkLog: [entry,...(sel.drinkLog||[])] });
     setLogAction(''); setLogNotes(''); setLogRating(0); setView('detail');
@@ -408,7 +399,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   async function saveMyNotes() { if (!sel) return; await saveWine({ ...sel, myNotes: notesDraft }); setEditNotes(false); }
 
   async function runConcierge() {
-    if (!concText.trim() || !cellar.length) return;
+    if (!concText.trim()||!cellar.length) return;
     setLoading(true); setError(''); setRecs(null);
     try {
       const idxs = await getRecommendations(concText, cellar, profileId);
@@ -417,8 +408,8 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   }
 
   const filteredCellar = cellar
-    .filter(w => filterType==='all'||(w.wineType||'').toLowerCase()===filterType)
-    .sort((a,b) => {
+    .filter(w=>filterType==='all'||(w.wineType||'').toLowerCase()===filterType)
+    .sort((a,b)=>{
       if(sortBy==='type') return (a.wineType||'').localeCompare(b.wineType||'');
       if(sortBy==='varietal') return ((a.grapeVarieties||[])[0]||'').localeCompare((b.grapeVarieties||[])[0]||'');
       if(sortBy==='price↑') return avg(a)-avg(b);
@@ -439,27 +430,26 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     );
   }
 
-  const wrap = (content, cur='', extraStyle={}) => (
-    <div style={{background:'#161c2e',minHeight:'100vh',display:'flex',flexDirection:'column',maxWidth:440,margin:'0 auto',...extraStyle}}>
+  const wrap = (content, cur='') => (
+    <div style={{background:'#161c2e',minHeight:'100vh',display:'flex',flexDirection:'column',maxWidth:440,margin:'0 auto'}}>
       <style>{CSS}</style>
       {content}
       <Nav cur={cur}/>
     </div>
   );
 
-  // PWA install banner
   const InstallBanner = () => !isPWA() ? (
     <div style={{margin:'0 16px 12px',background:'#251f0e',border:'0.5px solid #3d3015',borderRadius:12,padding:'10px 14px',display:'flex',gap:10,alignItems:'center'}}>
-      <div style={{fontSize:20,flexShrink:0}}>📲</div>
+      <div style={{fontSize:18,flexShrink:0}}>📲</div>
       <div style={{flex:1}}>
-        <div style={{color:'#c4a44a',fontSize:12,fontWeight:600,marginBottom:2}}>Install Cave for persistent storage</div>
-        <div style={{color:'#8a7a50',fontSize:11,lineHeight:1.4}}>Share → Add to Home Screen in Safari. Without this, data may be lost when Safari clears cache.</div>
+        <div style={{color:'#c4a44a',fontSize:12,fontWeight:600,marginBottom:1}}>Install for persistent storage</div>
+        <div style={{color:'#8a7a50',fontSize:11,lineHeight:1.4}}>Safari Share → Add to Home Screen. Prevents data loss.</div>
       </div>
     </div>
   ) : null;
 
   // ── HOME ──────────────────────────────────────────────────────────────────
-  if (view === 'home') return wrap(<>
+  if (view==='home') return wrap(<>
     <div style={{padding:'20px 16px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
       <div>
         <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.12em',marginBottom:2}}>YOUR</div>
@@ -479,13 +469,13 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     </div>
     <InstallBanner/>
     <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
-      {cellar.length===0 ? (
+      {cellar.length===0?(
         <div style={{textAlign:'center',padding:'48px 0'}}>
           <div style={{fontSize:40,marginBottom:14}}>🍷</div>
           <div className="di" style={{color:'#8a96b8',fontSize:20,marginBottom:8}}>Your cave is empty.</div>
           <div style={{color:'#5a6480',fontSize:13}}>Scan your first bottle to begin.</div>
         </div>
-      ) : cellar.slice(0,8).map(w=>(
+      ):cellar.slice(0,8).map(w=>(
         <div key={w.id} className="row" onClick={()=>{setSelId(w.id);setView('detail');}}>
           <div style={{width:34,height:46,borderRadius:5,background:'#252d4a',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0,overflow:'hidden'}}>
             {w.image?<img src={w.image} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:4}}/>:wineEmoji(w.wineType)}
@@ -505,93 +495,118 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     <div style={{padding:'10px 16px'}}><button className="btn" onClick={goScan}>+ Scan new bottle</button></div>
   </>, 'home');
 
-  // ── SCAN FRONT ────────────────────────────────────────────────────────────
-  if (view === 'scan-front') return wrap(<>
-    <div style={{padding:'18px 16px 10px',display:'flex',alignItems:'center',gap:10}}>
+  // ── SCAN ─────────────────────────────────────────────────────────────────
+  // Single screen: add front + back photos, then tap Identify
+  if (view==='scan') return wrap(<>
+    <div style={{padding:'18px 16px 12px',display:'flex',alignItems:'center',gap:10}}>
       <button className="back" onClick={()=>setView('home')}>←</button>
       <span className="di" style={{color:'#f0ead8',fontSize:18}}>Add to cave</span>
-      <div style={{marginLeft:'auto',color:'#5a6480',fontSize:11}}>Step 1 of 2</div>
     </div>
-    {!manual ? <>
-      <div style={{margin:'0 16px',background:'#1e2640',borderRadius:16,border:'0.5px solid #2d3654',minHeight:200,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden'}}>
-        {frontImg ? <img src={frontImg} style={{width:'100%',maxHeight:220,objectFit:'contain'}}/> : <>
-          <div style={{position:'absolute',top:16,left:16,width:18,height:18,borderTop:'2px solid #c4a44a',borderLeft:'2px solid #c4a44a',borderRadius:'3px 0 0 0'}}/>
-          <div style={{position:'absolute',top:16,right:16,width:18,height:18,borderTop:'2px solid #c4a44a',borderRight:'2px solid #c4a44a',borderRadius:'0 3px 0 0'}}/>
-          <div style={{position:'absolute',bottom:16,left:16,width:18,height:18,borderBottom:'2px solid #c4a44a',borderLeft:'2px solid #c4a44a',borderRadius:'0 0 0 3px'}}/>
-          <div style={{position:'absolute',bottom:16,right:16,width:18,height:18,borderBottom:'2px solid #c4a44a',borderRight:'2px solid #c4a44a',borderRadius:'0 0 3px 0'}}/>
-          <div style={{fontSize:32,marginBottom:8}}>📷</div>
-          <div style={{color:'#5a6480',fontSize:12}}>Front label</div>
-        </>}
-      </div>
-      {error&&<div className="err" style={{margin:'10px 16px 0'}}>{error}</div>}
-      <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:8}}>
-        <label style={{display:'block',cursor:'pointer'}}>
-          <div className="btn" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>📷 Take front label photo</div>
-          <input type="file" accept="image/*" capture="environment" onChange={e=>handlePhoto(e,'front')} style={{display:'none'}}/>
-        </label>
-        <label style={{display:'block',cursor:'pointer'}}>
-          <div className="gbtn" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>🖼 Choose from library</div>
-          <input type="file" accept="image/*" onChange={e=>handlePhoto(e,'front')} style={{display:'none'}}/>
-        </label>
-        <button style={{background:'none',border:'none',color:'#5a6480',fontSize:12,cursor:'pointer',marginTop:4}} onClick={()=>{setManual(true);setError('');}}>
-          Type label text manually →
-        </button>
-      </div>
-    </> : <>
-      <div style={{padding:'0 16px',flex:1}}>
-        {frontImg&&<div style={{borderRadius:12,overflow:'hidden',maxHeight:140,marginBottom:12}}><img src={frontImg} style={{width:'100%',objectFit:'contain',maxHeight:140}}/></div>}
-        {error&&<div className="err" style={{marginBottom:12}}>{error}</div>}
-        <div className="sec">TYPE LABEL TEXT</div>
-        <textarea value={manualText} onChange={e=>setManualText(e.target.value)}
-          placeholder={"e.g. Barolo 2021, Domenico Clerico, del Comune di Monforte d'Alba, Piedmont, Italy, Nebbiolo"}
-          rows={4} style={{marginBottom:8}}/>
-        <div style={{color:'#5a6480',fontSize:11,marginBottom:12}}>Include producer · wine name · vintage · region · grape</div>
-        <button className="btn" onClick={handleManual} disabled={!manualText.trim()||loading}>Identify wine</button>
-        <button className="gbtn" style={{marginTop:8}} onClick={()=>{setManual(false);setError('');}}>← Back to camera</button>
-      </div>
-    </>}
-  </>, '');
 
-  // ── SCAN BACK ─────────────────────────────────────────────────────────────
-  if (view === 'scan-back') return wrap(<>
-    <div style={{padding:'18px 16px 10px',display:'flex',alignItems:'center',gap:10}}>
-      <button className="back" onClick={()=>setView('scan-front')}>←</button>
-      <span className="di" style={{color:'#f0ead8',fontSize:18}}>Back label</span>
-      <div style={{marginLeft:'auto',color:'#5a6480',fontSize:11}}>Step 2 of 2</div>
-    </div>
-    <div style={{margin:'0 16px',background:'#1e2640',borderRadius:16,border:'0.5px solid #2d3654',minHeight:160,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',overflow:'hidden'}}>
-      {backImg ? <img src={backImg} style={{width:'100%',maxHeight:180,objectFit:'contain'}}/> : (
-        <div style={{textAlign:'center',padding:24}}>
-          <div style={{fontSize:28,marginBottom:8}}>📋</div>
-          <div style={{color:'#8a96b8',fontSize:13,marginBottom:4}}>Back label (optional)</div>
-          <div style={{color:'#5a6480',fontSize:11}}>Adds tasting notes, grapes & more</div>
+    <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
+
+      {/* Front label slot */}
+      <div style={{marginBottom:12}}>
+        <div className="sec">FRONT LABEL <span style={{color:'#c44a4a'}}>*</span></div>
+        {frontImg ? (
+          <div style={{position:'relative',borderRadius:12,overflow:'hidden',border:'0.5px solid #c4a44a',marginBottom:6}}>
+            <img src={frontImg} style={{width:'100%',maxHeight:180,objectFit:'contain',display:'block'}}/>
+            <div style={{position:'absolute',top:0,right:0,bottom:0,left:0,background:'rgba(0,0,0,0)'}}>
+              <label style={{position:'absolute',bottom:8,right:8,cursor:'pointer'}}>
+                <div style={{background:'rgba(22,28,46,0.85)',border:'0.5px solid #3a4468',borderRadius:8,padding:'5px 10px',color:'#c4a44a',fontSize:11}}>Retake</div>
+                <input type="file" accept="image/*" capture="environment" onChange={e=>handlePhoto(e,'front')} style={{display:'none'}}/>
+              </label>
+            </div>
+            <div style={{position:'absolute',top:8,left:8,background:'#0e2318',border:'0.5px solid #1a3d28',borderRadius:20,padding:'3px 10px',color:'#4a9e6a',fontSize:11}}>✓ Front</div>
+          </div>
+        ) : (
+          <div style={{display:'flex',gap:8}}>
+            <label style={{flex:1,cursor:'pointer'}}>
+              <div style={{background:'#1e2640',border:'1.5px dashed #3a4468',borderRadius:12,padding:'20px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+                <div style={{fontSize:28}}>📷</div>
+                <div style={{color:'#8a96b8',fontSize:12}}>Take photo</div>
+              </div>
+              <input type="file" accept="image/*" capture="environment" onChange={e=>handlePhoto(e,'front')} style={{display:'none'}}/>
+            </label>
+            <label style={{flex:1,cursor:'pointer'}}>
+              <div style={{background:'#1e2640',border:'1.5px dashed #3a4468',borderRadius:12,padding:'20px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+                <div style={{fontSize:28}}>🖼</div>
+                <div style={{color:'#8a96b8',fontSize:12}}>Library</div>
+              </div>
+              <input type="file" accept="image/*" onChange={e=>handlePhoto(e,'front')} style={{display:'none'}}/>
+            </label>
+          </div>
+        )}
+      </div>
+
+      {/* Back label slot */}
+      <div style={{marginBottom:16}}>
+        <div className="sec">BACK LABEL <span style={{color:'#5a6480',fontSize:10,fontStyle:'italic',letterSpacing:'normal'}}>optional but recommended</span></div>
+        {backImg ? (
+          <div style={{position:'relative',borderRadius:12,overflow:'hidden',border:'0.5px solid #3a4468',marginBottom:6}}>
+            <img src={backImg} style={{width:'100%',maxHeight:150,objectFit:'contain',display:'block'}}/>
+            <div style={{position:'absolute',top:0,right:0,bottom:0,left:0}}>
+              <label style={{position:'absolute',bottom:8,right:8,cursor:'pointer'}}>
+                <div style={{background:'rgba(22,28,46,0.85)',border:'0.5px solid #3a4468',borderRadius:8,padding:'5px 10px',color:'#c4a44a',fontSize:11}}>Retake</div>
+                <input type="file" accept="image/*" capture="environment" onChange={e=>handlePhoto(e,'back')} style={{display:'none'}}/>
+              </label>
+            </div>
+            <div style={{position:'absolute',top:8,left:8,background:'#0e2318',border:'0.5px solid #1a3d28',borderRadius:20,padding:'3px 10px',color:'#4a9e6a',fontSize:11}}>✓ Back</div>
+          </div>
+        ) : (
+          <div style={{display:'flex',gap:8}}>
+            <label style={{flex:1,cursor:'pointer'}}>
+              <div style={{background:'#1a2236',border:'1px dashed #2d3654',borderRadius:12,padding:'16px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+                <div style={{fontSize:22}}>📋</div>
+                <div style={{color:'#5a6480',fontSize:11}}>Take photo</div>
+              </div>
+              <input type="file" accept="image/*" capture="environment" onChange={e=>handlePhoto(e,'back')} style={{display:'none'}}/>
+            </label>
+            <label style={{flex:1,cursor:'pointer'}}>
+              <div style={{background:'#1a2236',border:'1px dashed #2d3654',borderRadius:12,padding:'16px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:6}}>
+                <div style={{fontSize:22}}>🖼</div>
+                <div style={{color:'#5a6480',fontSize:11}}>Library</div>
+              </div>
+              <input type="file" accept="image/*" onChange={e=>handlePhoto(e,'back')} style={{display:'none'}}/>
+            </label>
+          </div>
+        )}
+      </div>
+
+      {/* Manual text area */}
+      <div style={{marginBottom:16}}>
+        <div className="sec">OR ADD LABEL TEXT <span style={{color:'#5a6480',fontSize:10,fontStyle:'italic',letterSpacing:'normal'}}>helps accuracy</span></div>
+        <textarea value={manualText} onChange={e=>setManualText(e.target.value)} rows={3}
+          placeholder={"e.g. Barolo 2021, Domenico Clerico, Monforte d'Alba, Piedmont, Italy"}
+          style={{fontSize:13}}/>
+        <div style={{color:'#5a6480',fontSize:11,marginTop:4}}>Producer · wine name · vintage · region · grape variety</div>
+      </div>
+
+      {error && (
+        <div style={{padding:'12px 14px',background:'#1a0e0e',border:'0.5px solid #4a2020',borderRadius:10,marginBottom:12}}>
+          <div style={{color:'#c44a4a',fontSize:12,marginBottom:6,fontWeight:500}}>Couldn't identify — try these:</div>
+          <div style={{color:'#8a6060',fontSize:12,lineHeight:1.6}}>• Add the back label photo for more text<br/>• Type the wine name in the text box above<br/>• Try again — results vary with lighting</div>
         </div>
       )}
-    </div>
-    <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:8}}>
-      <label style={{display:'block',cursor:'pointer'}}>
-        <div className="btn" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>📷 Take back label photo</div>
-        <input type="file" accept="image/*" capture="environment" onChange={e=>handlePhoto(e,'back')} style={{display:'none'}}/>
-      </label>
-      <label style={{display:'block',cursor:'pointer'}}>
-        <div className="gbtn" style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>🖼 Choose from library</div>
-        <input type="file" accept="image/*" onChange={e=>handlePhoto(e,'back')} style={{display:'none'}}/>
-      </label>
-      <button className="gbtn" onClick={()=>runIdentification(frontImg, null)} style={{borderColor:'#2d3654',color:'#8a96b8'}}>
-        Skip — identify from front label only
+
+      {/* THE IDENTIFY BUTTON — user must tap this */}
+      <button className="btn" onClick={runIdentification} disabled={loading||(!frontImg&&!manualText.trim())} style={{marginBottom:8}}>
+        {loading ? 'Identifying…' : '🔍 Identify wine'}
       </button>
+      <div style={{color:'#5a6480',fontSize:11,textAlign:'center',lineHeight:1.5}}>
+        {frontImg||backImg ? `${frontImg?'Front':''}${frontImg&&backImg?' + ':''}${backImg?'Back':''} label${frontImg&&backImg?'s':''} ready` : 'Add at least a front label photo'}
+      </div>
+      <div style={{height:16}}/>
     </div>
   </>, '');
 
   // ── SCANNING ──────────────────────────────────────────────────────────────
-  if (view === 'scanning') return (
+  if (view==='scanning') return (
     <div style={{background:'#161c2e',minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',maxWidth:440,margin:'0 auto'}}>
       <style>{CSS}</style>
       <div style={{fontSize:48,marginBottom:18}}>🍷</div>
       <div className="di" style={{color:'#8a96b8',fontSize:22,marginBottom:8}}>{loadMsg}</div>
-      <div style={{color:'#5a6480',fontSize:12,textAlign:'center',lineHeight:1.7}}>
-        {loadMsg.includes('Reading')? 'Running OCR on the label…' : 'Searching wine database…'}
-      </div>
+      <div style={{color:'#5a6480',fontSize:12,textAlign:'center',lineHeight:1.7}}>Claude is reading the label…</div>
       <div style={{width:160,height:2,background:'#1e2640',borderRadius:2,overflow:'hidden',marginTop:28}}>
         <div style={{height:'100%',background:'linear-gradient(90deg,#c4a44a,#e8c870)',borderRadius:2,width:'70%'}}/>
       </div>
@@ -599,35 +614,30 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   );
 
   // ── IS THIS RIGHT? ────────────────────────────────────────────────────────
-  if (view === 'is-this-right' && pending) {
+  if (view==='is-this-right' && pending) {
     const p = editPending || pending;
     const isEditing = !!editPending;
-    const FieldInput = ({label, field, multiline}) => (
-      <div className="field-row">
-        <div className="field-label">{label}</div>
-        {multiline
-          ? <textarea value={p[field]||''} rows={2} onChange={e=>setEditPending({...p,[field]:e.target.value})} style={{fontSize:13}}/>
-          : <input type="text" value={p[field]||''} onChange={e=>setEditPending({...p,[field]:e.target.value})} style={{fontSize:13}}/>
-        }
-      </div>
-    );
 
     return wrap(<>
       <div style={{padding:'18px 16px 10px',display:'flex',alignItems:'center',gap:10}}>
-        <button className="back" onClick={()=>{setView('scan-back');setEditPending(null);}}>←</button>
+        <button className="back" onClick={()=>{setView('scan');setEditPending(null);}}>←</button>
         <span className="di" style={{color:'#f0ead8',fontSize:18}}>Is this right?</span>
         <div style={{marginLeft:'auto'}}>
-          <span className={statusCls(p.drinkingWindow?.status||'')+' '} style={{padding:'2px 8px',borderRadius:10,fontSize:10}}>
-            {(p.confidence||'').toUpperCase()} CONFIDENCE
+          <span className={statusCls(p.drinkingWindow?.status||'')} style={{fontSize:10,letterSpacing:'.04em'}}>
+            {(p.confidence||'?').toUpperCase()}
           </span>
         </div>
       </div>
+
       <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
-        {frontImg&&<div style={{borderRadius:12,overflow:'hidden',maxHeight:150,marginBottom:12}}>
-          <img src={frontImg} style={{width:'100%',objectFit:'contain',maxHeight:150}}/>
-        </div>}
+        {frontImg&&(
+          <div style={{borderRadius:10,overflow:'hidden',maxHeight:130,marginBottom:12,border:'0.5px solid #2d3654'}}>
+            <img src={frontImg} style={{width:'100%',objectFit:'contain',maxHeight:130}}/>
+          </div>
+        )}
 
         {!isEditing ? <>
+          {/* Main identification result */}
           <div className="card" style={{marginBottom:10}}>
             <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.1em',marginBottom:2}}>{(p.producer||'').toUpperCase()}</div>
             <div className="di" style={{color:'#f0ead8',fontSize:22,lineHeight:1.2,marginBottom:4}}>{p.wineName}</div>
@@ -638,12 +648,12 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
             </div>
           </div>
 
-          {/* Alternatives if medium/low confidence */}
+          {/* Alternatives if not high confidence */}
           {(p.alternatives||[]).length>0&&(
             <div className="card" style={{marginBottom:10}}>
               <div className="sec">COULD ALSO BE…</div>
               {(p.alternatives||[]).map((alt,i)=>(
-                <div key={i} onClick={()=>{const merged={...p,...alt,alternatives:[]};setPending(merged);setEditPending(null);}}
+                <div key={i} onClick={()=>{setPending({...p,...alt,alternatives:[]});setEditPending(null);}}
                   style={{display:'flex',alignItems:'center',gap:10,padding:'10px 0',borderBottom:i<p.alternatives.length-1?'0.5px solid #2d3654':'none',cursor:'pointer'}}>
                   <div style={{flex:1}}>
                     <div style={{color:'#f0ead8',fontSize:13}}>{alt.producer} {alt.wineName} {alt.vintage}</div>
@@ -685,31 +695,33 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
           <button className="gbtn" onClick={()=>setEditPending({...p})} style={{marginBottom:8}}>
             ✏ No — let me correct this
           </button>
-          <button onClick={()=>{setEditPending(null);setView('scan-front');}} style={{background:'none',border:'none',color:'#5a6480',fontSize:12,cursor:'pointer',width:'100%',padding:'8px 0'}}>
-            Re-scan this bottle
-          </button>
-
-          {/* Wine-Searcher verification link */}
-          <div style={{textAlign:'center',marginTop:8,paddingBottom:8}}>
+          <div style={{display:'flex',justifyContent:'space-between',marginBottom:8}}>
+            <button onClick={()=>{setEditPending(null);setView('scan');}} style={{background:'none',border:'none',color:'#5a6480',fontSize:12,cursor:'pointer',padding:'8px 0'}}>
+              ← Back to scan
+            </button>
             <a href={`https://www.wine-searcher.com/find/${encodeURIComponent(`${p.producer} ${p.wineName} ${p.vintage}`)}`}
-              target="_blank" style={{color:'#5a6480',fontSize:11,textDecoration:'underline'}}>
+              target="_blank" style={{color:'#5a6480',fontSize:12,textDecoration:'underline',padding:'8px 0'}}>
               Verify on Wine-Searcher →
             </a>
           </div>
 
         </> : <>
+          {/* Edit form */}
           <div className="card" style={{marginBottom:10}}>
-            <div className="sec" style={{marginBottom:10}}>CORRECT THE DETAILS</div>
-            <FieldInput label="PRODUCER" field="producer"/>
-            <FieldInput label="WINE NAME" field="wineName"/>
-            <FieldInput label="VINTAGE" field="vintage"/>
-            <FieldInput label="REGION" field="region"/>
-            <FieldInput label="APPELLATION" field="appellation"/>
-            <FieldInput label="GRAPE VARIETIES (comma separated)" field="grapeVarieties" multiline/>
+            <div className="sec" style={{marginBottom:12}}>CORRECT THE DETAILS</div>
+            {[['PRODUCER','producer'],['WINE NAME','wineName'],['VINTAGE','vintage'],['REGION','region'],['APPELLATION','appellation']].map(([lbl,field])=>(
+              <div key={field} style={{marginBottom:10}}>
+                <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:4}}>{lbl}</div>
+                <input type="text" value={p[field]||''} onChange={e=>setEditPending({...p,[field]:e.target.value})}/>
+              </div>
+            ))}
+            <div style={{marginBottom:10}}>
+              <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:4}}>GRAPE VARIETIES (comma separated)</div>
+              <input type="text" value={(p.grapeVarieties||[]).join(', ')}
+                onChange={e=>setEditPending({...p,grapeVarieties:e.target.value.split(',').map(s=>s.trim()).filter(Boolean)})}/>
+            </div>
           </div>
-          <button className="btn" onClick={()=>{setPending(editPending);setEditPending(null);}} style={{marginBottom:8}}>
-            Save corrections
-          </button>
+          <button className="btn" onClick={()=>{setPending(editPending);setEditPending(null);}} style={{marginBottom:8}}>Save corrections</button>
           <button className="gbtn" onClick={()=>setEditPending(null)}>Cancel</button>
         </>}
         <div style={{height:16}}/>
