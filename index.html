@@ -419,6 +419,9 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   const [showArchive, setShowArchive] = useState(false);
   const [archive, setArchive] = useState([]);
   const [editPending, setEditPending] = useState(null);
+  const [editPurchase, setEditPurchase] = useState(false);
+  const [draftPurchasePrice, setDraftPurchasePrice] = useState('');
+  const [draftPurchaseWhere, setDraftPurchaseWhere] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [purchasePrice, setPurchasePrice] = useState('');
   const [purchaseWhere, setPurchaseWhere] = useState('');
@@ -578,6 +581,10 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 
   async function confirmLog() {
     if (!sel) return;
+    if (logAction==='permdelete') {
+      await removeWine(sel.id);
+      setSelId(null); setLogAction(''); setView('cellar'); return;
+    }
     if (logAction==='delete') {
       // Archive the wine record before removing
       const archiveEntry = { ...sel, archivedAt: Date.now(), archiveReason: 'removed' };
@@ -600,6 +607,14 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   }
 
   async function adjustQty(delta) { if (!sel) return; await saveWine({ ...sel, bottles: Math.max(0,(sel.bottles||0)+delta) }); }
+  async function savePurchaseInfo() {
+    if (!sel) return;
+    await saveWine({ ...sel,
+      purchasePrice: draftPurchasePrice ? parseFloat(draftPurchasePrice) : null,
+      purchaseWhere: draftPurchaseWhere || null
+    });
+    setEditPurchase(false);
+  }
   async function saveMyNotes() { if (!sel) return; await saveWine({ ...sel, myNotes: notesDraft }); setEditNotes(false); }
 
   async function runConcierge() {
@@ -1013,28 +1028,61 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
         </div>
       </div>
 
-      {(sel.purchasePrice||sel.purchaseWhere)&&(
-        <div className="card" style={{marginBottom:10}}>
-          <div className="sec">MY PURCHASE</div>
-          <div style={{display:'flex',gap:20}}>
-            {sel.purchasePrice&&<div>
-              <div style={{color:'#5a6480',fontSize:10,marginBottom:2}}>PAID</div>
-              <div className="df" style={{color:'#f0ead8',fontSize:18}}>${sel.purchasePrice}</div>
-              {sel.priceMedian&&sel.purchasePrice&&(
-                <div style={{color: sel.priceMedian > sel.purchasePrice ? '#4a9e6a' : '#c44a4a', fontSize:11, marginTop:2}}>
-                  {sel.priceMedian > sel.purchasePrice
-                    ? `+$${Math.round(sel.priceMedian - sel.purchasePrice)} gain`
-                    : `-$${Math.round(sel.purchasePrice - sel.priceMedian)} below market`}
-                </div>
-              )}
-            </div>}
-            {sel.purchaseWhere&&<div>
-              <div style={{color:'#5a6480',fontSize:10,marginBottom:2}}>FROM</div>
-              <div style={{color:'#f0ead8',fontSize:14}}>{sel.purchaseWhere}</div>
-            </div>}
-          </div>
+      <div className="card" style={{marginBottom:10}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+          <div className="sec" style={{marginBottom:0}}>MY PURCHASE</div>
+          {!editPurchase&&(
+            <button onClick={()=>{setDraftPurchasePrice(sel.purchasePrice?String(sel.purchasePrice):'');setDraftPurchaseWhere(sel.purchaseWhere||'');setEditPurchase(true);}}
+              style={{background:'none',border:'none',color:'#c4a44a',fontSize:11,cursor:'pointer'}}>
+              {sel.purchasePrice||sel.purchaseWhere ? 'Edit' : '+ Add purchase info'}
+            </button>
+          )}
         </div>
-      )}
+        {editPurchase ? (
+          <>
+            <div style={{display:'flex',gap:8,marginBottom:8}}>
+              <div style={{flex:1}}>
+                <div style={{color:'#5a6480',fontSize:10,marginBottom:4}}>WHAT I PAID ($)</div>
+                <input type="number" value={draftPurchasePrice} onChange={e=>setDraftPurchasePrice(e.target.value)}
+                  placeholder="e.g. 185" style={{fontSize:13}}/>
+              </div>
+              <div style={{flex:2}}>
+                <div style={{color:'#5a6480',fontSize:10,marginBottom:4}}>WHERE I BOUGHT IT</div>
+                <input type="text" value={draftPurchaseWhere} onChange={e=>setDraftPurchaseWhere(e.target.value)}
+                  placeholder="e.g. K&L Wines" style={{fontSize:13}}/>
+              </div>
+            </div>
+            <div style={{display:'flex',gap:8}}>
+              <button className="btn" style={{padding:'9px'}} onClick={savePurchaseInfo}>Save</button>
+              <button className="gbtn" style={{padding:'9px'}} onClick={()=>setEditPurchase(false)}>Cancel</button>
+            </div>
+          </>
+        ) : (sel.purchasePrice||sel.purchaseWhere) ? (
+          <div style={{display:'flex',gap:20}}>
+            {sel.purchasePrice&&(
+              <div>
+                <div style={{color:'#5a6480',fontSize:10,marginBottom:2}}>PAID</div>
+                <div className="df" style={{color:'#f0ead8',fontSize:18}}>${sel.purchasePrice}</div>
+                {sel.priceMedian&&sel.purchasePrice&&(
+                  <div style={{color:sel.priceMedian>sel.purchasePrice?'#4a9e6a':'#c44a4a',fontSize:11,marginTop:2}}>
+                    {sel.priceMedian>sel.purchasePrice
+                      ? `+$${Math.round(sel.priceMedian-sel.purchasePrice)} gain`
+                      : `-$${Math.round(sel.purchasePrice-sel.priceMedian)} below market`}
+                  </div>
+                )}
+              </div>
+            )}
+            {sel.purchaseWhere&&(
+              <div>
+                <div style={{color:'#5a6480',fontSize:10,marginBottom:2}}>FROM</div>
+                <div style={{color:'#f0ead8',fontSize:14}}>{sel.purchaseWhere}</div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div style={{color:'#5a6480',fontSize:12,fontStyle:'italic'}}>Tap "+ Add purchase info" to record what you paid and where.</div>
+        )}
+      </div>
 
       {sel.tastingNotes&&(
         <div className="card" style={{marginBottom:10}}>
@@ -1105,6 +1153,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
           {key:'gave',icon:'🎁',bg:'#162038',bdr:'#1e3060',label:'Gave away',sub:'Gift or shared — removes from count'},
           {key:'lost',icon:'💔',bg:'#251608',bdr:'#3d2810',label:'Lost / broken / corked',sub:'Removes from count, no drink log'},
           {key:'delete',icon:'📦',bg:'#162038',bdr:'#1e3060',label:'Archive this wine',sub:'Moves to archive with full history',danger:false},
+          {key:'permdelete',icon:'🗑',bg:'#2a1010',bdr:'#4a2020',label:'Delete permanently',sub:'Removes all data — cannot be undone',danger:true},
         ].map(o=>(
           <div key={o.key} className="lopt" style={{borderColor:o.danger?'#4a2020':'#2d3654'}} onClick={()=>setLogAction(o.key)}>
             <div style={{width:36,height:36,borderRadius:10,background:o.bg,border:`0.5px solid ${o.bdr}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}}>{o.icon}</div>
@@ -1115,7 +1164,17 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
             <div style={{color:'#5a6480'}}>›</div>
           </div>
         ))}
-      </> : logAction==='delete' ? (
+      </> : logAction==='permdelete' ? (
+        <div className="card" style={{textAlign:'center',padding:28}}>
+          <div style={{fontSize:32,marginBottom:12}}>🗑</div>
+          <div className="di" style={{color:'#f0ead8',fontSize:20,marginBottom:8}}>Delete permanently?</div>
+          <div style={{color:'#8a96b8',fontSize:13,marginBottom:20,lineHeight:1.5}}>
+            All data for <em>{sel.wineName}</em> will be permanently deleted with no archive. Cannot be undone.
+          </div>
+          <button className="dbtn" style={{marginBottom:8}} onClick={confirmLog}>Yes, delete forever</button>
+          <button className="gbtn" onClick={()=>setLogAction('')}>Cancel</button>
+        </div>
+      ) : logAction==='delete' ? (
         <div className="card" style={{textAlign:'center',padding:28}}>
           <div style={{fontSize:32,marginBottom:12}}>🗑</div>
           <div className="di" style={{color:'#f0ead8',fontSize:20,marginBottom:8}}>Archive this wine?</div>
