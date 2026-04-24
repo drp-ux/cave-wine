@@ -1597,44 +1597,6 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     </div>
   </>, 'concierge');
 
-  // ── SETTINGS ──────────────────────────────────────────────────────────────
-  if (view==='settings') return wrap(<>
-    <div style={{padding:'20px 16px 12px'}}>
-      <div className="di" style={{color:'#f0ead8',fontSize:26,marginBottom:3}}>Settings</div>
-      <div style={{color:'#5a6480',fontSize:13}}>{profileName}</div>
-    </div>
-    <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
-      <SettingsPanel profileId={profileId} onSwitchProfile={onSwitchProfile}/>
-      <div style={{height:16}}/>
-    </div>
-  </>, 'settings');
-
-  return null;
-}
-
-// ─── SETTINGS PANEL ───────────────────────────────────────────────────────────
-function SettingsPanel({ profileId, onSwitchProfile }) {
-  const { useState } = React;
-  const [key, setKey] = useState(getApiKey(profileId));
-  const [saved, setSaved] = useState(false);
-  const [testing, setTesting] = useState(false);
-  const [keyErr, setKeyErr] = useState('');
-
-  async function saveKey() {
-    setTesting(true); setKeyErr('');
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':key.trim(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body: JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:10,messages:[{role:'user',content:'hi'}]})
-      });
-      if (!res.ok) { const t=await res.text(); throw new Error('Key rejected: '+t.slice(0,100)); }
-      store.set(`cave_key_${profileId}`, key.trim());
-      store.set('cave_api_key', key.trim());
-      setSaved(true); setTimeout(()=>setSaved(false),1500);
-    } catch(e) { setKeyErr(e.message); } finally { setTesting(false); }
-  }
-
   function importCSV(e) {
     const file = e.target.files?.[0]; e.target.value='';
     if (!file) return;
@@ -1722,6 +1684,45 @@ function SettingsPanel({ profileId, onSwitchProfile }) {
     };
     reader.readAsText(file);
   }
+
+  // ── SETTINGS ──────────────────────────────────────────────────────────────
+  if (view==='settings') return wrap(<>
+    <div style={{padding:'20px 16px 12px'}}>
+      <div className="di" style={{color:'#f0ead8',fontSize:26,marginBottom:3}}>Settings</div>
+      <div style={{color:'#5a6480',fontSize:13}}>{profileName}</div>
+    </div>
+    <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
+      <SettingsPanel profileId={profileId} onSwitchProfile={onSwitchProfile} importCSV={importCSV}/>
+      <div style={{height:16}}/>
+    </div>
+  </>, 'settings');
+
+  return null;
+}
+
+// ─── SETTINGS PANEL ───────────────────────────────────────────────────────────
+function SettingsPanel({ profileId, onSwitchProfile, importCSV }) {
+  const { useState } = React;
+  const [key, setKey] = useState(getApiKey(profileId));
+  const [saved, setSaved] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [keyErr, setKeyErr] = useState('');
+
+  async function saveKey() {
+    setTesting(true); setKeyErr('');
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':key.trim(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body: JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:10,messages:[{role:'user',content:'hi'}]})
+      });
+      if (!res.ok) { const t=await res.text(); throw new Error('Key rejected: '+t.slice(0,100)); }
+      store.set(`cave_key_${profileId}`, key.trim());
+      store.set('cave_api_key', key.trim());
+      setSaved(true); setTimeout(()=>setSaved(false),1500);
+    } catch(e) { setKeyErr(e.message); } finally { setTesting(false); }
+  }
+
 
   function exportCSV() {
     const prefix = getProfilePrefix(profileId);
