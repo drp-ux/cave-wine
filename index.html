@@ -1639,43 +1639,47 @@ function SettingsPanel({ profileId, onSwitchProfile }) {
     const file = e.target.files?.[0]; e.target.value='';
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = async () => {
-      const lines = reader.result.split('\n').filter(l=>l.trim());
+    reader.onload = () => {
+      const lines = reader.result.split('\n').filter(function(l){ return l.trim(); });
       if (lines.length < 2) { alert('CSV appears empty'); return; }
-      const headers = lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
-      const get = (row, name) => {
-        const i = headers.findIndex(h=>h.toLowerCase()===name.toLowerCase());
-        return i>=0 ? row[i]?.replace(/^"|"$/g,'').trim() : '';
+      const headers = lines[0].split(',').map(function(h){ return h.replace(/^"|"$/g,'').trim(); });
+      const get = function(row, name) {
+        const i = headers.findIndex(function(h){ return h.toLowerCase()===name.toLowerCase(); });
+        if (i < 0) return '';
+        const v = row[i] || '';
+        return v.replace(/^"|"$/g,'').trim();
       };
-      let imported = 0, skipped = 0;
-      for (let li=1; li<lines.length; li++) {
-        const row = lines[li].match(/("(?:[^"]|"")*"|[^,]*)/g)?.map(c=>c||'') || [];
+
+      // Parse all rows synchronously — no await inside loop
+      const toSave = [];
+      let skipped = 0;
+      for (let li = 1; li < lines.length; li++) {
+        const row = lines[li].match(/("(?:[^"]|"")*"|[^,]*)/g) || [];
         const producer = get(row,'Producer');
         const wineName = get(row,'Wine Name');
         if (!producer && !wineName) continue;
         const vintage = get(row,'Vintage') || 'NV';
-        const existing = cellar.find(w=>w.producer===producer&&w.wineName===wineName&&w.vintage===vintage);
-        if (existing) { skipped++; continue; }
+        const alreadyExists = cellar.find(function(w){
+          return w.producer===producer && w.wineName===wineName && w.vintage===vintage;
+        });
+        if (alreadyExists) { skipped++; continue; }
         const rawStatus = get(row,'Drink Status') || get(row,'Status') || 'hold';
-        const priceMedianRaw = parseFloat(get(row,'Retail Median'))||null;
-        const priceLowRaw = parseFloat(get(row,'Retail Low'))||null;
-        const priceHighRaw = parseFloat(get(row,'Retail High'))||null;
         const wine = {
-          id: Date.now().toString() + li,
+          id: String(Date.now() + li),
           producer, wineName, vintage,
           region: get(row,'Region'),
           appellation: get(row,'Appellation'),
-          grapeVarieties: get(row,'Grape Varieties').split(';').map(s=>s.trim()).filter(Boolean),
+          grapeVarieties: get(row,'Grape Varieties').split(';').map(function(s){ return s.trim(); }).filter(Boolean),
           wineType: get(row,'Type') || 'red',
-          bottles: parseInt(get(row,'Bottles'))||1,
-          retailPriceLow: priceLowRaw,
-          retailPriceHigh: priceHighRaw,
-          priceMedian: priceMedianRaw,
+          bottles: parseInt(get(row,'Bottles')) || 1,
+          retailPriceLow: parseFloat(get(row,'Retail Low')) || null,
+          retailPriceHigh: parseFloat(get(row,'Retail High')) || null,
+          priceMedian: parseFloat(get(row,'Retail Median')) || null,
           priceNote: 'Imported from CSV',
           livePriceFetched: false,
-          purchasePrice: parseFloat(get(row,'Purchase Price'))||null,
-          purchaseWhere: get(row,'Purchase Where'),
-          purchaseDate: get(row,'Purchase Date') || get(row,'Added Date'),
+          purchasePrice: parseFloat(get(row,'Purchase Price')) || null,
+          purchaseWhere: get(row,'Purchase Where') || null,
+          purchaseDate: get(row,'Purchase Date') || get(row,'Added Date') || null,
           drinkingWindow: {
             status: normalizeStatus(rawStatus),
             start: get(row,'Drink Window Start'),
@@ -1683,7 +1687,7 @@ function SettingsPanel({ profileId, onSwitchProfile }) {
             recommendation: get(row,'Drinking Window Note')
           },
           cellaring: {
-            shouldCellar: normalizeStatus(rawStatus)==='hold',
+            shouldCellar: normalizeStatus(rawStatus) === 'hold',
             yearsToHold: get(row,'Cellar Years'),
             storageNotes: ''
           },
@@ -1694,16 +1698,27 @@ function SettingsPanel({ profileId, onSwitchProfile }) {
           },
           servingTemp: get(row,'Serving Temp'),
           decantingAdvice: get(row,'Decanting'),
-          myNotes: get(row,'My Notes'),
+          myNotes: get(row,'My Notes') || '',
           image: '',
           addedAt: Date.now() + li,
           drinkLog: []
         };
-        await window.storage.set('wine:'+wine.id, JSON.stringify(wine));
-        imported++;
+        toSave.push(wine);
       }
-      await loadCellar();
-      alert(imported + ' wines imported' + (skipped ? ', ' + skipped + ' skipped (already in cave)' : '') + '.');
+
+      // Save all wines in parallel with Promise.all — no async generator
+      const saves = toSave.map(function(wine) {
+        return window.storage.set('wine:' + wine.id, JSON.stringify(wine));
+      });
+      const imported = toSave.length;
+      Promise.all(saves).then(function() {
+        return loadCellar();
+      }).then(function() {
+        alert(imported + ' wine' + (imported !== 1 ? 's' : '') + ' imported' +
+              (skipped ? ', ' + skipped + ' skipped (already in cave)' : '') + '.');
+      }).catch(function(err) {
+        alert('Import failed: ' + err.message);
+      });
     };
     reader.readAsText(file);
   }
