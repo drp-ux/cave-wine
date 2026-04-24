@@ -120,7 +120,9 @@ const statusCls = s => {
   return 'bhold';
 };
 const statusLabel = s => normalizeStatus(s);
-const wineEmoji = t => ({'red':'🍷','white':'🍾','sparkling':'🥂','rosé':'🌸','rose':'🌸','dessert':'🍯','fortified':'🥃'}[(t||'').toLowerCase()]||'🍷');
+const wineEmoji = t => ({'red':'🍷','white':'🍷','sparkling':'🥂','rosé':'🍷','rose':'🍷','dessert':'🍯','fortified':'🥃'}[(t||'').toLowerCase()]||'🍷');
+const wineBg = t => ({'red':'#3d1a14','white':'#2a2406','sparkling':'#162038','rosé':'#3d1a28','rose':'#3d1a28','dessert':'#2a1a00','fortified':'#1a1400'}[(t||'').toLowerCase()]||'#252d4a');
+const wineBorder = t => ({'red':'#8a3a2a','white':'#8a7a20','sparkling':'#2a5080','rosé':'#8a3a5a','rose':'#8a3a5a','dessert':'#8a5a00','fortified':'#5a4400'}[(t||'').toLowerCase()]||'#3a4468');
 const avg = w => {
   if (w.priceMedian) return parseFloat(w.priceMedian);
   const lo = parseFloat(w.retailPriceLow) || 0;
@@ -819,7 +821,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
         </div>
       ):cellar.slice(0,8).map(w=>(
         <div key={w.id} className="row" onClick={()=>{setSelId(w.id);setView('detail');}}>
-          <div style={{width:34,height:46,borderRadius:5,background:'#252d4a',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0,overflow:'hidden'}}>
+          <div style={{width:34,height:46,borderRadius:5,background:w.image?'#252d4a':wineBg(w.wineType),border:'0.5px solid '+wineBorder(w.wineType),display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0,overflow:'hidden'}}>
             {w.image?<img src={w.image} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:4}}/>:wineEmoji(w.wineType)}
           </div>
           <div style={{flex:1,minWidth:0}}>
@@ -1100,7 +1102,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     )}
     <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
       <div style={{display:'flex',gap:14,marginBottom:16,alignItems:'flex-start'}}>
-        <div style={{width:54,height:74,borderRadius:8,background:'#252d4a',border:'0.5px solid #3a4468',display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,flexShrink:0,overflow:'hidden'}}>
+        <div style={{width:54,height:74,borderRadius:8,background:sel.image?'#252d4a':wineBg(sel.wineType),border:'0.5px solid '+wineBorder(sel.wineType),display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,flexShrink:0,overflow:'hidden'}}>
           {sel.image?<img src={sel.image} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:wineEmoji(sel.wineType)}
         </div>
         <div style={{flex:1}}>
@@ -1416,7 +1418,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       ) : filteredCellar.map(w=>(
         <div key={w.id}>
           <div className="row" onClick={()=>{setSelId(w.id);setView('detail');}}>
-            <div style={{width:34,height:46,borderRadius:5,background:'#252d4a',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0,overflow:'hidden'}}>
+            <div style={{width:34,height:46,borderRadius:5,background:w.image?'#252d4a':wineBg(w.wineType),border:'0.5px solid '+wineBorder(w.wineType),display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0,overflow:'hidden'}}>
               {w.image?<img src={w.image} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:4}}/>:wineEmoji(w.wineType)}
             </div>
             <div style={{flex:1,minWidth:0}}>
