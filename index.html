@@ -457,6 +457,8 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   const [editPending, setEditPending] = useState(null);
   const [editPurchase, setEditPurchase] = useState(false);
   const [confirmPermDelete, setConfirmPermDelete] = useState(false);
+  const [refreshMsg, setRefreshMsg] = useState('');
+  const [refreshingPrice, setRefreshingPrice] = useState(false);
   const [draftPurchasePrice, setDraftPurchasePrice] = useState('');
   const [draftPurchaseWhere, setDraftPurchaseWhere] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -645,6 +647,78 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   }
 
   async function adjustQty(delta) { if (!sel) return; await saveWine({ ...sel, bottles: Math.max(0,(sel.bottles||0)+delta) }); }
+  function refreshAllPrices() {
+    if (cellar.length === 0) return;
+    setRefreshingPrice(true);
+    var wines = cellar.slice();
+    var updated = 0, failed = 0, idx = 0;
+
+    function processNext() {
+      if (idx >= wines.length) {
+        return loadCellar().then(function() {
+          setRefreshingPrice(false);
+          setRefreshMsg('');
+          alert('Price refresh complete: ' + updated + ' updated' +
+            (failed > 0 ? ', ' + failed + ' not found on Wine-Searcher' : '') + '.');
+        });
+      }
+      var wine = wines[idx];
+      idx++;
+      setRefreshMsg('Updating ' + idx + ' of ' + wines.length + ': ' + wine.producer + '...');
+      return fetchLivePrice(wine.producer, wine.wineName, wine.vintage, profileId)
+        .then(function(priceData) {
+          if (priceData && priceData.listingsFound > 0) {
+            var updated_wine = Object.assign({}, wine, {
+              retailPriceLow:   priceData.priceLow,
+              retailPriceHigh:  priceData.priceHigh,
+              priceMedian:      priceData.priceMedian,
+              priceNote:        priceData.priceNote,
+              priceSources:     priceData.sources || [],
+              priceListings:    priceData.listingsFound,
+              priceConfidence:  priceData.confidence,
+              livePriceFetched: true,
+              priceUpdatedAt:   Date.now()
+            });
+            return window.storage.set('wine:' + wine.id, JSON.stringify(updated_wine))
+              .then(function() { updated++; });
+          } else {
+            failed++;
+          }
+        })
+        .catch(function() { failed++; })
+        .then(processNext);
+    }
+    processNext();
+  }
+
+  async function refreshOnePrice(wine) {
+    if (!wine || refreshingPrice) return;
+    setRefreshingPrice(true);
+    try {
+      const priceData = await fetchLivePrice(wine.producer, wine.wineName, wine.vintage, profileId);
+      if (priceData.listingsFound > 0) {
+        await saveWine({
+          ...wine,
+          retailPriceLow:   priceData.priceLow,
+          retailPriceHigh:  priceData.priceHigh,
+          priceMedian:      priceData.priceMedian,
+          priceNote:        priceData.priceNote,
+          priceSources:     priceData.sources || [],
+          priceListings:    priceData.listingsFound,
+          priceConfidence:  priceData.confidence,
+          livePriceFetched: true,
+          priceUpdatedAt:   Date.now()
+        });
+      } else {
+        await saveWine({ ...wine, priceNote: 'No Wine-Searcher listings found', livePriceFetched: false, priceUpdatedAt: Date.now() });
+      }
+    } catch(e) {
+      console.error('Price refresh failed:', e.message);
+    } finally {
+      setRefreshingPrice(false);
+    }
+  }
+
   async function savePurchaseInfo() {
     if (!sel) return;
     await saveWine({ ...sel,
@@ -1075,10 +1149,21 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
         <div className="card" style={{flex:1,padding:12}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
             <div className="sec" style={{marginBottom:0}}>RETAIL (US)</div>
-            {sel.livePriceFetched
-              ? <span style={{background:'#0e2318',color:'#4a9e6a',fontSize:9,padding:'2px 6px',borderRadius:8,border:'0.5px solid #1a3d28',letterSpacing:'.04em'}}>LIVE</span>
-              : <span style={{background:'#252d4a',color:'#5a6480',fontSize:9,padding:'2px 6px',borderRadius:8,letterSpacing:'.04em'}}>EST.</span>
-            }
+            <div style={{display:'flex',alignItems:'center',gap:5}}>
+              {sel.livePriceFetched
+                ? <span style={{background:'#0e2318',color:'#4a9e6a',fontSize:9,padding:'2px 6px',borderRadius:8,border:'0.5px solid #1a3d28',letterSpacing:'.04em'}}>LIVE</span>
+                : <span style={{background:'#252d4a',color:'#5a6480',fontSize:9,padding:'2px 6px',borderRadius:8,letterSpacing:'.04em'}}>EST.</span>
+              }
+              {sel.priceUpdatedAt && (
+                <span style={{color:'#5a6480',fontSize:9}}>
+                  · {Math.floor((Date.now()-sel.priceUpdatedAt)/(1000*60*60*24))}d ago
+                </span>
+              )}
+              <button onClick={()=>refreshOnePrice(sel)} disabled={refreshingPrice}
+                style={{background:'none',border:'none',color:refreshingPrice?'#5a6480':'#c4a44a',fontSize:14,cursor:refreshingPrice?'not-allowed':'pointer',lineHeight:1,padding:0}}>
+                {refreshingPrice?'⏳':'🔄'}
+              </button>
+            </div>
           </div>
           {sel.priceMedian
             ? <>
@@ -1089,6 +1174,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
           }
           {sel.priceSources?.length>0 && <div style={{color:'#5a6480',fontSize:10,marginTop:3}}>{sel.priceListings} listings · {sel.priceSources.slice(0,2).join(', ')}</div>}
           {sel.priceNote&&<div style={{color:'#5a6480',fontSize:10,marginTop:3,fontStyle:'italic'}}>{sel.priceNote}</div>}
+          {sel.priceUpdatedAt&&<div style={{color:'#5a6480',fontSize:9,marginTop:2}}>Updated {new Date(sel.priceUpdatedAt).toLocaleDateString()}</div>}
         </div>
         <div className="card" style={{flex:1,padding:12}}>
           <div className="sec" style={{marginBottom:4}}>DRINK</div>
@@ -1713,7 +1799,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       <div style={{color:'#5a6480',fontSize:13}}>{profileName}</div>
     </div>
     <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
-      <SettingsPanel profileId={profileId} onSwitchProfile={onSwitchProfile} importCSV={importCSV}/>
+      <SettingsPanel profileId={profileId} onSwitchProfile={onSwitchProfile} importCSV={importCSV} onRefreshAllPrices={refreshAllPrices} refreshingPrice={refreshingPrice} refreshMsg={refreshMsg}/>
       <div style={{height:16}}/>
     </div>
   </>, 'settings');
@@ -1722,7 +1808,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 }
 
 // ─── SETTINGS PANEL ───────────────────────────────────────────────────────────
-function SettingsPanel({ profileId, onSwitchProfile, importCSV }) {
+function SettingsPanel({ profileId, onSwitchProfile, importCSV, onRefreshAllPrices, refreshingPrice, refreshMsg }) {
   const { useState } = React;
   const [key, setKey] = useState(getApiKey(profileId));
   const [saved, setSaved] = useState(false);
@@ -1842,6 +1928,18 @@ function SettingsPanel({ profileId, onSwitchProfile, importCSV }) {
         </div>
         <div style={{color:'#5a6480',fontSize:11,marginBottom:10,lineHeight:1.5}}>
           Import wines from a Cave CSV export. Duplicates (same producer + name + vintage) are skipped.
+        </div>
+        <button onClick={onRefreshAllPrices} disabled={refreshingPrice}
+          className="gbtn" style={{marginBottom:8,opacity:refreshingPrice?0.6:1}}>
+          {refreshingPrice ? (refreshMsg || 'Refreshing prices…') : '🔄 Refresh all prices from Wine-Searcher'}
+        </button>
+        {refreshingPrice && (
+          <div style={{color:'#5a6480',fontSize:11,marginBottom:8,lineHeight:1.5,fontStyle:'italic'}}>
+            {refreshMsg}
+          </div>
+        )}
+        <div style={{color:'#5a6480',fontSize:11,marginBottom:10,lineHeight:1.5}}>
+          Updates retail prices for all wines in your cave. Takes ~5 sec per wine.
         </div>
         <button onClick={clearData} className="dbtn">Clear all data for this profile</button>
       </div>
