@@ -1616,10 +1616,10 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       const toSave = [];
       let skipped = 0;
       for (let li = 1; li < lines.length; li++) {
-        // Proper CSV row parser — no extra empty strings from regex match()
+        // Proper CSV row parser — character by character, no infinite loop
         const row = (function parseRow(line) {
           var fields = [], i = 0;
-          while (i <= line.length) {
+          while (i < line.length) {
             if (line[i] === '"') {
               var field = ''; i++;
               while (i < line.length) {
@@ -1628,12 +1628,12 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
                 else { field += line[i++]; }
               }
               fields.push(field);
-              if (line[i] === ',') i++;
+              if (i < line.length && line[i] === ',') i++;
             } else {
-              var start = i;
+              var start2 = i;
               while (i < line.length && line[i] !== ',') i++;
-              fields.push(line.slice(start, i));
-              if (line[i] === ',') i++;
+              fields.push(line.slice(start2, i));
+              if (i < line.length && line[i] === ',') i++;
             }
           }
           return fields;
