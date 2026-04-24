@@ -1616,7 +1616,28 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       const toSave = [];
       let skipped = 0;
       for (let li = 1; li < lines.length; li++) {
-        const row = lines[li].match(/("(?:[^"]|"")*"|[^,]*)/g) || [];
+        // Proper CSV row parser — no extra empty strings from regex match()
+        const row = (function parseRow(line) {
+          var fields = [], i = 0;
+          while (i <= line.length) {
+            if (line[i] === '"') {
+              var field = ''; i++;
+              while (i < line.length) {
+                if (line[i] === '"' && line[i+1] === '"') { field += '"'; i += 2; }
+                else if (line[i] === '"') { i++; break; }
+                else { field += line[i++]; }
+              }
+              fields.push(field);
+              if (line[i] === ',') i++;
+            } else {
+              var start = i;
+              while (i < line.length && line[i] !== ',') i++;
+              fields.push(line.slice(start, i));
+              if (line[i] === ',') i++;
+            }
+          }
+          return fields;
+        })(lines[li]);
         const producer = get(row,'Producer');
         const wineName = get(row,'Wine Name');
         if (!producer && !wineName) continue;
