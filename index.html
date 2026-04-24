@@ -113,9 +113,44 @@ textarea{resize:none}
 `;
 
 const pillCls = t => { const s=(t||'').toLowerCase(); if(s==='red')return'pill pr'; if(s==='white')return'pill pw'; if(s==='sparkling')return'pill ps'; if(s==='rosé'||s==='rose')return'pill prs'; return 'pill pw'; };
-const statusCls = s => { const v=(s||'').toLowerCase(); if(v.includes('now')||v.includes('soon')||(v.includes('peak')&&!v.includes('past')))return'bdrink'; if(v.includes('past'))return'bdanger'; return'bhold'; };
+const statusCls = s => {
+  const n = normalizeStatus(s);
+  if (n==='drink now'||n==='drink soon'||n==='peak') return 'bdrink';
+  if (n==='past peak') return 'bdanger';
+  return 'bhold';
+};
+const statusLabel = s => normalizeStatus(s);
 const wineEmoji = t => ({'red':'🍷','white':'🍾','sparkling':'🥂','rosé':'🌸','rose':'🌸','dessert':'🍯','fortified':'🥃'}[(t||'').toLowerCase()]||'🍷');
-const avg = w => ((w.retailPriceLow||0)+(w.retailPriceHigh||0))/2;
+const avg = w => {
+  if (w.priceMedian) return parseFloat(w.priceMedian);
+  const lo = parseFloat(w.retailPriceLow) || 0;
+  const hi = parseFloat(w.retailPriceHigh) || 0;
+  if (lo && hi) return (lo + hi) / 2;
+  if (lo) return lo;
+  if (hi) return hi;
+  return 0;
+};
+
+// Normalize any status string → one of 5 canonical values
+function normalizeStatus(raw) {
+  const s = (raw||'').toLowerCase();
+  // Past peak first
+  if (s.includes('past peak') || s.includes('over the hill') || s.includes('past its')) return 'past peak';
+  // Hold signals — check BEFORE drink-now so "drinkable now, but benefits from aging" → hold
+  if ((s.includes('drinkable now') || s.includes('drink now') || s.includes('approachable')) &&
+      (s.includes('but') || s.includes('age') || s.includes('cellar') || s.includes('hold') || s.includes('benefit'))) return 'hold';
+  // Drink soon
+  if (s.includes('soon') || s.includes('drink soon')) return 'drink soon';
+  // Peak (but not past peak)
+  if (s.includes('peak') && !s.includes('past')) return 'peak';
+  // Drink now variants
+  if (s.includes('drink now') || s.includes('drink') || s.includes('ready') ||
+      s.includes('drinkable now') || s.includes('approachable') || s.includes('drinking')) return 'drink now';
+  // Hold / cellar
+  if (s.includes('hold') || s.includes('cellar') || s.includes('age')) return 'hold';
+  // Unknown / anything else → hold (conservative)
+  return 'hold';
+}
 
 function compressImage(dataUrl, maxDim=1400) {
   return new Promise(resolve => {
@@ -412,6 +447,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   const [logRating, setLogRating] = useState(0);
   const [filterType, setFilterType] = useState('all');
   const [sortBy, setSortBy] = useState('type');
+  const [searchQuery, setSearchQuery] = useState('');
   const [concText, setConcText] = useState('');
   const [recs, setRecs] = useState(null);
   const [notesDraft, setNotesDraft] = useState('');
@@ -431,6 +467,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   // File input refs — must be at top level (Rules of Hooks)
   const { useRef } = React;
   const frontCamRef    = useRef(null);
+  const csvImportRef   = useRef(null);
   const frontLibRef    = useRef(null);
   const retakeFrontRef = useRef(null);
 
@@ -628,7 +665,18 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   }
 
   const filteredCellar = cellar
-    .filter(w=>filterType==='all'||(w.wineType||'').toLowerCase()===filterType)
+    .filter(w=>{
+      if (filterType!=='all' && (w.wineType||'').toLowerCase()!==filterType) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        return (w.producer||'').toLowerCase().includes(q) ||
+               (w.wineName||'').toLowerCase().includes(q) ||
+               (w.vintage||'').toString().includes(q) ||
+               (w.region||'').toLowerCase().includes(q) ||
+               (w.grapeVarieties||[]).join(' ').toLowerCase().includes(q);
+      }
+      return true;
+    })
     .sort((a,b)=>{
       if(sortBy==='type') return (a.wineType||'').localeCompare(b.wineType||'');
       if(sortBy==='varietal') return ((a.grapeVarieties||[])[0]||'').localeCompare((b.grapeVarieties||[])[0]||'');
@@ -706,7 +754,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
           </div>
           <div style={{textAlign:'right',flexShrink:0}}>
             <div style={{color:'#c4a44a',fontSize:13}}>${Math.round(avg(w))}</div>
-            <div className={statusCls(w.drinkingWindow?.status)} style={{marginTop:4}}>{w.drinkingWindow?.status||'—'}</div>
+            <div className={statusCls(w.drinkingWindow?.status)} style={{marginTop:4}}>{statusLabel(w.drinkingWindow?.status)||'—'}</div>
           </div>
         </div>
       ))}
@@ -864,7 +912,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
                     <div className="df" style={{color:'#c4a44a',fontSize:18}}>${p.priceMedian} <span style={{fontSize:13,color:'#5a6480'}}>typical</span></div>
                     <div style={{color:'#5a6480',fontSize:10,marginTop:1}}>${p.retailPriceLow}–${p.retailPriceHigh} range</div>
                   </>
-                : <div className="df" style={{color:'#c4a44a',fontSize:18}}>${p.retailPriceLow}–${p.retailPriceHigh}</div>
+                : <div className="df" style={{color:'#c4a44a',fontSize:18}}>{p.retailPriceLow&&p.retailPriceHigh?`$${p.retailPriceLow}–$${p.retailPriceHigh}`:p.priceMedian?`$${p.priceMedian}`:'—'}</div>
               }
               {p.priceSources?.length>0 && <div style={{color:'#5a6480',fontSize:10,marginTop:3}}>{p.priceListings} listings · {p.priceSources.slice(0,2).join(', ')}</div>}
               {p.priceNote && !p.livePriceFetched && <div style={{color:'#5a6480',fontSize:10,marginTop:3,fontStyle:'italic'}}>{p.priceNote}</div>}
@@ -872,7 +920,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
             <div className="card" style={{flex:1,padding:12}}>
               <div className="sec" style={{marginBottom:4}}>DRINK</div>
               <div className="df" style={{color:'#c47a2a',fontSize:13,marginBottom:4}}>{p.drinkingWindow?.start}–{p.drinkingWindow?.end}</div>
-              <div className={statusCls(p.drinkingWindow?.status||'')}>{p.drinkingWindow?.status}</div>
+              <div className={statusCls(p.drinkingWindow?.status||'')}>{statusLabel(p.drinkingWindow?.status)}</div>
             </div>
           </div>
 
@@ -1037,7 +1085,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
                 <div className="df" style={{color:'#c4a44a',fontSize:18}}>${sel.priceMedian} <span style={{fontSize:13,color:'#5a6480'}}>typical</span></div>
                 <div style={{color:'#5a6480',fontSize:10,marginTop:1}}>${sel.retailPriceLow}–${sel.retailPriceHigh} range</div>
               </>
-            : <div className="df" style={{color:'#c4a44a',fontSize:18}}>${sel.retailPriceLow}–${sel.retailPriceHigh}</div>
+            : <div className="df" style={{color:'#c4a44a',fontSize:18}}>{sel.retailPriceLow&&sel.retailPriceHigh?`$${sel.retailPriceLow}–$${sel.retailPriceHigh}`:sel.priceMedian?`$${sel.priceMedian}`:'—'}</div>
           }
           {sel.priceSources?.length>0 && <div style={{color:'#5a6480',fontSize:10,marginTop:3}}>{sel.priceListings} listings · {sel.priceSources.slice(0,2).join(', ')}</div>}
           {sel.priceNote&&<div style={{color:'#5a6480',fontSize:10,marginTop:3,fontStyle:'italic'}}>{sel.priceNote}</div>}
@@ -1045,7 +1093,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
         <div className="card" style={{flex:1,padding:12}}>
           <div className="sec" style={{marginBottom:4}}>DRINK</div>
           <div className="df" style={{color:'#c47a2a',fontSize:13,marginBottom:5}}>{sel.drinkingWindow?.start}–{sel.drinkingWindow?.end}</div>
-          <div className={statusCls(sel.drinkingWindow?.status||'')}>{sel.drinkingWindow?.status||'—'}</div>
+          <div className={statusCls(sel.drinkingWindow?.status||'')}>{statusLabel(sel.drinkingWindow?.status)||'—'}</div>
         </div>
       </div>
 
@@ -1249,6 +1297,14 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
           </button>
         </div>
       </div>
+      <div style={{position:'relative',marginBottom:10}}>
+        <input type="text" value={searchQuery} onChange={e=>setSearchQuery(e.target.value)}
+          placeholder="Search producer, wine, vintage, region…"
+          style={{paddingLeft:32,fontSize:13,background:'#1e2640',border:'0.5px solid #2d3654'}}/>
+        <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:'#5a6480',fontSize:14,pointerEvents:'none'}}>🔍</span>
+        {searchQuery&&<button onClick={()=>setSearchQuery('')}
+          style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:'#5a6480',cursor:'pointer',fontSize:16,lineHeight:1}}>×</button>}
+      </div>
       <div className="scrl" style={{marginBottom:8}}>
         {[['all',`All (${cellar.length})`],['red',`Red (${cellar.filter(w=>w.wineType==='red').length})`],
           ['white',`White (${cellar.filter(w=>w.wineType==='white').length})`],
@@ -1288,7 +1344,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
             </div>
             <div style={{textAlign:'right',flexShrink:0}}>
               <div style={{color:'#c4a44a',fontSize:13}}>${Math.round(avg(w))}</div>
-              <div className={statusCls(w.drinkingWindow?.status||'')} style={{marginTop:4}}>{w.drinkingWindow?.status||'—'}</div>
+              <div className={statusCls(w.drinkingWindow?.status||'')} style={{marginTop:4}}>{statusLabel(w.drinkingWindow?.status)||'—'}</div>
             </div>
           </div>
           <div style={{display:'flex',gap:6,padding:'4px 0 8px',marginLeft:44}}>
@@ -1327,8 +1383,8 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     ];
 
     const getBucket = (w) => {
-      const s = (w.drinkingWindow?.status||'').toLowerCase();
-      for (const b of X_BUCKETS) if (s.includes(b.key)) return b.key;
+      const s = normalizeStatus(w.drinkingWindow?.status);
+      for (const b of X_BUCKETS) if (s === b.key || s.includes(b.key)) return b.key;
       return 'hold';
     };
     const getBand = (w) => {
@@ -1579,6 +1635,79 @@ function SettingsPanel({ profileId, onSwitchProfile }) {
     } catch(e) { setKeyErr(e.message); } finally { setTesting(false); }
   }
 
+  function importCSV(e) {
+    const file = e.target.files?.[0]; e.target.value='';
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const lines = reader.result.split('\n').filter(l=>l.trim());
+      if (lines.length < 2) { alert('CSV appears empty'); return; }
+      const headers = lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
+      const get = (row, name) => {
+        const i = headers.findIndex(h=>h.toLowerCase()===name.toLowerCase());
+        return i>=0 ? row[i]?.replace(/^"|"$/g,'').trim() : '';
+      };
+      let imported = 0, skipped = 0;
+      for (let li=1; li<lines.length; li++) {
+        const row = lines[li].match(/("(?:[^"]|"")*"|[^,]*)/g)?.map(c=>c||'') || [];
+        const producer = get(row,'Producer');
+        const wineName = get(row,'Wine Name');
+        if (!producer && !wineName) continue;
+        const vintage = get(row,'Vintage') || 'NV';
+        const existing = cellar.find(w=>w.producer===producer&&w.wineName===wineName&&w.vintage===vintage);
+        if (existing) { skipped++; continue; }
+        const rawStatus = get(row,'Drink Status') || get(row,'Status') || 'hold';
+        const priceMedianRaw = parseFloat(get(row,'Retail Median'))||null;
+        const priceLowRaw = parseFloat(get(row,'Retail Low'))||null;
+        const priceHighRaw = parseFloat(get(row,'Retail High'))||null;
+        const wine = {
+          id: Date.now().toString() + li,
+          producer, wineName, vintage,
+          region: get(row,'Region'),
+          appellation: get(row,'Appellation'),
+          grapeVarieties: get(row,'Grape Varieties').split(';').map(s=>s.trim()).filter(Boolean),
+          wineType: get(row,'Type') || 'red',
+          bottles: parseInt(get(row,'Bottles'))||1,
+          retailPriceLow: priceLowRaw,
+          retailPriceHigh: priceHighRaw,
+          priceMedian: priceMedianRaw,
+          priceNote: 'Imported from CSV',
+          livePriceFetched: false,
+          purchasePrice: parseFloat(get(row,'Purchase Price'))||null,
+          purchaseWhere: get(row,'Purchase Where'),
+          purchaseDate: get(row,'Purchase Date') || get(row,'Added Date'),
+          drinkingWindow: {
+            status: normalizeStatus(rawStatus),
+            start: get(row,'Drink Window Start'),
+            end: get(row,'Drink Window End'),
+            recommendation: get(row,'Drinking Window Note')
+          },
+          cellaring: {
+            shouldCellar: normalizeStatus(rawStatus)==='hold',
+            yearsToHold: get(row,'Cellar Years'),
+            storageNotes: ''
+          },
+          tastingNotes: {
+            nose: get(row,'Nose'),
+            palate: get(row,'Palate'),
+            finish: get(row,'Finish')
+          },
+          servingTemp: get(row,'Serving Temp'),
+          decantingAdvice: get(row,'Decanting'),
+          myNotes: get(row,'My Notes'),
+          image: '',
+          addedAt: Date.now() + li,
+          drinkLog: []
+        };
+        await window.storage.set('wine:'+wine.id, JSON.stringify(wine));
+        imported++;
+      }
+      await loadCellar();
+      alert(imported + ' wines imported' + (skipped ? ', ' + skipped + ' skipped (already in cave)' : '') + '.');
+    };
+    reader.readAsText(file);
+  }
+
   function exportCSV() {
     const prefix = getProfilePrefix(profileId);
     const keys = store.keys(prefix + 'wine:');
@@ -1667,7 +1796,16 @@ function SettingsPanel({ profileId, onSwitchProfile }) {
 
       <div className="card" style={{marginBottom:12}}>
         <div className="sec">DATA</div>
-        <button onClick={exportCSV} className="gbtn" style={{marginBottom:8}}>⬇ Export cellar to CSV</button>
+        <div style={{display:'flex',gap:8,marginBottom:8}}>
+          <button onClick={exportCSV} className="gbtn" style={{flex:1}}>⬇ Export CSV</button>
+          <label style={{flex:1,cursor:'pointer'}}>
+            <div className="gbtn" style={{textAlign:'center'}}>⬆ Import CSV</div>
+            <input type="file" accept=".csv" onChange={e=>importCSV(e)} style={{opacity:0,position:'fixed',top:-100,left:-100,width:1,height:1}}/>
+          </label>
+        </div>
+        <div style={{color:'#5a6480',fontSize:11,marginBottom:10,lineHeight:1.5}}>
+          Import wines from a Cave CSV export. Duplicates (same producer + name + vintage) are skipped.
+        </div>
         <button onClick={clearData} className="dbtn">Clear all data for this profile</button>
       </div>
 
