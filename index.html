@@ -280,6 +280,21 @@ function imgToBase64(dataUrl) {
   return dataUrl.split(',')[1];
 }
 
+async function fetchLabelImage(producer, wineName, vintage, apiKey) {
+  try {
+    const res = await fetch('/api/wine-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey, producer, wineName, vintage })
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.imageDataUrl || null;
+  } catch(e) {
+    return null;
+  }
+}
+
 async function identifyWine(frontDataUrl, backDataUrl, manualText, profileId) {
   const prompt = `You are an expert sommelier with access to a comprehensive wine database. Analyze the wine label image(s) provided and identify the wine.
 
@@ -560,27 +575,38 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     try {
       const wine = await identifyWine(frontImg, null, manualText, profileId);
       if (wine.identified) {
-        setLoadMsg('Fetching live prices from Wine-Searcher…');
-        try {
-          const priceData = await fetchLivePrice(wine.producer, wine.wineName, wine.vintage, profileId);
-          if (priceData.listingsFound > 0) {
-            wine.retailPriceLow   = priceData.priceLow;
-            wine.retailPriceHigh  = priceData.priceHigh;
-            wine.priceMedian      = priceData.priceMedian;
-            wine.priceNote        = priceData.priceNote;
-            wine.priceSources     = priceData.sources || [];
-            wine.priceListings    = priceData.listingsFound;
-            wine.priceConfidence  = priceData.confidence;
-            wine.livePriceFetched = true;
-          } else {
-            wine.priceNote        = `No Wine-Searcher US listings found — price is Claude's estimate`;
-            wine.livePriceFetched = false;
-          }
-        } catch(priceErr) {
-          wine.priceNote        = `Price estimate (Wine-Searcher lookup unavailable)`;
+        // Fetch price AND label image in parallel for speed
+        setLoadMsg('Fetching price & label image…');
+        const parallelResults = await Promise.allSettled([
+          fetchLivePrice(wine.producer, wine.wineName, wine.vintage, profileId),
+          fetchLabelImage(wine.producer, wine.wineName, wine.vintage, getApiKey(profileId))
+        ]);
+        const priceResult = parallelResults[0];
+        const imageResult = parallelResults[1];
+
+        // Apply price data
+        if (priceResult.status === 'fulfilled' && priceResult.value && priceResult.value.listingsFound > 0) {
+          const pd = priceResult.value;
+          wine.retailPriceLow   = pd.priceLow;
+          wine.retailPriceHigh  = pd.priceHigh;
+          wine.priceMedian      = pd.priceMedian;
+          wine.priceNote        = pd.priceNote;
+          wine.priceSources     = pd.sources || [];
+          wine.priceListings    = pd.listingsFound;
+          wine.priceConfidence  = pd.confidence;
+          wine.livePriceFetched = true;
+          wine.priceUpdatedAt   = Date.now();
+        } else {
+          wine.priceNote        = `No current US listings found — price is Claude's estimate`;
           wine.livePriceFetched = false;
         }
-        // Always show is-this-right — high confidence gets a ✓ badge, still lets user set qty & purchase info
+
+        // Apply label image if found server-side
+        if (imageResult.status === 'fulfilled' && imageResult.value) {
+          wine.labelImage = imageResult.value;
+        }
+
+        // Auto-confirm high confidence — still show is-this-right for qty & purchase info
         setPending(wine); setPendingQty(1); setView('is-this-right');
       } else {
         setError(wine.reason || 'Could not identify wine.');
@@ -594,8 +620,11 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 
   async function confirmAdd(wineData) {
     const w = wineData || pending; if (!w) return;
+    // Use the label image fetched from server if available, else compress front photo
     let thumb = '';
-    if (frontImg) {
+    if (w.labelImage) {
+      thumb = w.labelImage; // Already sized appropriately from server
+    } else if (frontImg) {
       thumb = await new Promise(resolve => {
         const img = new Image();
         img.onload = () => {
