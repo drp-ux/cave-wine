@@ -289,7 +289,7 @@ async function fetchLabelImage(producer, wineName, vintage, apiKey) {
     });
     if (!res.ok) return null;
     const data = await res.json();
-    return data.imageDataUrl || null;
+    return data.proxyUrl || null;
   } catch(e) {
     return null;
   }
@@ -474,6 +474,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   const [editPending, setEditPending] = useState(null);
   const [editPurchase, setEditPurchase] = useState(false);
   const [confirmPermDelete, setConfirmPermDelete] = useState(false);
+  const [hovId, setHovId] = useState(null);
   const [refreshMsg, setRefreshMsg] = useState('');
   const [refreshingImages, setRefreshingImages] = useState(false);
   const [imageMsg, setImageMsg] = useState('');
@@ -624,8 +625,8 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     const w = wineData || pending; if (!w) return;
     // Use the label image fetched from server if available, else compress front photo
     let thumb = '';
-    if (w.labelImage) {
-      thumb = w.labelImage; // Already sized appropriately from server
+    if (w.labelImage || w.image) {
+      thumb = w.labelImage || w.image; // Already sized appropriately from server
     } else if (frontImg) {
       thumb = await new Promise(resolve => {
         const img = new Image();
@@ -681,7 +682,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 
   async function adjustQty(delta) { if (!sel) return; await saveWine({ ...sel, bottles: Math.max(0,(sel.bottles||0)+delta) }); }
   function refreshAllImages() {
-    const wines = cellar.filter(function(w) { return !w.image && !w.labelImage; });
+    const wines = cellar.filter(function(w) { return !w.image || w.image === '' || w.image === undefined; });
     if (wines.length === 0) {
       alert('All wines already have label images.');
       return;
@@ -701,9 +702,9 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       idx++;
       setImageMsg('Fetching label ' + idx + ' of ' + wines.length + ': ' + wine.producer + '...');
       return fetchLabelImage(wine.producer, wine.wineName, wine.vintage, getApiKey(profileId))
-        .then(function(imageDataUrl) {
-          if (imageDataUrl) {
-            var updated = Object.assign({}, wine, { labelImage: imageDataUrl, image: imageDataUrl });
+        .then(function(proxyUrl) {
+          if (proxyUrl) {
+            var updated = Object.assign({}, wine, { image: proxyUrl, labelImage: proxyUrl });
             return window.storage.set('wine:' + wine.id, JSON.stringify(updated));
           }
         })
@@ -886,7 +887,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       ):cellar.slice(0,8).map(w=>(
         <div key={w.id} className="row" onClick={()=>{setSelId(w.id);setView('detail');}}>
           <div style={{width:34,height:46,borderRadius:5,background:w.image?'#252d4a':wineBg(w.wineType),border:'0.5px solid '+wineBorder(w.wineType),display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0,overflow:'hidden'}}>
-            {w.image?<img src={w.image} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:4}}/>:wineEmoji(w.wineType)}
+            {(w.image||w.labelImage)?<img src={w.image||w.labelImage} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:4}}/>:wineEmoji(w.wineType)}
           </div>
           <div style={{flex:1,minWidth:0}}>
             <div style={{color:'#f0ead8',fontSize:13,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.producer}</div>
@@ -1167,7 +1168,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
       <div style={{display:'flex',gap:14,marginBottom:16,alignItems:'flex-start'}}>
         <div style={{width:54,height:74,borderRadius:8,background:sel.image?'#252d4a':wineBg(sel.wineType),border:'0.5px solid '+wineBorder(sel.wineType),display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,flexShrink:0,overflow:'hidden'}}>
-          {sel.image?<img src={sel.image} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:wineEmoji(sel.wineType)}
+          {(sel.image||sel.labelImage)?<img src={sel.image||sel.labelImage} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:wineEmoji(sel.wineType)}
         </div>
         <div style={{flex:1}}>
           <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.1em',marginBottom:2}}>{(sel.producer||'').toUpperCase()}</div>
@@ -1483,7 +1484,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
         <div key={w.id}>
           <div className="row" onClick={()=>{setSelId(w.id);setView('detail');}}>
             <div style={{width:34,height:46,borderRadius:5,background:w.image?'#252d4a':wineBg(w.wineType),border:'0.5px solid '+wineBorder(w.wineType),display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0,overflow:'hidden'}}>
-              {w.image?<img src={w.image} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:4}}/>:wineEmoji(w.wineType)}
+              {(w.image||w.labelImage)?<img src={w.image||w.labelImage} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:4}}/>:wineEmoji(w.wineType)}
             </div>
             <div style={{flex:1,minWidth:0}}>
               <div style={{color:'#f0ead8',fontSize:13,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.producer}</div>
@@ -1516,195 +1517,261 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     <div style={{padding:'8px 16px'}}><button className="btn" onClick={goScan}>+ Scan new bottle</button></div>
   </>, 'cellar');
 
-  // ── VALUE GRID ─────────────────────────────────────────────────────────────
+  // ── CONSTELLATION (D) ─────────────────────────────────────────────────────
   if (view==='grid') {
-    // X axis: drink readiness buckets
-    const X_BUCKETS = [
-      { key:'past peak', label:'Past Peak', color:'#c44a4a' },
-      { key:'drink now', label:'Drink Now',  color:'#4a9e6a' },
-      { key:'drink soon', label:'Soon',      color:'#4a9e6a' },
-      { key:'peak',      label:'Peak',       color:'#4a9e6a' },
-      { key:'hold',      label:'Hold',       color:'#c47a2a' },
-    ];
-    // Y axis: value bands
-    const Y_BANDS = [
-      { label:'$150+',   min:150, max:Infinity },
-      { label:'$75–150', min:75,  max:150 },
-      { label:'$30–75',  min:30,  max:75 },
-      { label:'<$30',    min:0,   max:30 },
-    ];
+    // Calculate months until optimal drinking for each wine
+    function getMo(w) {
+      const s = normalizeStatus(w.drinkingWindow?.status || '');
+      if (s === 'past peak' || s === 'drink now' || s === 'peak') return 0;
+      if (s === 'drink soon') return 5;
+      if (s === 'hold') {
+        const sy = parseInt(w.drinkingWindow?.start) || 0;
+        if (sy > 2026) return Math.min((sy - 2026) * 12, 44);
+        return 20;
+      }
+      return 0;
+    }
 
-    const getBucket = (w) => {
-      const s = normalizeStatus(w.drinkingWindow?.status);
-      for (const b of X_BUCKETS) if (s === b.key || s.includes(b.key)) return b.key;
-      return 'hold';
-    };
-    const getBand = (w) => {
-      const v = w.priceMedian || avg(w);
-      return Y_BANDS.findIndex(b => v >= b.min && v < b.max);
-    };
+    const priced = filteredCellar.map(w => ({...w, _price: avg(w)||0, _mo: getMo(w)}));
+    const maxP   = Math.max(...priced.map(w => w._price), 50);
+    const pMax   = Math.ceil(maxP * 1.18 / 50) * 50;
 
-    // Assign wines to cells
-    const cells = {};
-    filteredCellar.forEach(w => {
-      const xKey = getBucket(w);
-      const yIdx = getBand(w);
-      const key = `${xKey}__${yIdx}`;
-      if (!cells[key]) cells[key] = [];
-      cells[key].push(w);
+    // Chart geometry
+    const VW=340, VH=268, L=48, R=14, T=22, B=46;
+    const CW=VW-L-R, CH=VH-T-B;
+    const toX = mo => L + (Math.min(mo,44)/44)*CW;
+    const toY = p  => T + CH - ((Math.min(p,pMax)/pMax)*CH);
+
+    // Deterministic jitter — group wines by position bucket, spiral within group
+    const buckets = {};
+    priced.forEach(w => {
+      const bx = Math.round(toX(w._mo)/18);
+      const by = Math.round(toY(w._price)/16);
+      const k  = bx+'_'+by;
+      if (!buckets[k]) buckets[k] = [];
+      buckets[k].push(w);
+    });
+    priced.forEach(w => {
+      const bx = Math.round(toX(w._mo)/18);
+      const by = Math.round(toY(w._price)/16);
+      const k  = bx+'_'+by;
+      const grp = buckets[k];
+      const idx = grp.indexOf(w);
+      const n   = grp.length;
+      let ox=0, oy=0;
+      if (n > 1 && idx > 0) {
+        const angle = (idx/n)*Math.PI*2 - Math.PI/2;
+        const r     = Math.min(n*3.5, 18);
+        ox = Math.cos(angle)*r;
+        oy = Math.sin(angle)*r*0.65;
+      }
+      const idealX = toX(w._mo);
+      const idealY = toY(w._price);
+      w._cx = Math.max(L+7, Math.min(L+CW-7, idealX+ox));
+      w._cy = Math.max(T+7, Math.min(T+CH-7, idealY+oy));
     });
 
+    // Price axis tick values
+    const pTicks = [];
+    const step = pMax<=100?25:pMax<=200?50:100;
+    for (let p=0; p<=pMax; p+=step) pTicks.push(p);
+
+    const xMoTicks = [0,6,12,18,24,36,44];
+    const xMoLabels= ['Now','6mo','12mo','18mo','24mo','3yr','3.5yr+'];
+
+    const wTypeColor = t => ({'red':'#b33a2a','white':'#c48a10','sparkling':'#1f6fa8','rosé':'#c2387a','rose':'#c2387a'}[(t||'').toLowerCase()]||'#7a6a8a');
+    const wTypeFill  = t => ({'red':'rgba(179,58,42,0.82)','white':'rgba(196,138,16,0.82)','sparkling':'rgba(31,111,168,0.82)','rosé':'rgba(194,56,122,0.82)','rose':'rgba(194,56,122,0.82)'}[(t||'').toLowerCase()]||'rgba(122,106,138,0.82)');
+
+
+    const totalVal = Math.round(priced.reduce((s,w)=>s+(w._price*(w.bottles||1)),0));
+    const drinkNowCount = priced.filter(w=>w._mo===0).length;
+    const holdCount     = priced.filter(w=>w._mo>0).length;
+
     return wrap(<>
-      <div style={{padding:'16px 16px 8px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <div className="di" style={{color:'#f0ead8',fontSize:22}}>Value vs. Readiness</div>
-        <div style={{color:'#5a6480',fontSize:11}}>{filteredCellar.length} wines</div>
+      <div style={{padding:'14px 16px 8px',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+        <div>
+          <div className="di" style={{color:'#f0ead8',fontSize:22}}>Constellation</div>
+          <div style={{color:'#5a6480',fontSize:11,marginTop:2}}>
+            {priced.length} wines · ${totalVal.toLocaleString()} est. retail
+          </div>
+        </div>
+        <div style={{display:'flex',gap:6}}>
+          <div style={{background:'#0e2318',border:'0.5px solid #1a3d28',borderRadius:8,padding:'5px 10px',textAlign:'center'}}>
+            <div className="df" style={{color:'#4a9e6a',fontSize:17}}>{drinkNowCount}</div>
+            <div style={{color:'#5a6480',fontSize:9,letterSpacing:'.04em'}}>OPEN</div>
+          </div>
+          <div style={{background:'#251608',border:'0.5px solid #3d2810',borderRadius:8,padding:'5px 10px',textAlign:'center'}}>
+            <div className="df" style={{color:'#c47a2a',fontSize:17}}>{holdCount}</div>
+            <div style={{color:'#5a6480',fontSize:9,letterSpacing:'.04em'}}>HOLD</div>
+          </div>
+        </div>
       </div>
+
+      {/* Type filter chips */}
       <div style={{padding:'0 16px 8px'}}>
         <div className="scrl">
-          {[['all',`All`],['red','Red'],['white','White'],['sparkling','Sparkling'],['rose','Rosé']].map(([v,l])=>(
-            <button key={v} className={`chip ${filterType===v?'chipon':''}`} onClick={()=>setFilterType(v)}>{l}</button>
+          {[['all','All'],['red','Red'],['white','White'],['sparkling','Sparkling'],['rose','Rosé']].map(([v,l])=>(
+            <button key={v} className={`chip ${filterType===v?'chipon':''}`}
+              onClick={()=>setFilterType(v===filterType?'all':v)}>{l}</button>
           ))}
         </div>
       </div>
 
-      {/* The matrix */}
-      <div style={{flex:1,overflowY:'auto',padding:'0 16px 8px'}}>
-        {/* X axis labels */}
-        <div style={{display:'grid',gridTemplateColumns:'52px repeat(5, 1fr)',marginBottom:4}}>
-          <div/>
-          {X_BUCKETS.map(b=>(
-            <div key={b.key} style={{textAlign:'center',color:b.color,fontSize:9,letterSpacing:'.04em',fontWeight:600,padding:'0 2px'}}>
-              {b.label.toUpperCase()}
-            </div>
-          ))}
-        </div>
+      {/* SVG constellation */}
+      <div style={{padding:'0 14px',position:'relative'}}>
+        <svg width="100%" viewBox={`0 0 ${VW} ${VH}`} style={{overflow:'visible',display:'block'}}>
 
-        {/* Rows */}
-        {Y_BANDS.map((band, yi)=>(
-          <div key={yi} style={{display:'grid',gridTemplateColumns:'52px repeat(5, 1fr)',marginBottom:4,minHeight:72}}>
-            {/* Y label */}
-            <div style={{display:'flex',alignItems:'center',justifyContent:'flex-end',paddingRight:8}}>
-              <div style={{color:'#5a6480',fontSize:10,textAlign:'right',lineHeight:1.3}}>{band.label}</div>
+          {/* Drink-zone soft tint */}
+          <rect x={L} y={T} width={toX(7)-L} height={CH}
+            fill="rgba(74,158,106,0.07)" rx="4"/>
+          <text x={L+(toX(7)-L)/2} y={T-5} textAnchor="middle"
+            style={{fontSize:8,fill:'rgba(74,158,106,0.55)',fontFamily:'system-ui'}}>drink zone</text>
+
+          {/* X grid lines + labels */}
+          {xMoTicks.map((mo,i)=>{
+            const x = toX(mo);
+            return (
+              <g key={mo}>
+                <line x1={x} y1={T} x2={x} y2={T+CH}
+                  stroke="rgba(255,255,255,0.06)" strokeDasharray="3,4"/>
+                <text x={x} y={T+CH+13} textAnchor="middle"
+                  style={{fontSize:9,fill:'rgba(255,255,255,0.3)',fontFamily:'system-ui'}}>
+                  {xMoLabels[i]}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Y grid lines + price labels */}
+          {pTicks.map(p=>{
+            const y = toY(p);
+            return (
+              <g key={p}>
+                <line x1={L} y1={y} x2={L+CW} y2={y}
+                  stroke="rgba(255,255,255,0.06)" strokeDasharray="2,5"/>
+                <text x={L-4} y={y+4} textAnchor="end"
+                  style={{fontSize:9,fill:'rgba(255,255,255,0.3)',fontFamily:'system-ui'}}>
+                  ${p}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Axis labels */}
+          <text x={L+CW/2} y={T+CH+30} textAnchor="middle"
+            style={{fontSize:9,fill:'rgba(255,255,255,0.25)',fontFamily:'system-ui'}}>
+            months until optimal drinking
+          </text>
+          <text x={11} y={T+CH/2} textAnchor="middle"
+            transform={`rotate(-90,11,${T+CH/2})`}
+            style={{fontSize:9,fill:'rgba(255,255,255,0.25)',fontFamily:'system-ui'}}>
+            retail value
+          </text>
+
+          {/* Wine dots — draw lower-value first so expensive ones appear on top */}
+          {priced.slice().sort((a,b)=>a._price-b._price).map(w=>{
+            const c    = wTypeColor(w.wineType);
+            const fill = wTypeFill(w.wineType);
+            const r    = Math.max(5, Math.min(14, 4 + (w._price/pMax)*18));
+            const isHov= hovId===w.id;
+            const isUrgent = w._mo===0 && w._price>=75;
+            return (
+              <g key={w.id} style={{cursor:'pointer'}}
+                onClick={()=>{setSelId(w.id);setView('detail');}}
+                onMouseEnter={()=>setHovId(w.id)}
+                onMouseLeave={()=>setHovId(null)}>
+
+                {/* Urgency ring — high-value drink-now */}
+                {isUrgent&&(
+                  <circle cx={w._cx} cy={w._cy} r={r+6}
+                    fill="none" stroke={c} strokeWidth="1"
+                    strokeOpacity="0.3" strokeDasharray="3,2.5"/>
+                )}
+
+                {/* Hover ring */}
+                {isHov&&(
+                  <circle cx={w._cx} cy={w._cy} r={r+4}
+                    fill="none" stroke={c} strokeWidth="1.5" strokeOpacity="0.7"/>
+                )}
+
+                {/* Main dot */}
+                <circle cx={w._cx} cy={w._cy} r={r}
+                  fill={fill} stroke={c} strokeWidth="0.8"/>
+
+                {/* Label for premium wines */}
+                {w._price>=100&&(
+                  <text x={w._cx+r+3} y={w._cy+4} textAnchor="start"
+                    style={{fontSize:8,fill:c,fontFamily:'system-ui',fontWeight:500,
+                      pointerEvents:'none'}}>
+                    {(w.producer||'').split(' ').slice(0,2).join(' ')}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+
+        {/* Hover tooltip */}
+        {hovId&&(()=>{
+          const w = priced.find(x=>x.id===hovId);
+          if (!w) return null;
+          const isLeft = w._cx < VW/2;
+          return (
+            <div style={{
+              position:'absolute',
+              top: (w._cy/VH*100)+'%',
+              ...(isLeft ? {left:(w._cx/VW*100+8)+'%'} : {right:((VW-w._cx)/VW*100+4)+'%'}),
+              background:'#1e2640',
+              border:`0.5px solid ${wTypeColor(w.wineType)}55`,
+              borderRadius:10,padding:'8px 12px',
+              pointerEvents:'none',zIndex:10,minWidth:130,
+              transform:'translateY(-50%)'
+            }}>
+              <div style={{color:'#f0ead8',fontSize:12,fontWeight:500,marginBottom:3}}>
+                {w.producer}
+              </div>
+              <div style={{color:'#8a96b8',fontSize:11,marginBottom:4}}>
+                {w.wineName} {w.vintage}
+              </div>
+              <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                <span className="df" style={{color:'#c4a44a',fontSize:14}}>
+                  {w._price>0?`$${Math.round(w._price)}`:'—'}
+                </span>
+                <span className={statusCls(w.drinkingWindow?.status)}>
+                  {statusLabel(w.drinkingWindow?.status||'')||'—'}
+                </span>
+              </div>
+              {w.bottles>0&&<div style={{color:'#5a6480',fontSize:10,marginTop:3}}>
+                {w.bottles} bottle{w.bottles!==1?'s':''}
+              </div>}
             </div>
-            {/* Cells */}
-            {X_BUCKETS.map(b=>{
-              const key = `${b.key}__${yi}`;
-              const wines = cells[key] || [];
-              return (
-                <div key={b.key} style={{background:'#1a2236',border:'0.5px solid #2d3654',borderRadius:8,margin:2,padding:4,minHeight:68,display:'flex',flexWrap:'wrap',gap:3,alignContent:'flex-start'}}>
-                  {wines.map(w=>(
-                    <button key={w.id} onClick={()=>{setSelId(w.id);setView('detail');}}
-                      style={{background:'#252d4a',border:`0.5px solid ${b.color}44`,borderRadius:6,padding:'4px 5px',cursor:'pointer',textAlign:'center',minWidth:32,maxWidth:52}}>
-                      <div style={{fontSize:16,lineHeight:1}}>{wineEmoji(w.wineType)}</div>
-                      <div style={{color:'#8a96b8',fontSize:8,marginTop:2,lineHeight:1.2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:48}}>
-                        {w.bottles}btl
-                      </div>
-                    </button>
-                  ))}
-                  {wines.length===0&&(
-                    <div style={{width:'100%',height:'100%',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                      <div style={{color:'#2d3654',fontSize:10}}>·</div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+          );
+        })()}
+      </div>
+
+      {/* Legend */}
+      <div style={{padding:'6px 16px 8px',display:'flex',gap:10,flexWrap:'wrap'}}>
+        {[['red','Red','#b33a2a'],['white','White','#c48a10'],
+          ['sparkling','Sparkling','#1f6fa8'],['rosé','Rosé','#c2387a']].map(([k,l,c])=>(
+          <div key={k} style={{display:'flex',alignItems:'center',gap:5}}>
+            <div style={{width:8,height:8,borderRadius:'50%',background:c,opacity:.85}}/>
+            <span style={{color:'#5a6480',fontSize:10}}>{l}</span>
           </div>
         ))}
-
-        {/* Legend */}
-        <div style={{marginTop:8,padding:'10px 12px',background:'#1a2236',border:'0.5px solid #2d3654',borderRadius:10}}>
-          <div style={{color:'#5a6480',fontSize:9,letterSpacing:'.08em',marginBottom:6}}>HOW TO READ</div>
-          <div style={{color:'#8a96b8',fontSize:11,lineHeight:1.7}}>
-            Each 🍷 is one wine. Left = drink soon, Right = hold. Top = higher value. Tap any wine to open it.
-          </div>
-          <div style={{display:'flex',gap:12,marginTop:6}}>
-            {[['#4a9e6a','Drink now/soon/peak'],['#c47a2a','Hold'],['#c44a4a','Past peak']].map(([c,l])=>(
-              <div key={l} style={{display:'flex',alignItems:'center',gap:4}}>
-                <div style={{width:8,height:8,borderRadius:2,background:c}}/>
-                <div style={{color:'#5a6480',fontSize:10}}>{l}</div>
-              </div>
-            ))}
-          </div>
+        <div style={{display:'flex',alignItems:'center',gap:5,marginLeft:'auto'}}>
+          <svg width="14" height="10"><circle cx="7" cy="5" r="4" fill="none"
+            stroke="#c4a44a" strokeWidth="0.8" strokeDasharray="2,1.5"/></svg>
+          <span style={{color:'#5a6480',fontSize:10}}>open now ≥$75</span>
         </div>
-        {cellar.length===0&&(
-          <div style={{textAlign:'center',padding:'40px 0',color:'#5a6480'}}>
-            <div style={{fontSize:32,marginBottom:8}}>🍷</div>
-            <div className="di" style={{color:'#8a96b8',fontSize:18}}>Add wines to see the grid</div>
-          </div>
-        )}
-        <div style={{height:8}}/>
       </div>
+
+      {cellar.length===0&&(
+        <div style={{textAlign:'center',padding:'32px 0',color:'#5a6480'}}>
+          <div className="di" style={{fontSize:18,color:'#8a96b8'}}>Add wines to see the constellation</div>
+        </div>
+      )}
     </>, 'cellar');
   }
-
-
-  // ── GRID VIEW ─────────────────────────────────────────────────────────────
-  
-  // ── ARCHIVE ────────────────────────────────────────────────────────────────
-  if (view==='archived') return wrap(<>
-    <div style={{padding:'18px 16px 10px',display:'flex',alignItems:'center',gap:10}}>
-      <button className="back" onClick={()=>setView('cellar')}>←</button>
-      <span className="di" style={{color:'#f0ead8',fontSize:18}}>Archive</span>
-      <div style={{marginLeft:'auto',color:'#5a6480',fontSize:11}}>{archive.length} wine{archive.length!==1?'s':''}</div>
-    </div>
-    <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
-      {archive.length===0 ? (
-        <div style={{textAlign:'center',padding:'48px 0',color:'#5a6480'}}>
-          <div style={{fontSize:32,marginBottom:8}}>📦</div>
-          <div className="di" style={{color:'#8a96b8',fontSize:18}}>Archive is empty</div>
-          <div style={{fontSize:12,marginTop:8}}>Finished bottles appear here</div>
-        </div>
-      ) : archive.map(w => (
-        <div key={w.id} style={{background:'#1e2640',border:'0.5px solid #2d3654',borderRadius:12,padding:14,marginBottom:10}}>
-          <div style={{display:'flex',gap:10,marginBottom:10,alignItems:'flex-start'}}>
-            <div style={{width:38,height:52,borderRadius:6,background:'#252d4a',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0,overflow:'hidden',opacity:0.7}}>
-              {w.image?<img src={w.image} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:wineEmoji(w.wineType)}
-            </div>
-            <div style={{flex:1}}>
-              <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em'}}>{(w.producer||'').toUpperCase()}</div>
-              <div className="di" style={{color:'#f0ead8',fontSize:16,lineHeight:1.2}}>{w.wineName}</div>
-              <div style={{color:'#5a6480',fontSize:11,marginTop:2}}>{w.vintage}{w.region?` · ${w.region}`:''}</div>
-            </div>
-            <div style={{textAlign:'right',flexShrink:0}}>
-              <div style={{color:'#5a6480',fontSize:10}}>Archived</div>
-              <div style={{color:'#8a96b8',fontSize:11}}>{new Date(w.archivedAt||0).toLocaleDateString()}</div>
-              <div style={{color:'#5a6480',fontSize:10,marginTop:2,textTransform:'capitalize'}}>{w.archiveReason||'removed'}</div>
-            </div>
-          </div>
-          {/* Face sheet — key wine data */}
-          <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:8}}>
-            {w.retailPriceLow&&<span style={{background:'#251f0e',color:'#c4a44a',fontSize:10,padding:'2px 8px',borderRadius:8,border:'0.5px solid #3d3015'}}>${w.retailPriceLow}–${w.retailPriceHigh}</span>}
-            {w.purchasePrice&&<span style={{background:'#162038',color:'#7ab0e8',fontSize:10,padding:'2px 8px',borderRadius:8,border:'0.5px solid #1e3060'}}>Paid ${w.purchasePrice}</span>}
-            {(w.grapeVarieties||[]).slice(0,2).map(g=><span key={g} className={pillCls(w.wineType)}>{g}</span>)}
-          </div>
-          {w.drinkingWindow?.recommendation&&(
-            <div style={{color:'#5a6480',fontSize:11,lineHeight:1.5,marginBottom:8,fontStyle:'italic'}}>{w.drinkingWindow.recommendation}</div>
-          )}
-          {w.tastingNotes?.nose&&(
-            <div style={{marginBottom:8}}>
-              <span style={{color:'#c4a44a',fontSize:10,fontStyle:'italic'}}>Nose: </span>
-              <span style={{color:'#5a6480',fontSize:11}}>{w.tastingNotes.nose}</span>
-            </div>
-          )}
-          {/* Drink log for this wine */}
-          {w.drinkLog?.length>0&&(
-            <div style={{borderTop:'0.5px solid #2d3654',paddingTop:8,marginTop:4}}>
-              <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:4}}>DRINK HISTORY</div>
-              {w.drinkLog.map((l,i)=>(
-                <div key={i} style={{display:'flex',justifyContent:'space-between',marginBottom:3}}>
-                  <span style={{color:'#8a96b8',fontSize:11}}>{l.date} — {l.type==='drank'?'🥂 Drank':l.type==='gave'?'🎁 Gave':'💔 Lost'}</span>
-                  {l.rating>0&&<span style={{color:'#c4a44a',fontSize:11}}>{'★'.repeat(l.rating)}</span>}
-                </div>
-              ))}
-              {w.myNotes&&<div style={{color:'#8a96b8',fontSize:11,fontStyle:'italic',marginTop:4}}>"{w.myNotes}"</div>}
-            </div>
-          )}
-        </div>
-      ))}
-      <div style={{height:8}}/>
-    </div>
-  </>, 'cellar');
 
   // ── CONCIERGE ─────────────────────────────────────────────────────────────
   if (view==='concierge') return wrap(<>
