@@ -682,11 +682,8 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 
   async function adjustQty(delta) { if (!sel) return; await saveWine({ ...sel, bottles: Math.max(0,(sel.bottles||0)+delta) }); }
   function refreshAllImages() {
-    const wines = cellar.filter(function(w) { return !w.image || w.image === '' || w.image === undefined; });
-    if (wines.length === 0) {
-      alert('All wines already have label images.');
-      return;
-    }
+    const wines = cellar.slice(); // Fetch for ALL wines — overwrites any broken/missing images
+    // Always proceed — re-fetches even if image exists
     setRefreshingImages(true);
     var idx = 0;
 
@@ -1522,13 +1519,42 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     // Calculate months until optimal drinking for each wine
     function getMo(w) {
       const s = normalizeStatus(w.drinkingWindow?.status || '');
-      if (s === 'past peak' || s === 'drink now' || s === 'peak') return 0;
-      if (s === 'drink soon') return 5;
+      const vintage = parseInt(w.vintage) || 2020;
+
+      if (s === 'past peak') {
+        // Past peak: slightly left of Now, spread by how far past peak
+        const yearsOver = Math.max(0, 2026 - vintage - 15);
+        return Math.max(-4, -yearsOver);  // negative = left of now (past peak zone)
+      }
+
+      if (s === 'drink now' || s === 'peak') {
+        // CORE FIX: spread drink-now wines by vintage urgency
+        // Older vintage = more urgent = further left (closer to 0)
+        // Younger vintage = less urgent = drift right up to 8mo
+        const age = 2026 - vintage;
+        if (age >= 20) return 0;       // Very old: right at Now
+        if (age >= 15) return 1;       // 15-20yr: slight drift
+        if (age >= 10) return 2;       // 10-15yr: modest drift
+        if (age >= 7)  return 3;       // 7-10yr: moderate
+        if (age >= 5)  return 5;       // 5-7yr: some drift
+        if (age >= 3)  return 7;       // 3-5yr: more drift
+        return 9;                       // <3yr: most rightward in drink-now zone
+      }
+
+      if (s === 'drink soon') {
+        // Drink soon: 10-14 months
+        const age = 2026 - vintage;
+        return age >= 5 ? 10 : 13;
+      }
+
       if (s === 'hold') {
         const sy = parseInt(w.drinkingWindow?.start) || 0;
         if (sy > 2026) return Math.min((sy - 2026) * 12, 44);
-        return 20;
+        // Hold wines without explicit window: spread by vintage
+        const age = 2026 - vintage;
+        return age < 3 ? 24 : age < 5 ? 20 : 18;
       }
+
       return 0;
     }
 
@@ -1539,7 +1565,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     // Chart geometry
     const VW=340, VH=268, L=48, R=14, T=22, B=46;
     const CW=VW-L-R, CH=VH-T-B;
-    const toX = mo => L + (Math.min(mo,44)/44)*CW;
+    const toX = mo => L + ((Math.min(mo,44)+4)/48)*CW;
     const toY = p  => T + CH - ((Math.min(p,pMax)/pMax)*CH);
 
     // Deterministic jitter — group wines by position bucket, spiral within group
@@ -1561,7 +1587,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       let ox=0, oy=0;
       if (n > 1 && idx > 0) {
         const angle = (idx/n)*Math.PI*2 - Math.PI/2;
-        const r     = Math.min(n*3.5, 18);
+        const r     = Math.min(n*3, 12);
         ox = Math.cos(angle)*r;
         oy = Math.sin(angle)*r*0.65;
       }
@@ -1576,8 +1602,8 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     const step = pMax<=100?25:pMax<=200?50:100;
     for (let p=0; p<=pMax; p+=step) pTicks.push(p);
 
-    const xMoTicks = [0,6,12,18,24,36,44];
-    const xMoLabels= ['Now','6mo','12mo','18mo','24mo','3yr','3.5yr+'];
+    const xMoTicks = [-4,0,3,6,10,18,30,44];
+    const xMoLabels= ['Past','Now','','6mo','10mo','18mo','30mo','3.5yr+'];
 
     const wTypeColor = t => ({'red':'#b33a2a','white':'#c48a10','sparkling':'#1f6fa8','rosé':'#c2387a','rose':'#c2387a'}[(t||'').toLowerCase()]||'#7a6a8a');
     const wTypeFill  = t => ({'red':'rgba(179,58,42,0.82)','white':'rgba(196,138,16,0.82)','sparkling':'rgba(31,111,168,0.82)','rosé':'rgba(194,56,122,0.82)','rose':'rgba(194,56,122,0.82)'}[(t||'').toLowerCase()]||'rgba(122,106,138,0.82)');
@@ -1622,10 +1648,10 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
         <svg width="100%" viewBox={`0 0 ${VW} ${VH}`} style={{overflow:'visible',display:'block'}}>
 
           {/* Drink-zone soft tint */}
-          <rect x={L} y={T} width={toX(7)-L} height={CH}
+          <rect x={toX(0)} y={T} width={toX(9)-toX(0)} height={CH}
             fill="rgba(74,158,106,0.07)" rx="4"/>
           <text x={L+(toX(7)-L)/2} y={T-5} textAnchor="middle"
-            style={{fontSize:8,fill:'rgba(74,158,106,0.55)',fontFamily:'system-ui'}}>drink zone</text>
+            style={{fontSize:8,fill:'rgba(74,158,106,0.55)',fontFamily:'system-ui'}}>open now</text>
 
           {/* X grid lines + labels */}
           {xMoTicks.map((mo,i)=>{
