@@ -475,6 +475,8 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   const [editPurchase, setEditPurchase] = useState(false);
   const [confirmPermDelete, setConfirmPermDelete] = useState(false);
   const [refreshMsg, setRefreshMsg] = useState('');
+  const [refreshingImages, setRefreshingImages] = useState(false);
+  const [imageMsg, setImageMsg] = useState('');
   const [refreshingPrice, setRefreshingPrice] = useState(false);
   const [draftPurchasePrice, setDraftPurchasePrice] = useState('');
   const [draftPurchaseWhere, setDraftPurchaseWhere] = useState('');
@@ -678,6 +680,39 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   }
 
   async function adjustQty(delta) { if (!sel) return; await saveWine({ ...sel, bottles: Math.max(0,(sel.bottles||0)+delta) }); }
+  function refreshAllImages() {
+    const wines = cellar.filter(function(w) { return !w.image && !w.labelImage; });
+    if (wines.length === 0) {
+      alert('All wines already have label images.');
+      return;
+    }
+    setRefreshingImages(true);
+    var idx = 0;
+
+    function processNext() {
+      if (idx >= wines.length) {
+        return loadCellar().then(function() {
+          setRefreshingImages(false);
+          setImageMsg('');
+          alert('Label images fetched for ' + wines.length + ' wine' + (wines.length !== 1 ? 's' : '') + '.');
+        });
+      }
+      var wine = wines[idx];
+      idx++;
+      setImageMsg('Fetching label ' + idx + ' of ' + wines.length + ': ' + wine.producer + '...');
+      return fetchLabelImage(wine.producer, wine.wineName, wine.vintage, getApiKey(profileId))
+        .then(function(imageDataUrl) {
+          if (imageDataUrl) {
+            var updated = Object.assign({}, wine, { labelImage: imageDataUrl, image: imageDataUrl });
+            return window.storage.set('wine:' + wine.id, JSON.stringify(updated));
+          }
+        })
+        .catch(function() {})
+        .then(processNext);
+    }
+    processNext();
+  }
+
   function refreshAllPrices() {
     if (cellar.length === 0) return;
     setRefreshingPrice(true);
@@ -1830,7 +1865,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       <div style={{color:'#5a6480',fontSize:13}}>{profileName}</div>
     </div>
     <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
-      <SettingsPanel profileId={profileId} onSwitchProfile={onSwitchProfile} importCSV={importCSV} onRefreshAllPrices={refreshAllPrices} refreshingPrice={refreshingPrice} refreshMsg={refreshMsg}/>
+      <SettingsPanel profileId={profileId} onSwitchProfile={onSwitchProfile} importCSV={importCSV} onRefreshAllPrices={refreshAllPrices} refreshingPrice={refreshingPrice} refreshMsg={refreshMsg} onRefreshAllImages={refreshAllImages} refreshingImages={refreshingImages} imageMsg={imageMsg}/>
       <div style={{height:16}}/>
     </div>
   </>, 'settings');
@@ -1839,7 +1874,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 }
 
 // ─── SETTINGS PANEL ───────────────────────────────────────────────────────────
-function SettingsPanel({ profileId, onSwitchProfile, importCSV, onRefreshAllPrices, refreshingPrice, refreshMsg }) {
+function SettingsPanel({ profileId, onSwitchProfile, importCSV, onRefreshAllPrices, refreshingPrice, refreshMsg, onRefreshAllImages, refreshingImages, imageMsg }) {
   const { useState } = React;
   const [key, setKey] = useState(getApiKey(profileId));
   const [saved, setSaved] = useState(false);
@@ -1960,8 +1995,8 @@ function SettingsPanel({ profileId, onSwitchProfile, importCSV, onRefreshAllPric
         <div style={{color:'#5a6480',fontSize:11,marginBottom:10,lineHeight:1.5}}>
           Import wines from a Cave CSV export. Duplicates (same producer + name + vintage) are skipped.
         </div>
-        <button onClick={onRefreshAllPrices} disabled={refreshingPrice}
-          className="gbtn" style={{marginBottom:8,opacity:refreshingPrice?0.6:1}}>
+        <button onClick={onRefreshAllPrices} disabled={refreshingPrice||refreshingImages}
+          className="gbtn" style={{marginBottom:8,opacity:(refreshingPrice||refreshingImages)?0.6:1}}>
           {refreshingPrice ? (refreshMsg || 'Refreshing prices…') : '🔄 Refresh all prices from Wine-Searcher'}
         </button>
         {refreshingPrice && (
@@ -1970,7 +2005,19 @@ function SettingsPanel({ profileId, onSwitchProfile, importCSV, onRefreshAllPric
           </div>
         )}
         <div style={{color:'#5a6480',fontSize:11,marginBottom:10,lineHeight:1.5}}>
-          Updates retail prices for all wines in your cave. Takes ~5 sec per wine.
+          Updates retail prices for all wines in your cave. ~5 sec per wine.
+        </div>
+        <button onClick={onRefreshAllImages} disabled={refreshingImages||refreshingPrice}
+          className="gbtn" style={{marginBottom:8,opacity:(refreshingImages||refreshingPrice)?0.6:1}}>
+          {refreshingImages ? (imageMsg || 'Fetching images…') : '🖼 Fetch label images for all wines'}
+        </button>
+        {refreshingImages && (
+          <div style={{color:'#5a6480',fontSize:11,marginBottom:8,lineHeight:1.5,fontStyle:'italic'}}>
+            {imageMsg}
+          </div>
+        )}
+        <div style={{color:'#5a6480',fontSize:11,marginBottom:10,lineHeight:1.5}}>
+          Finds real label photos for wines without images. ~4 sec per wine. Only fetches missing ones.
         </div>
         <button onClick={clearData} className="dbtn">Clear all data for this profile</button>
       </div>
