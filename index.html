@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#161c2e" />
+  <meta name="theme-color" content="#2C1F0E" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Cave" />
@@ -14,7 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body, #root { height: 100%; background: #161c2e; }
+    html, body, #root { height: 100%; background: #F5EDD8; }
     body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
   </style>
 </head>
@@ -22,7 +22,7 @@
   <div id="root">
     <div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:14px">
       <div style="font-size:48px">🍷</div>
-      <div style="color:#5a6480;font-size:13px;font-family:system-ui">Loading Cave…</div>
+      <div style="color:#9A7A50;font-size:13px;font-family:system-ui">Loading Cave…</div>
     </div>
   </div>
   <div id="js-err" style="display:none;position:fixed;inset:0;background:#100808;padding:20px;overflow:auto;z-index:9999">
@@ -78,38 +78,38 @@
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#161c2e;color:#f0ead8;font-family:system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:#F5EDD8;color:#2C1F0E;font-family:system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
 .df{font-family:'Cormorant Garamond',Georgia,serif}
 .di{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic}
-input,textarea{background:#252d4a;border:0.5px solid #3a4468;border-radius:10px;padding:10px 12px;width:100%;font-size:14px;color:#f0ead8;font-family:system-ui,sans-serif;outline:none;-webkit-appearance:none}
-input::placeholder,textarea::placeholder{color:#5a6480}
+input,textarea{background:#F0E8D4;border:0.5px solid #C4B48A;border-radius:10px;padding:10px 12px;width:100%;font-size:14px;color:#2C1F0E;font-family:system-ui,sans-serif;outline:none;-webkit-appearance:none}
+input::placeholder,textarea::placeholder{color:#9A7A50}
 textarea{resize:none}
-.btn{background:#c4a44a;color:#0f0c05;border:none;border-radius:10px;padding:13px;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.04em;width:100%;-webkit-appearance:none}
-.btn:disabled{background:#252d4a;color:#5a6480;cursor:not-allowed}
-.gbtn{background:transparent;color:#c4a44a;border:0.5px solid #3d3015;border-radius:10px;padding:12px;font-size:12px;cursor:pointer;width:100%}
-.dbtn{background:#2a1010;color:#c44a4a;border:0.5px solid #4a2020;border-radius:10px;padding:12px;font-size:12px;cursor:pointer;width:100%}
-.chip{background:#1e2640;border:0.5px solid #2d3654;color:#5a6480;border-radius:20px;padding:5px 12px;font-size:11px;cursor:pointer;white-space:nowrap}
-.chipon{background:#251f0e;border-color:#c4a44a;color:#c4a44a}
-.card{background:#1e2640;border:0.5px solid #2d3654;border-radius:14px;padding:14px}
-.row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:0.5px solid #2d3654;cursor:pointer}
-.sec{color:#5a6480;font-size:10px;letter-spacing:.1em;margin-bottom:8px}
-.bhold{background:#251608;color:#c47a2a;font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid #3d2810;white-space:nowrap;display:inline-block}
-.bdrink{background:#0e2318;color:#4a9e6a;font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid #1a3d28;white-space:nowrap;display:inline-block}
-.bdanger{background:#2a1010;color:#c44a4a;font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid #4a2020;white-space:nowrap;display:inline-block}
+.btn{background:#C4963A;color:#FDF8EE;border:none;border-radius:10px;padding:13px;font-size:13px;font-weight:600;cursor:pointer;letter-spacing:.04em;width:100%;-webkit-appearance:none}
+.btn:disabled{background:#E0D4B8;color:#9A7A50;cursor:not-allowed}
+.gbtn{background:transparent;color:#8A5E20;border:0.5px solid #C4B48A;border-radius:10px;padding:12px;font-size:12px;cursor:pointer;width:100%}
+.dbtn{background:#F5E4E0;color:#8B2020;border:0.5px solid #D4A090;border-radius:10px;padding:12px;font-size:12px;cursor:pointer;width:100%}
+.chip{background:#EDE0C4;border:0.5px solid #C4B48A;color:#8A6A40;border-radius:20px;padding:5px 12px;font-size:11px;cursor:pointer;white-space:nowrap}
+.chipon{background:#2C1F0E;border-color:#2C1F0E;color:#C4963A}
+.card{background:#EDE0C4;border:0.5px solid #D4C4A0;border-radius:14px;padding:14px}
+.row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:0.5px solid #D4C4A0;cursor:pointer}
+.sec{color:#9A7A50;font-size:10px;letter-spacing:.1em;margin-bottom:8px}
+.bhold{background:#F5EAD8;color:#9A5818;font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid #D4A870;white-space:nowrap;display:inline-block}
+.bdrink{background:#E8F0DC;color:#4A7A2E;font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid #A0C878;white-space:nowrap;display:inline-block}
+.bdanger{background:#F5E4E0;color:#8B2020;font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid #D4A090;white-space:nowrap;display:inline-block}
 .pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;letter-spacing:.04em;font-weight:500}
-.pr{background:#3d1a14;color:#e8917a}.pw{background:#2a2918;color:#d4d09a}.ps{background:#162038;color:#7ab0e8}.prs{background:#3d1a28;color:#e89ab0}
-.nav{display:flex;justify-content:space-around;padding:10px 0 16px;border-top:0.5px solid #2d3654;background:#161c2e;flex-shrink:0}
-.nb{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;color:#5a6480;font-size:10px;letter-spacing:.04em;padding:0 14px}
-.nbon{color:#c4a44a}
-.ndot{width:4px;height:4px;border-radius:50%;background:#c4a44a;opacity:0;margin-top:1px}.ndoton{opacity:1}
-.qbtn{width:32px;height:32px;border-radius:8px;background:#252d4a;border:0.5px solid #3a4468;color:#f0ead8;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
-.lopt{display:flex;align-items:center;gap:12px;padding:13px;background:#1e2640;border:0.5px solid #2d3654;border-radius:12px;cursor:pointer;margin-bottom:8px}
-.back{background:none;border:none;color:#5a6480;font-size:24px;cursor:pointer;padding:0;line-height:1;flex-shrink:0}
+.pr{background:#E8C8B8;color:#7B2810}.pw{background:#EDE8C0;color:#6B6010}.ps{background:#C8DCF0;color:#184070}.prs{background:#F0D0D8;color:#781838}
+.nav{display:flex;justify-content:space-around;padding:10px 0 16px;border-top:0.5px solid #C4B48A;background:#2C1F0E;flex-shrink:0}
+.nb{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;color:#9A7A50;font-size:10px;letter-spacing:.04em;padding:0 14px}
+.nbon{color:#C4963A}
+.ndot{width:4px;height:4px;border-radius:50%;background:#C4963A;opacity:0;margin-top:1px}.ndoton{opacity:1}
+.qbtn{width:32px;height:32px;border-radius:8px;background:#EDE0C4;border:0.5px solid #C4B48A;color:#2C1F0E;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1}
+.lopt{display:flex;align-items:center;gap:12px;padding:13px;background:#EDE0C4;border:0.5px solid #D4C4A0;border-radius:12px;cursor:pointer;margin-bottom:8px}
+.back{background:none;border:none;color:#8A6A40;font-size:24px;cursor:pointer;padding:0;line-height:1;flex-shrink:0}
 .star{cursor:pointer;font-size:22px;user-select:none}
-.err{padding:10px 12px;background:#2a1010;border:0.5px solid #4a2020;border-radius:10px;color:#c44a4a;font-size:12px;line-height:1.5}
+.err{padding:10px 12px;background:#F5E4E0;border:0.5px solid #D4A090;border-radius:10px;color:#8B2020;font-size:12px;line-height:1.5}
 .scrl{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}.scrl::-webkit-scrollbar{display:none}
 .field-row{margin-bottom:10px}
-.field-label{color:#5a6480;font-size:10px;letter-spacing:.08em;margin-bottom:5px}
+.field-label{color:#9A7A50;font-size:10px;letter-spacing:.08em;margin-bottom:5px}
 `;
 
 const pillCls = t => { const s=(t||'').toLowerCase(); if(s==='red')return'pill pr'; if(s==='white')return'pill pw'; if(s==='sparkling')return'pill ps'; if(s==='rosé'||s==='rose')return'pill prs'; return 'pill pw'; };
@@ -121,8 +121,8 @@ const statusCls = s => {
 };
 const statusLabel = s => normalizeStatus(s);
 const wineEmoji = t => ({'red':'🍷','white':'🍷','sparkling':'🥂','rosé':'🍷','rose':'🍷','dessert':'🍯','fortified':'🥃'}[(t||'').toLowerCase()]||'🍷');
-const wineBg = t => ({'red':'#3d1a14','white':'#2a2406','sparkling':'#162038','rosé':'#3d1a28','rose':'#3d1a28','dessert':'#2a1a00','fortified':'#1a1400'}[(t||'').toLowerCase()]||'#252d4a');
-const wineBorder = t => ({'red':'#8a3a2a','white':'#8a7a20','sparkling':'#2a5080','rosé':'#8a3a5a','rose':'#8a3a5a','dessert':'#8a5a00','fortified':'#5a4400'}[(t||'').toLowerCase()]||'#3a4468');
+const wineBg = t => ({'red':'#C8A898','white':'#E0D8A8','sparkling':'#B8D0E8','rosé':'#E0B8C8','rose':'#E0B8C8','dessert':'#2a1a00','fortified':'#1a1400'}[(t||'').toLowerCase()]||'#F0E8D4');
+const wineBorder = t => ({'red':'#8B4030','white':'#8B7828','sparkling':'#3060A8','rosé':'#8B3050','rose':'#8B3050','dessert':'#8a5a00','fortified':'#5a4400'}[(t||'').toLowerCase()]||'#C4B48A');
 const avg = w => {
   if (w.priceMedian) return parseFloat(w.priceMedian);
   const lo = parseFloat(w.retailPriceLow) || 0;
@@ -488,8 +488,6 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   const [batchProcessing, setBatchProcessing] = useState(false);
   const [batchMsg, setBatchMsg] = useState('');
   const [refreshMsg, setRefreshMsg] = useState('');
-  const [refreshingImages, setRefreshingImages] = useState(false);
-  const [imageMsg, setImageMsg] = useState('');
   const [refreshingPrice, setRefreshingPrice] = useState(false);
   const [draftPurchasePrice, setDraftPurchasePrice] = useState('');
   const [draftPurchaseWhere, setDraftPurchaseWhere] = useState('');
@@ -731,11 +729,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   }
 
   async function adjustQty(delta) { if (!sel) return; await saveWine({ ...sel, bottles: Math.max(0,(sel.bottles||0)+delta) }); }
-  function refreshAllImages() {
-    // External image fetching removed — images come from your scan photos.
-    // Use 'Update photo' on any wine's detail screen to add/replace its photo.
-    alert('To add a photo to a wine, open it and tap "Update photo".');
-  }
+
 
   function refreshAllPrices() {
     if (cellar.length === 0) return;
@@ -888,7 +882,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   }
 
   const wrap = (content, cur='') => (
-    <div style={{background:'#161c2e',minHeight:'100vh',display:'flex',flexDirection:'column',maxWidth:440,margin:'0 auto'}}>
+    <div style={{background:'#F5EDD8',minHeight:'100vh',display:'flex',flexDirection:'column',maxWidth:440,margin:'0 auto'}}>
       <style>{CSS}</style>
       {content}
       <Nav cur={cur}/>
@@ -896,11 +890,11 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   );
 
   const InstallBanner = () => !isPWA() ? (
-    <div style={{margin:'0 16px 12px',background:'#251f0e',border:'0.5px solid #3d3015',borderRadius:12,padding:'10px 14px',display:'flex',gap:10,alignItems:'center'}}>
+    <div style={{margin:'0 16px 12px',background:'#2C1F0E',border:'0.5px solid #8A6A40',borderRadius:12,padding:'10px 14px',display:'flex',gap:10,alignItems:'center'}}>
       <div style={{fontSize:18,flexShrink:0}}>📲</div>
       <div style={{flex:1}}>
-        <div style={{color:'#c4a44a',fontSize:12,fontWeight:600,marginBottom:1}}>Install for persistent storage</div>
-        <div style={{color:'#8a7a50',fontSize:11,lineHeight:1.4}}>Safari Share → Add to Home Screen. Prevents data loss.</div>
+        <div style={{color:'#C4963A',fontSize:12,fontWeight:600,marginBottom:1}}>Install for persistent storage</div>
+        <div style={{color:'#9A7A50',fontSize:11,lineHeight:1.4}}>Safari Share → Add to Home Screen. Prevents data loss.</div>
       </div>
     </div>
   ) : null;
@@ -909,17 +903,17 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   if (view==='home') return wrap(<>
     <div style={{padding:'20px 16px 12px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
       <div>
-        <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.12em',marginBottom:2}}>YOUR</div>
-        <div className="di" style={{color:'#f0ead8',fontSize:28}}>Cave</div>
+        <div style={{color:'#9A7A50',fontSize:10,letterSpacing:'.12em',marginBottom:2}}>YOUR</div>
+        <div className="di" style={{color:'#2C1F0E',fontSize:28}}>Cave</div>
       </div>
-      <button onClick={onSwitchProfile} style={{background:'#252d4a',border:'0.5px solid #3a4468',borderRadius:'50%',width:38,height:38,display:'flex',alignItems:'center',justifyContent:'center',color:'#c4a44a',fontSize:14,fontWeight:600,cursor:'pointer'}}>
+      <button onClick={onSwitchProfile} style={{background:'#F0E8D4',border:'0.5px solid #C4B48A',borderRadius:'50%',width:38,height:38,display:'flex',alignItems:'center',justifyContent:'center',color:'#C4963A',fontSize:14,fontWeight:600,cursor:'pointer'}}>
         {(profileName||'?').charAt(0).toUpperCase()}
       </button>
     </div>
     <div style={{padding:'0 16px 14px',display:'flex',gap:8}}>
-      {[{label:'BOTTLES',val:stats.bottles,color:'#f0ead8'},{label:'VALUE',val:stats.value>0?`$${stats.value.toLocaleString()}`:'—',color:'#c4a44a'},{label:'READY',val:stats.ready,color:'#4a9e6a'}].map(s=>(
+      {[{label:'BOTTLES',val:stats.bottles,color:'#2C1F0E'},{label:'VALUE',val:stats.value>0?`$${stats.value.toLocaleString()}`:'—',color:'#C4963A'},{label:'READY',val:stats.ready,color:'#4A7A2E'}].map(s=>(
         <div key={s.label} className="card" style={{flex:1,textAlign:'center',padding:12}}>
-          <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.06em',marginBottom:4}}>{s.label}</div>
+          <div style={{color:'#9A7A50',fontSize:10,letterSpacing:'.06em',marginBottom:4}}>{s.label}</div>
           <div className="df" style={{color:s.color,fontSize:22}}>{s.val}</div>
         </div>
       ))}
@@ -929,25 +923,25 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       {cellar.length===0?(
         <div style={{textAlign:'center',padding:'48px 0'}}>
           <div style={{fontSize:40,marginBottom:14}}>🍷</div>
-          <div className="di" style={{color:'#8a96b8',fontSize:20,marginBottom:8}}>Your cave is empty.</div>
-          <div style={{color:'#5a6480',fontSize:13}}>Scan your first bottle to begin.</div>
+          <div className="di" style={{color:'#6A5030',fontSize:20,marginBottom:8}}>Your cave is empty.</div>
+          <div style={{color:'#9A7A50',fontSize:13}}>Scan your first bottle to begin.</div>
         </div>
       ):cellar.slice(0,8).map(w=>(
         <div key={w.id} className="row" onClick={()=>{setSelId(w.id);setView('detail');}}>
-          <div style={{width:34,height:46,borderRadius:5,background:w.image?'#252d4a':wineBg(w.wineType),border:'0.5px solid '+wineBorder(w.wineType),display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0,overflow:'hidden'}}>
+          <div style={{width:34,height:46,borderRadius:5,background:w.image?'#EDE0C4':wineBg(w.wineType),border:'0.5px solid '+wineBorder(w.wineType),display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0,overflow:'hidden'}}>
             {(w.image||w.labelImage)?<img src={w.image||w.labelImage} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:4}}/>:wineEmoji(w.wineType)}
           </div>
           <div style={{flex:1,minWidth:0}}>
-            <div style={{color:'#f0ead8',fontSize:13,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.producer}</div>
-            <div style={{color:'#5a6480',fontSize:11,marginTop:1,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.wineName} {w.vintage} · <span style={{color:'#8a96b8'}}>{w.bottles} btl</span></div>
+            <div style={{color:'#2C1F0E',fontSize:13,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.producer}</div>
+            <div style={{color:'#9A7A50',fontSize:11,marginTop:1,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.wineName} {w.vintage} · <span style={{color:'#6A5030'}}>{w.bottles} btl</span></div>
           </div>
           <div style={{textAlign:'right',flexShrink:0}}>
-            <div style={{color:'#c4a44a',fontSize:13}}>${Math.round(avg(w))}</div>
+            <div style={{color:'#C4963A',fontSize:13}}>${Math.round(avg(w))}</div>
             <div className={statusCls(w.drinkingWindow?.status)} style={{marginTop:4}}>{statusLabel(w.drinkingWindow?.status)||'—'}</div>
           </div>
         </div>
       ))}
-      {cellar.length>8&&<div style={{color:'#5a6480',fontSize:11,textAlign:'center',padding:'10px 0'}}>+{cellar.length-8} more · see Cellar tab</div>}
+      {cellar.length>8&&<div style={{color:'#9A7A50',fontSize:11,textAlign:'center',padding:'10px 0'}}>+{cellar.length-8} more · see Cellar tab</div>}
     </div>
     <div style={{padding:'10px 16px',display:'flex',gap:8}}>
       <button className="btn" onClick={goScan} style={{flex:2}}>+ Scan bottle</button>
@@ -966,47 +960,47 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 
     <div style={{padding:'18px 16px 12px',display:'flex',alignItems:'center',gap:10}}>
       <button className="back" onClick={()=>setView('home')}>←</button>
-      <span className="di" style={{color:'#f0ead8',fontSize:18}}>Add to cave</span>
+      <span className="di" style={{color:'#2C1F0E',fontSize:18}}>Add to cave</span>
     </div>
 
     <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
       <div style={{marginBottom:14}}>
-        <div className="sec">LABEL PHOTO <span style={{color:'#c44a4a'}}>*</span></div>
+        <div className="sec">LABEL PHOTO <span style={{color:'#8B2020'}}>*</span></div>
         {frontImg ? (
-          <div style={{position:'relative',borderRadius:12,overflow:'hidden',border:'0.5px solid #c4a44a',marginBottom:4}}>
+          <div style={{position:'relative',borderRadius:12,overflow:'hidden',border:'0.5px solid #C4963A',marginBottom:4}}>
             <img src={frontImg} style={{width:'100%',maxHeight:220,objectFit:'contain',display:'block'}}/>
-            <div style={{position:'absolute',top:8,left:8,background:'#0e2318',border:'0.5px solid #1a3d28',borderRadius:20,padding:'3px 10px',color:'#4a9e6a',fontSize:11}}>✓ Photo ready</div>
+            <div style={{position:'absolute',top:8,left:8,background:'#E8F0DC',border:'0.5px solid #A0C878',borderRadius:20,padding:'3px 10px',color:'#4A7A2E',fontSize:11}}>✓ Photo ready</div>
             <button onClick={()=>retakeFrontRef.current&&retakeFrontRef.current.click()}
-              style={{position:'absolute',bottom:8,right:8,background:'rgba(22,28,46,0.9)',border:'0.5px solid #3a4468',borderRadius:8,padding:'6px 12px',color:'#c4a44a',fontSize:12,cursor:'pointer'}}>
+              style={{position:'absolute',bottom:8,right:8,background:'rgba(22,28,46,0.9)',border:'0.5px solid #C4B48A',borderRadius:8,padding:'6px 12px',color:'#C4963A',fontSize:12,cursor:'pointer'}}>
               Retake
             </button>
           </div>
         ) : (
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
             <button onClick={()=>frontCamRef.current&&frontCamRef.current.click()}
-              style={{background:'#1e2640',border:'1.5px dashed #3a4468',borderRadius:12,padding:'28px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:8,cursor:'pointer'}}>
+              style={{background:'#EDE0C4',border:'1.5px dashed #C4B48A',borderRadius:12,padding:'28px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:8,cursor:'pointer'}}>
               <div style={{fontSize:32}}>📷</div>
-              <div style={{color:'#8a96b8',fontSize:13}}>Camera</div>
+              <div style={{color:'#6A5030',fontSize:13}}>Camera</div>
             </button>
             <button onClick={()=>frontLibRef.current&&frontLibRef.current.click()}
-              style={{background:'#1e2640',border:'1.5px dashed #3a4468',borderRadius:12,padding:'28px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:8,cursor:'pointer'}}>
+              style={{background:'#EDE0C4',border:'1.5px dashed #C4B48A',borderRadius:12,padding:'28px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:8,cursor:'pointer'}}>
               <div style={{fontSize:32}}>🖼</div>
-              <div style={{color:'#8a96b8',fontSize:13}}>Library</div>
+              <div style={{color:'#6A5030',fontSize:13}}>Library</div>
             </button>
           </div>
         )}
       </div>
 
       <div style={{marginBottom:16}}>
-        <div className="sec">LABEL TEXT <span style={{color:'#5a6480',fontStyle:'italic',letterSpacing:'normal',textTransform:'none',fontSize:10}}>optional · improves accuracy</span></div>
+        <div className="sec">LABEL TEXT <span style={{color:'#9A7A50',fontStyle:'italic',letterSpacing:'normal',textTransform:'none',fontSize:10}}>optional · improves accuracy</span></div>
         <textarea value={manualText} onChange={e=>setManualText(e.target.value)} rows={2}
           placeholder={"e.g. Cerbaiona Brunello di Montalcino 2020, Tuscany, Italy"}
           style={{fontSize:13}}/>
       </div>
 
       {error && (
-        <div style={{padding:'12px 14px',background:'#1a0e0e',border:'0.5px solid #4a2020',borderRadius:10,marginBottom:12}}>
-          <div style={{color:'#c44a4a',fontSize:12,marginBottom:6,fontWeight:600}}>Couldn't identify — try:</div>
+        <div style={{padding:'12px 14px',background:'#1a0e0e',border:'0.5px solid #D4A090',borderRadius:10,marginBottom:12}}>
+          <div style={{color:'#8B2020',fontSize:12,marginBottom:6,fontWeight:600}}>Couldn't identify — try:</div>
           <div style={{color:'#8a6060',fontSize:12,lineHeight:1.8}}>
             • Type the wine name in the text box<br/>
             • Tap Identify again<br/>
@@ -1018,7 +1012,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       <button className="btn" onClick={runIdentification} disabled={loading||(!frontImg&&!manualText.trim())} style={{marginBottom:8}}>
         {loading ? 'Identifying…' : '🔍 Identify wine'}
       </button>
-      <div style={{color:'#5a6480',fontSize:11,textAlign:'center',marginBottom:4}}>
+      <div style={{color:'#9A7A50',fontSize:11,textAlign:'center',marginBottom:4}}>
         {frontImg ? 'Photo ready ✓' : 'Add a photo or type the wine details'}
       </div>
       <div style={{height:16}}/>
@@ -1034,18 +1028,18 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 
     <div style={{padding:'18px 16px 10px',display:'flex',alignItems:'center',gap:10}}>
       <button className="back" onClick={()=>{if(batchQueue.length===0||confirm('Leave batch? Unsaved photos will be lost.'))setView('home');}}>←</button>
-      <span className="di" style={{color:'#f0ead8',fontSize:18}}>Batch scan</span>
-      <span style={{marginLeft:'auto',color:'#5a6480',fontSize:11}}>{batchQueue.length} photo{batchQueue.length!==1?'s':''}</span>
+      <span className="di" style={{color:'#2C1F0E',fontSize:18}}>Batch scan</span>
+      <span style={{marginLeft:'auto',color:'#9A7A50',fontSize:11}}>{batchQueue.length} photo{batchQueue.length!==1?'s':''}</span>
     </div>
 
     <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
       {/* Add photo button */}
       <button onClick={()=>batchPhotoRef.current&&batchPhotoRef.current.click()}
         disabled={batchProcessing}
-        style={{width:'100%',background:'#1e2640',border:'1.5px dashed #3a4468',borderRadius:12,padding:'18px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:8,cursor:'pointer',marginBottom:12,opacity:batchProcessing?.6:1}}>
+        style={{width:'100%',background:'#EDE0C4',border:'1.5px dashed #C4B48A',borderRadius:12,padding:'18px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:8,cursor:'pointer',marginBottom:12,opacity:batchProcessing?.6:1}}>
         <div style={{fontSize:28}}>📷</div>
-        <div style={{color:'#8a96b8',fontSize:13}}>Add photo{batchQueue.length>0?' (add more)':''}</div>
-        <div style={{color:'#5a6480',fontSize:11}}>Tap repeatedly to queue multiple bottles</div>
+        <div style={{color:'#6A5030',fontSize:13}}>Add photo{batchQueue.length>0?' (add more)':''}</div>
+        <div style={{color:'#9A7A50',fontSize:11}}>Tap repeatedly to queue multiple bottles</div>
       </button>
 
       {/* Identify all button */}
@@ -1055,50 +1049,50 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
         </button>
       )}
       {batchProcessing&&(
-        <div style={{background:'#1e2640',border:'0.5px solid #2d3654',borderRadius:10,padding:'12px 14px',marginBottom:12,textAlign:'center'}}>
-          <div style={{color:'#c4a44a',fontSize:13,marginBottom:4}}>{batchMsg||'Identifying…'}</div>
-          <div style={{color:'#5a6480',fontSize:11}}>Processing one at a time — please wait</div>
+        <div style={{background:'#EDE0C4',border:'0.5px solid #D4C4A0',borderRadius:10,padding:'12px 14px',marginBottom:12,textAlign:'center'}}>
+          <div style={{color:'#C4963A',fontSize:13,marginBottom:4}}>{batchMsg||'Identifying…'}</div>
+          <div style={{color:'#9A7A50',fontSize:11}}>Processing one at a time — please wait</div>
         </div>
       )}
 
       {/* Queue items */}
       {batchQueue.length===0&&(
-        <div style={{textAlign:'center',padding:'32px 0',color:'#5a6480'}}>
+        <div style={{textAlign:'center',padding:'32px 0',color:'#9A7A50'}}>
           <div style={{fontSize:32,marginBottom:8}}>📷</div>
-          <div className="di" style={{color:'#8a96b8',fontSize:18}}>No photos yet</div>
+          <div className="di" style={{color:'#6A5030',fontSize:18}}>No photos yet</div>
           <div style={{fontSize:12,marginTop:6}}>Tap the button above to add bottles</div>
         </div>
       )}
 
       {batchQueue.map(function(item){
         const w = item.result;
-        const statusColor = item.status==='done'?'#4a9e6a':item.status==='review'?'#c47a2a':item.status==='failed'?'#c44a4a':item.status==='processing'?'#5a8ae8':'#5a6480';
+        const statusColor = item.status==='done'?'#4a9e6a':item.status==='review'?'#c47a2a':item.status==='failed'?'#c44a4a':item.status==='processing'?'#4060B8':'#9A7A50';
         const statusLabel2 = item.status==='done'?'identified':item.status==='review'?'low confidence — review':item.status==='failed'?'failed':item.status==='processing'?'identifying…':'queued';
         return (
-          <div key={item.id} style={{background:'#1e2640',border:'0.5px solid #2d3654',borderRadius:12,marginBottom:8,overflow:'hidden'}}>
+          <div key={item.id} style={{background:'#EDE0C4',border:'0.5px solid #D4C4A0',borderRadius:12,marginBottom:8,overflow:'hidden'}}>
             <div style={{display:'flex',gap:10,padding:10}}>
               {/* Thumbnail */}
-              <div style={{width:52,height:70,borderRadius:6,overflow:'hidden',flexShrink:0,background:'#252d4a'}}>
+              <div style={{width:52,height:70,borderRadius:6,overflow:'hidden',flexShrink:0,background:'#F0E8D4'}}>
                 <img src={item.dataUrl} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
               </div>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:4}}>
                   <span style={{color:statusColor,fontSize:10,letterSpacing:'.04em',fontWeight:600}}>{statusLabel2.toUpperCase()}</span>
                   <button onClick={function(){setBatchQueue(prev=>prev.filter(function(b){return b.id!==item.id;}));}}
-                    style={{background:'none',border:'none',color:'#5a6480',cursor:'pointer',fontSize:16,lineHeight:1,padding:0}}>×</button>
+                    style={{background:'none',border:'none',color:'#9A7A50',cursor:'pointer',fontSize:16,lineHeight:1,padding:0}}>×</button>
                 </div>
                 {w&&w.identified ? (
                   <>
-                    <div style={{color:'#f0ead8',fontSize:13,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.producer}</div>
-                    <div style={{color:'#8a96b8',fontSize:11,marginTop:1,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.wineName} {w.vintage}</div>
-                    <div style={{color:'#c4a44a',fontSize:12,marginTop:2}}>
+                    <div style={{color:'#2C1F0E',fontSize:13,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.producer}</div>
+                    <div style={{color:'#6A5030',fontSize:11,marginTop:1,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.wineName} {w.vintage}</div>
+                    <div style={{color:'#C4963A',fontSize:12,marginTop:2}}>
                       {w.retailPriceLow&&w.retailPriceHigh?`$${w.retailPriceLow}–$${w.retailPriceHigh}`:w.priceMedian?`$${w.priceMedian}`:'—'}
                     </div>
                   </>
                 ) : item.status==='failed' ? (
-                  <div style={{color:'#c44a4a',fontSize:12,marginTop:4}}>Could not identify — delete and re-scan</div>
+                  <div style={{color:'#8B2020',fontSize:12,marginTop:4}}>Could not identify — delete and re-scan</div>
                 ) : item.status==='queued' ? (
-                  <div style={{color:'#5a6480',fontSize:12,marginTop:4}}>Waiting to be identified</div>
+                  <div style={{color:'#9A7A50',fontSize:12,marginTop:4}}>Waiting to be identified</div>
                 ) : (
                   <div style={{color:'#5a8ae8',fontSize:12,marginTop:4}}>Working…</div>
                 )}
@@ -1106,15 +1100,15 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
             </div>
             {/* Confirm row for identified wines */}
             {w&&w.identified&&(item.status==='done'||item.status==='review')&&(
-              <div style={{borderTop:'0.5px solid #2d3654',padding:'8px 10px',display:'flex',gap:8,alignItems:'center',background:item.status==='review'?'#251608':'#1a2236'}}>
-                {item.status==='review'&&<span style={{color:'#c47a2a',fontSize:10,flex:1}}>⚠ Low confidence — tap to verify</span>}
-                {item.status==='done'&&<span style={{color:'#5a6480',fontSize:10,flex:1}}>Tap to save</span>}
+              <div style={{borderTop:'0.5px solid #D4C4A0',padding:'8px 10px',display:'flex',gap:8,alignItems:'center',background:item.status==='review'?'#F5EAD8':'#F0E8D4'}}>
+                {item.status==='review'&&<span style={{color:'#9A5818',fontSize:10,flex:1}}>⚠ Low confidence — tap to verify</span>}
+                {item.status==='done'&&<span style={{color:'#9A7A50',fontSize:10,flex:1}}>Tap to save</span>}
                 <button onClick={function(){setSelId(null);setPending(w);setPendingQty(1);setView('is-this-right');}}
-                  style={{background:'#252d4a',border:'0.5px solid #3a4468',borderRadius:8,padding:'5px 12px',color:'#c4a44a',fontSize:11,cursor:'pointer'}}>
+                  style={{background:'#F0E8D4',border:'0.5px solid #C4B48A',borderRadius:8,padding:'5px 12px',color:'#C4963A',fontSize:11,cursor:'pointer'}}>
                   Review
                 </button>
                 <button onClick={function(){confirmBatchItem(item,1);}}
-                  style={{background:'#0e2318',border:'0.5px solid #1a3d28',borderRadius:8,padding:'5px 12px',color:'#4a9e6a',fontSize:11,cursor:'pointer',fontWeight:600}}>
+                  style={{background:'#E8F0DC',border:'0.5px solid #A0C878',borderRadius:8,padding:'5px 12px',color:'#4A7A2E',fontSize:11,cursor:'pointer',fontWeight:600}}>
                   ✓ Save 1
                 </button>
               </div>
@@ -1135,13 +1129,13 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 
   // ── SCANNING ──────────────────────────────────────────────────────────────
   if (view==='scanning') return (
-    <div style={{background:'#161c2e',minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',maxWidth:440,margin:'0 auto'}}>
+    <div style={{background:'#F5EDD8',minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',maxWidth:440,margin:'0 auto'}}>
       <style>{CSS}</style>
       <div style={{fontSize:48,marginBottom:18}}>🍷</div>
-      <div className="di" style={{color:'#8a96b8',fontSize:22,marginBottom:8}}>{loadMsg}</div>
-      <div style={{color:'#5a6480',fontSize:12,textAlign:'center',lineHeight:1.7}}>Claude is reading the label…</div>
-      <div style={{width:160,height:2,background:'#1e2640',borderRadius:2,overflow:'hidden',marginTop:28}}>
-        <div style={{height:'100%',background:'linear-gradient(90deg,#c4a44a,#e8c870)',borderRadius:2,width:'70%'}}/>
+      <div className="di" style={{color:'#6A5030',fontSize:22,marginBottom:8}}>{loadMsg}</div>
+      <div style={{color:'#9A7A50',fontSize:12,textAlign:'center',lineHeight:1.7}}>Claude is reading the label…</div>
+      <div style={{width:160,height:2,background:'#EDE0C4',borderRadius:2,overflow:'hidden',marginTop:28}}>
+        <div style={{height:'100%',background:'linear-gradient(90deg,#C4963A,#E8BA60)',borderRadius:2,width:'70%'}}/>
       </div>
     </div>
   );
@@ -1154,7 +1148,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     return wrap(<>
       <div style={{padding:'18px 16px 10px',display:'flex',alignItems:'center',gap:10}}>
         <button className="back" onClick={()=>{setView('scan');setEditPending(null);}}>←</button>
-        <span className="di" style={{color:'#f0ead8',fontSize:18}}>Is this right?</span>
+        <span className="di" style={{color:'#2C1F0E',fontSize:18}}>Is this right?</span>
         <div style={{marginLeft:'auto'}}>
           <span className={statusCls(p.drinkingWindow?.status||'')} style={{fontSize:10,letterSpacing:'.04em'}}>
             {(p.confidence||'?').toUpperCase()}
@@ -1164,7 +1158,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 
       <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
         {frontImg&&(
-          <div style={{borderRadius:10,overflow:'hidden',maxHeight:130,marginBottom:12,border:'0.5px solid #2d3654'}}>
+          <div style={{borderRadius:10,overflow:'hidden',maxHeight:130,marginBottom:12,border:'0.5px solid #D4C4A0'}}>
             <img src={frontImg} style={{width:'100%',objectFit:'contain',maxHeight:130}}/>
           </div>
         )}
@@ -1172,10 +1166,10 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
         {!isEditing ? <>
           {/* Main identification result */}
           <div className="card" style={{marginBottom:10}}>
-            <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.1em',marginBottom:2}}>{(p.producer||'').toUpperCase()}</div>
-            <div className="di" style={{color:'#f0ead8',fontSize:22,lineHeight:1.2,marginBottom:4}}>{p.wineName}</div>
-            <div style={{color:'#8a96b8',fontSize:12}}>{p.vintage}{p.region?` · ${p.region}`:''}</div>
-            {p.appellation&&<div style={{color:'#5a6480',fontSize:11,marginTop:2}}>{p.appellation}</div>}
+            <div style={{color:'#9A7A50',fontSize:10,letterSpacing:'.1em',marginBottom:2}}>{(p.producer||'').toUpperCase()}</div>
+            <div className="di" style={{color:'#2C1F0E',fontSize:22,lineHeight:1.2,marginBottom:4}}>{p.wineName}</div>
+            <div style={{color:'#6A5030',fontSize:12}}>{p.vintage}{p.region?` · ${p.region}`:''}</div>
+            {p.appellation&&<div style={{color:'#9A7A50',fontSize:11,marginTop:2}}>{p.appellation}</div>}
             <div style={{marginTop:8,display:'flex',gap:4,flexWrap:'wrap'}}>
               {(p.grapeVarieties||[]).map(g=><span key={g} className={pillCls(p.wineType)}>{g}</span>)}
             </div>
@@ -1187,12 +1181,12 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
               <div className="sec">COULD ALSO BE…</div>
               {(p.alternatives||[]).map((alt,i)=>(
                 <div key={i} onClick={()=>{setPending({...p,...alt,alternatives:[]});setEditPending(null);}}
-                  style={{display:'flex',alignItems:'center',gap:10,padding:'10px 0',borderBottom:i<p.alternatives.length-1?'0.5px solid #2d3654':'none',cursor:'pointer'}}>
+                  style={{display:'flex',alignItems:'center',gap:10,padding:'10px 0',borderBottom:i<p.alternatives.length-1?'0.5px solid #D4C4A0':'none',cursor:'pointer'}}>
                   <div style={{flex:1}}>
-                    <div style={{color:'#f0ead8',fontSize:13}}>{alt.producer} {alt.wineName} {alt.vintage}</div>
-                    <div style={{color:'#5a6480',fontSize:11,marginTop:2,fontStyle:'italic'}}>{alt.reason}</div>
+                    <div style={{color:'#2C1F0E',fontSize:13}}>{alt.producer} {alt.wineName} {alt.vintage}</div>
+                    <div style={{color:'#9A7A50',fontSize:11,marginTop:2,fontStyle:'italic'}}>{alt.reason}</div>
                   </div>
-                  <div style={{color:'#c4a44a',fontSize:16}}>›</div>
+                  <div style={{color:'#C4963A',fontSize:16}}>›</div>
                 </div>
               ))}
             </div>
@@ -1203,23 +1197,23 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
                 <div className="sec" style={{marginBottom:0}}>RETAIL (US)</div>
                 {p.livePriceFetched
-                  ? <span style={{background:'#0e2318',color:'#4a9e6a',fontSize:9,padding:'2px 6px',borderRadius:8,border:'0.5px solid #1a3d28',letterSpacing:'.04em'}}>LIVE</span>
-                  : <span style={{background:'#252d4a',color:'#5a6480',fontSize:9,padding:'2px 6px',borderRadius:8,letterSpacing:'.04em'}}>EST.</span>
+                  ? <span style={{background:'#E8F0DC',color:'#4A7A2E',fontSize:9,padding:'2px 6px',borderRadius:8,border:'0.5px solid #A0C878',letterSpacing:'.04em'}}>LIVE</span>
+                  : <span style={{background:'#F0E8D4',color:'#9A7A50',fontSize:9,padding:'2px 6px',borderRadius:8,letterSpacing:'.04em'}}>EST.</span>
                 }
               </div>
               {p.priceMedian
                 ? <>
-                    <div className="df" style={{color:'#c4a44a',fontSize:18}}>${p.priceMedian} <span style={{fontSize:13,color:'#5a6480'}}>typical</span></div>
-                    <div style={{color:'#5a6480',fontSize:10,marginTop:1}}>${p.retailPriceLow}–${p.retailPriceHigh} range</div>
+                    <div className="df" style={{color:'#C4963A',fontSize:18}}>${p.priceMedian} <span style={{fontSize:13,color:'#9A7A50'}}>typical</span></div>
+                    <div style={{color:'#9A7A50',fontSize:10,marginTop:1}}>${p.retailPriceLow}–${p.retailPriceHigh} range</div>
                   </>
-                : <div className="df" style={{color:'#c4a44a',fontSize:18}}>{p.retailPriceLow&&p.retailPriceHigh?`$${p.retailPriceLow}–$${p.retailPriceHigh}`:p.priceMedian?`$${p.priceMedian}`:'—'}</div>
+                : <div className="df" style={{color:'#C4963A',fontSize:18}}>{p.retailPriceLow&&p.retailPriceHigh?`$${p.retailPriceLow}–$${p.retailPriceHigh}`:p.priceMedian?`$${p.priceMedian}`:'—'}</div>
               }
-              {p.priceSources?.length>0 && <div style={{color:'#5a6480',fontSize:10,marginTop:3}}>{p.priceListings} listings · {p.priceSources.slice(0,2).join(', ')}</div>}
-              {p.priceNote && !p.livePriceFetched && <div style={{color:'#5a6480',fontSize:10,marginTop:3,fontStyle:'italic'}}>{p.priceNote}</div>}
+              {p.priceSources?.length>0 && <div style={{color:'#9A7A50',fontSize:10,marginTop:3}}>{p.priceListings} listings · {p.priceSources.slice(0,2).join(', ')}</div>}
+              {p.priceNote && !p.livePriceFetched && <div style={{color:'#9A7A50',fontSize:10,marginTop:3,fontStyle:'italic'}}>{p.priceNote}</div>}
             </div>
             <div className="card" style={{flex:1,padding:12}}>
               <div className="sec" style={{marginBottom:4}}>DRINK</div>
-              <div className="df" style={{color:'#c47a2a',fontSize:13,marginBottom:4}}>{p.drinkingWindow?.start}–{p.drinkingWindow?.end}</div>
+              <div className="df" style={{color:'#9A5818',fontSize:13,marginBottom:4}}>{p.drinkingWindow?.start}–{p.drinkingWindow?.end}</div>
               <div className={statusCls(p.drinkingWindow?.status||'')}>{statusLabel(p.drinkingWindow?.status)}</div>
             </div>
           </div>
@@ -1227,22 +1221,22 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
           <div className="card" style={{marginBottom:12}}>
             <div className="sec">HOW MANY BOTTLES?</div>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
-              <div style={{color:'#8a96b8',fontSize:13}}>Bottles to add</div>
+              <div style={{color:'#6A5030',fontSize:13}}>Bottles to add</div>
               <div style={{display:'flex',alignItems:'center',gap:16}}>
                 <button className="qbtn" onClick={()=>setPendingQty(q=>Math.max(1,q-1))}>−</button>
-                <span className="df" style={{color:'#f0ead8',fontSize:26,minWidth:28,textAlign:'center'}}>{pendingQty}</span>
+                <span className="df" style={{color:'#2C1F0E',fontSize:26,minWidth:28,textAlign:'center'}}>{pendingQty}</span>
                 <button className="qbtn" onClick={()=>setPendingQty(q=>q+1)}>+</button>
               </div>
             </div>
-            <div style={{borderTop:'0.5px solid #2d3654',paddingTop:12}}>
-              <div className="sec">PURCHASE INFO <span style={{color:'#5a6480',fontStyle:'italic',letterSpacing:'normal',textTransform:'none',fontSize:10}}>optional</span></div>
+            <div style={{borderTop:'0.5px solid #D4C4A0',paddingTop:12}}>
+              <div className="sec">PURCHASE INFO <span style={{color:'#9A7A50',fontStyle:'italic',letterSpacing:'normal',textTransform:'none',fontSize:10}}>optional</span></div>
               <div style={{display:'flex',gap:8}}>
                 <div style={{flex:1}}>
-                  <div style={{color:'#5a6480',fontSize:10,marginBottom:4}}>WHAT I PAID ($)</div>
+                  <div style={{color:'#9A7A50',fontSize:10,marginBottom:4}}>WHAT I PAID ($)</div>
                   <input type="number" value={purchasePrice} onChange={e=>setPurchasePrice(e.target.value)} placeholder="e.g. 85" style={{fontSize:13}}/>
                 </div>
                 <div style={{flex:2}}>
-                  <div style={{color:'#5a6480',fontSize:10,marginBottom:4}}>WHERE I BOUGHT IT</div>
+                  <div style={{color:'#9A7A50',fontSize:10,marginBottom:4}}>WHERE I BOUGHT IT</div>
                   <input type="text" value={purchaseWhere} onChange={e=>setPurchaseWhere(e.target.value)} placeholder="e.g. K&L Wines" style={{fontSize:13}}/>
                 </div>
               </div>
@@ -1256,11 +1250,11 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
             ✏ No — let me correct this
           </button>
           <div style={{display:'flex',justifyContent:'space-between',marginBottom:8}}>
-            <button onClick={()=>{setEditPending(null);setView('scan');}} style={{background:'none',border:'none',color:'#5a6480',fontSize:12,cursor:'pointer',padding:'8px 0'}}>
+            <button onClick={()=>{setEditPending(null);setView('scan');}} style={{background:'none',border:'none',color:'#9A7A50',fontSize:12,cursor:'pointer',padding:'8px 0'}}>
               ← Back to scan
             </button>
             <a href={`https://www.wine-searcher.com/find/${encodeURIComponent(`${p.producer} ${p.wineName} ${p.vintage}`)}`}
-              target="_blank" style={{color:'#5a6480',fontSize:12,textDecoration:'underline',padding:'8px 0'}}>
+              target="_blank" style={{color:'#9A7A50',fontSize:12,textDecoration:'underline',padding:'8px 0'}}>
               Verify on Wine-Searcher →
             </a>
           </div>
@@ -1270,22 +1264,22 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
             <div className="sec" style={{marginBottom:12}}>CORRECT THE DETAILS</div>
             {[['PRODUCER','producer'],['WINE NAME','wineName'],['VINTAGE','vintage']].map(([lbl,field])=>(
               <div key={field} style={{marginBottom:10}}>
-                <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:4}}>{lbl}</div>
+                <div style={{color:'#9A7A50',fontSize:10,letterSpacing:'.08em',marginBottom:4}}>{lbl}</div>
                 <input type="text" value={p[field]||''} onChange={e=>setEditPending({...p,[field]:e.target.value})}/>
               </div>
             ))}
             <button onClick={()=>setShowAdvanced(v=>!v)}
-              style={{background:'none',border:'none',color:'#5a6480',fontSize:11,cursor:'pointer',padding:'4px 0',marginBottom:showAdvanced?8:0}}>
+              style={{background:'none',border:'none',color:'#9A7A50',fontSize:11,cursor:'pointer',padding:'4px 0',marginBottom:showAdvanced?8:0}}>
               {showAdvanced?'▾ Hide advanced':'▸ Advanced (region, appellation, grapes)'}
             </button>
             {showAdvanced&&[['REGION','region'],['APPELLATION','appellation']].map(([lbl,field])=>(
               <div key={field} style={{marginBottom:10}}>
-                <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:4}}>{lbl}</div>
+                <div style={{color:'#9A7A50',fontSize:10,letterSpacing:'.08em',marginBottom:4}}>{lbl}</div>
                 <input type="text" value={p[field]||''} onChange={e=>setEditPending({...p,[field]:e.target.value})}/>
               </div>
             ))}
             {showAdvanced&&<div style={{marginBottom:10}}>
-              <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:4}}>GRAPE VARIETIES (comma separated)</div>
+              <div style={{color:'#9A7A50',fontSize:10,letterSpacing:'.08em',marginBottom:4}}>GRAPE VARIETIES (comma separated)</div>
               <input type="text" value={(p.grapeVarieties||[]).join(', ')}
                 onChange={e=>setEditPending({...p,grapeVarieties:e.target.value.split(',').map(s=>s.trim()).filter(Boolean)})}/>
             </div>}
@@ -1303,18 +1297,18 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     <div style={{padding:'18px 16px 10px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
       <button className="back" onClick={()=>setView('cellar')}>←</button>
       <div style={{display:'flex',gap:12,alignItems:'center'}}>
-        <button style={{background:'none',border:'none',color:'#5a6480',fontSize:12,cursor:'pointer'}}
+        <button style={{background:'none',border:'none',color:'#9A7A50',fontSize:12,cursor:'pointer'}}
           onClick={()=>{setLogAction('delete');setView('log');}}>Archive</button>
-        <button style={{background:'none',border:'none',color:'#c44a4a',fontSize:12,cursor:'pointer'}}
+        <button style={{background:'none',border:'none',color:'#8B2020',fontSize:12,cursor:'pointer'}}
           onClick={()=>setConfirmPermDelete(true)}>Delete</button>
       </div>
     </div>
     {confirmPermDelete&&(
-      <div style={{position:'fixed',inset:0,background:'rgba(8,10,18,0.9)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:24}}>
-        <div style={{background:'#1e2640',border:'0.5px solid #4a2020',borderRadius:16,padding:24,width:'100%',maxWidth:360}}>
+      <div style={{position:'fixed',inset:0,background:'rgba(44,31,14,0.85)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:24}}>
+        <div style={{background:'#EDE0C4',border:'0.5px solid #D4A090',borderRadius:16,padding:24,width:'100%',maxWidth:360}}>
           <div style={{fontSize:28,textAlign:'center',marginBottom:10}}>🗑</div>
-          <div className="di" style={{color:'#f0ead8',fontSize:20,textAlign:'center',marginBottom:6}}>Delete permanently?</div>
-          <div style={{color:'#8a96b8',fontSize:13,textAlign:'center',marginBottom:20,lineHeight:1.5}}>
+          <div className="di" style={{color:'#2C1F0E',fontSize:20,textAlign:'center',marginBottom:6}}>Delete permanently?</div>
+          <div style={{color:'#6A5030',fontSize:13,textAlign:'center',marginBottom:20,lineHeight:1.5}}>
             <em>{sel.wineName}</em> and all its data will be gone. Cannot be undone.
           </div>
           <button className="dbtn" style={{marginBottom:8}} onClick={async()=>{await removeWine(sel.id);setConfirmPermDelete(false);setSelId(null);setView('cellar');}}>
@@ -1331,19 +1325,19 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
           onChange={e=>{const f=e.target.files?.[0];e.target.value='';if(!f)return;const r=new FileReader();r.onload=()=>updateWinePhoto(r.result);r.readAsDataURL(f);}}
           style={{opacity:0,position:'fixed',top:-100,left:-100,width:1,height:1}}/>
         <div style={{position:'relative',flexShrink:0}}>
-          <div style={{width:54,height:74,borderRadius:8,background:sel.image?'#252d4a':wineBg(sel.wineType),border:'0.5px solid '+wineBorder(sel.wineType),display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,overflow:'hidden'}}>
+          <div style={{width:54,height:74,borderRadius:8,background:sel.image?'#EDE0C4':wineBg(sel.wineType),border:'0.5px solid '+wineBorder(sel.wineType),display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,overflow:'hidden'}}>
             {(sel.image||sel.labelImage)?<img src={sel.image||sel.labelImage} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:wineEmoji(sel.wineType)}
           </div>
           <button onClick={()=>detailPhotoRef.current&&detailPhotoRef.current.click()}
-            style={{position:'absolute',bottom:-8,right:-8,width:22,height:22,borderRadius:'50%',background:'#c4a44a',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,color:'#0f0c05',fontWeight:700}}>
+            style={{position:'absolute',bottom:-8,right:-8,width:22,height:22,borderRadius:'50%',background:'#C4963A',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,color:'#0f0c05',fontWeight:700}}>
             📷
           </button>
         </div>
         <div style={{flex:1}}>
-          <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.1em',marginBottom:2}}>{(sel.producer||'').toUpperCase()}</div>
-          <div className="di" style={{color:'#f0ead8',fontSize:20,lineHeight:1.2,marginBottom:4}}>{sel.wineName}</div>
-          <div style={{color:'#8a96b8',fontSize:11}}>{sel.vintage}{sel.region?` · ${sel.region}`:''}</div>
-          {sel.appellation&&<div style={{color:'#5a6480',fontSize:10,marginTop:1}}>{sel.appellation}</div>}
+          <div style={{color:'#9A7A50',fontSize:10,letterSpacing:'.1em',marginBottom:2}}>{(sel.producer||'').toUpperCase()}</div>
+          <div className="di" style={{color:'#2C1F0E',fontSize:20,lineHeight:1.2,marginBottom:4}}>{sel.wineName}</div>
+          <div style={{color:'#6A5030',fontSize:11}}>{sel.vintage}{sel.region?` · ${sel.region}`:''}</div>
+          {sel.appellation&&<div style={{color:'#9A7A50',fontSize:10,marginTop:1}}>{sel.appellation}</div>}
           <div style={{marginTop:6,display:'flex',gap:4,flexWrap:'wrap'}}>
             {(sel.grapeVarieties||[]).map(g=><span key={g} className={pillCls(sel.wineType)}>{g}</span>)}
           </div>
@@ -1354,14 +1348,14 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
           <div className="sec" style={{marginBottom:0}}>INVENTORY</div>
           <button onClick={()=>{setLogAction('');setLogNotes('');setLogRating(0);setView('log');}}
-            style={{background:'#2a1010',border:'0.5px solid #4a2020',color:'#c44a4a',borderRadius:8,padding:'4px 12px',fontSize:11,cursor:'pointer'}}>
+            style={{background:'#F5E4E0',border:'0.5px solid #D4A090',color:'#8B2020',borderRadius:8,padding:'4px 12px',fontSize:11,cursor:'pointer'}}>
             Log a bottle
           </button>
         </div>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div>
-            <span className="df" style={{color:'#f0ead8',fontSize:24}}>{sel.bottles}</span>
-            <span style={{color:'#5a6480',fontSize:13}}> bottles remaining</span>
+            <span className="df" style={{color:'#2C1F0E',fontSize:24}}>{sel.bottles}</span>
+            <span style={{color:'#9A7A50',fontSize:13}}> bottles remaining</span>
           </div>
           <div style={{display:'flex',alignItems:'center',gap:12}}>
             <button className="qbtn" onClick={()=>adjustQty(-1)}>−</button>
@@ -1369,12 +1363,12 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
           </div>
         </div>
         {sel.drinkLog?.length>0&&(
-          <div style={{marginTop:10,borderTop:'0.5px solid #2d3654',paddingTop:8}}>
-            <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:4}}>DRINK LOG</div>
+          <div style={{marginTop:10,borderTop:'0.5px solid #D4C4A0',paddingTop:8}}>
+            <div style={{color:'#9A7A50',fontSize:10,letterSpacing:'.08em',marginBottom:4}}>DRINK LOG</div>
             {sel.drinkLog.slice(0,3).map((l,i)=>(
               <div key={i} style={{display:'flex',justifyContent:'space-between',marginBottom:3}}>
-                <span style={{color:'#8a96b8',fontSize:11}}>{l.date} — {l.type==='drank'?'🥂 Drank':l.type==='gave'?'🎁 Gave':'💔 Lost'}</span>
-                {l.rating>0&&<span style={{color:'#c4a44a',fontSize:11}}>{'★'.repeat(l.rating)}</span>}
+                <span style={{color:'#6A5030',fontSize:11}}>{l.date} — {l.type==='drank'?'🥂 Drank':l.type==='gave'?'🎁 Gave':'💔 Lost'}</span>
+                {l.rating>0&&<span style={{color:'#C4963A',fontSize:11}}>{'★'.repeat(l.rating)}</span>}
               </div>
             ))}
           </div>
@@ -1387,34 +1381,34 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
             <div className="sec" style={{marginBottom:0}}>RETAIL (US)</div>
             <div style={{display:'flex',alignItems:'center',gap:5}}>
               {sel.livePriceFetched
-                ? <span style={{background:'#0e2318',color:'#4a9e6a',fontSize:9,padding:'2px 6px',borderRadius:8,border:'0.5px solid #1a3d28',letterSpacing:'.04em'}}>LIVE</span>
-                : <span style={{background:'#252d4a',color:'#5a6480',fontSize:9,padding:'2px 6px',borderRadius:8,letterSpacing:'.04em'}}>EST.</span>
+                ? <span style={{background:'#E8F0DC',color:'#4A7A2E',fontSize:9,padding:'2px 6px',borderRadius:8,border:'0.5px solid #A0C878',letterSpacing:'.04em'}}>LIVE</span>
+                : <span style={{background:'#F0E8D4',color:'#9A7A50',fontSize:9,padding:'2px 6px',borderRadius:8,letterSpacing:'.04em'}}>EST.</span>
               }
               {sel.priceUpdatedAt && (
-                <span style={{color:'#5a6480',fontSize:9}}>
+                <span style={{color:'#9A7A50',fontSize:9}}>
                   · {Math.floor((Date.now()-sel.priceUpdatedAt)/(1000*60*60*24))}d ago
                 </span>
               )}
               <button onClick={()=>refreshOnePrice(sel)} disabled={refreshingPrice}
-                style={{background:'none',border:'none',color:refreshingPrice?'#5a6480':'#c4a44a',fontSize:14,cursor:refreshingPrice?'not-allowed':'pointer',lineHeight:1,padding:0}}>
+                style={{background:'none',border:'none',color:refreshingPrice?'#9A7A50':'#C4963A',fontSize:14,cursor:refreshingPrice?'not-allowed':'pointer',lineHeight:1,padding:0}}>
                 {refreshingPrice?'⏳':'🔄'}
               </button>
             </div>
           </div>
           {sel.priceMedian
             ? <>
-                <div className="df" style={{color:'#c4a44a',fontSize:18}}>${sel.priceMedian} <span style={{fontSize:13,color:'#5a6480'}}>typical</span></div>
-                <div style={{color:'#5a6480',fontSize:10,marginTop:1}}>${sel.retailPriceLow}–${sel.retailPriceHigh} range</div>
+                <div className="df" style={{color:'#C4963A',fontSize:18}}>${sel.priceMedian} <span style={{fontSize:13,color:'#9A7A50'}}>typical</span></div>
+                <div style={{color:'#9A7A50',fontSize:10,marginTop:1}}>${sel.retailPriceLow}–${sel.retailPriceHigh} range</div>
               </>
-            : <div className="df" style={{color:'#c4a44a',fontSize:18}}>{sel.retailPriceLow&&sel.retailPriceHigh?`$${sel.retailPriceLow}–$${sel.retailPriceHigh}`:sel.priceMedian?`$${sel.priceMedian}`:'—'}</div>
+            : <div className="df" style={{color:'#C4963A',fontSize:18}}>{sel.retailPriceLow&&sel.retailPriceHigh?`$${sel.retailPriceLow}–$${sel.retailPriceHigh}`:sel.priceMedian?`$${sel.priceMedian}`:'—'}</div>
           }
-          {sel.priceSources?.length>0 && <div style={{color:'#5a6480',fontSize:10,marginTop:3}}>{sel.priceListings} listings · {sel.priceSources.slice(0,2).join(', ')}</div>}
-          {sel.priceNote&&<div style={{color:'#5a6480',fontSize:10,marginTop:3,fontStyle:'italic'}}>{sel.priceNote}</div>}
-          {sel.priceUpdatedAt&&<div style={{color:'#5a6480',fontSize:9,marginTop:2}}>Updated {new Date(sel.priceUpdatedAt).toLocaleDateString()}</div>}
+          {sel.priceSources?.length>0 && <div style={{color:'#9A7A50',fontSize:10,marginTop:3}}>{sel.priceListings} listings · {sel.priceSources.slice(0,2).join(', ')}</div>}
+          {sel.priceNote&&<div style={{color:'#9A7A50',fontSize:10,marginTop:3,fontStyle:'italic'}}>{sel.priceNote}</div>}
+          {sel.priceUpdatedAt&&<div style={{color:'#9A7A50',fontSize:9,marginTop:2}}>Updated {new Date(sel.priceUpdatedAt).toLocaleDateString()}</div>}
         </div>
         <div className="card" style={{flex:1,padding:12}}>
           <div className="sec" style={{marginBottom:4}}>DRINK</div>
-          <div className="df" style={{color:'#c47a2a',fontSize:13,marginBottom:5}}>{sel.drinkingWindow?.start}–{sel.drinkingWindow?.end}</div>
+          <div className="df" style={{color:'#9A5818',fontSize:13,marginBottom:5}}>{sel.drinkingWindow?.start}–{sel.drinkingWindow?.end}</div>
           <div className={statusCls(sel.drinkingWindow?.status||'')}>{statusLabel(sel.drinkingWindow?.status)||'—'}</div>
         </div>
       </div>
@@ -1424,7 +1418,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
           <div className="sec" style={{marginBottom:0}}>MY PURCHASE</div>
           {!editPurchase&&(
             <button onClick={()=>{setDraftPurchasePrice(sel.purchasePrice?String(sel.purchasePrice):'');setDraftPurchaseWhere(sel.purchaseWhere||'');setEditPurchase(true);}}
-              style={{background:'none',border:'none',color:'#c4a44a',fontSize:11,cursor:'pointer'}}>
+              style={{background:'none',border:'none',color:'#C4963A',fontSize:11,cursor:'pointer'}}>
               {sel.purchasePrice||sel.purchaseWhere ? 'Edit' : '+ Add purchase info'}
             </button>
           )}
@@ -1433,12 +1427,12 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
           <>
             <div style={{display:'flex',gap:8,marginBottom:8}}>
               <div style={{flex:1}}>
-                <div style={{color:'#5a6480',fontSize:10,marginBottom:4}}>WHAT I PAID ($)</div>
+                <div style={{color:'#9A7A50',fontSize:10,marginBottom:4}}>WHAT I PAID ($)</div>
                 <input type="number" value={draftPurchasePrice} onChange={e=>setDraftPurchasePrice(e.target.value)}
                   placeholder="e.g. 185" style={{fontSize:13}}/>
               </div>
               <div style={{flex:2}}>
-                <div style={{color:'#5a6480',fontSize:10,marginBottom:4}}>WHERE I BOUGHT IT</div>
+                <div style={{color:'#9A7A50',fontSize:10,marginBottom:4}}>WHERE I BOUGHT IT</div>
                 <input type="text" value={draftPurchaseWhere} onChange={e=>setDraftPurchaseWhere(e.target.value)}
                   placeholder="e.g. K&L Wines" style={{fontSize:13}}/>
               </div>
@@ -1452,8 +1446,8 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
           <div style={{display:'flex',gap:20}}>
             {sel.purchasePrice&&(
               <div>
-                <div style={{color:'#5a6480',fontSize:10,marginBottom:2}}>PAID</div>
-                <div className="df" style={{color:'#f0ead8',fontSize:18}}>${sel.purchasePrice}</div>
+                <div style={{color:'#9A7A50',fontSize:10,marginBottom:2}}>PAID</div>
+                <div className="df" style={{color:'#2C1F0E',fontSize:18}}>${sel.purchasePrice}</div>
                 {sel.priceMedian&&sel.purchasePrice&&(
                   <div style={{color:sel.priceMedian>sel.purchasePrice?'#4a9e6a':'#c44a4a',fontSize:11,marginTop:2}}>
                     {sel.priceMedian>sel.purchasePrice
@@ -1465,13 +1459,13 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
             )}
             {sel.purchaseWhere&&(
               <div>
-                <div style={{color:'#5a6480',fontSize:10,marginBottom:2}}>FROM</div>
-                <div style={{color:'#f0ead8',fontSize:14}}>{sel.purchaseWhere}</div>
+                <div style={{color:'#9A7A50',fontSize:10,marginBottom:2}}>FROM</div>
+                <div style={{color:'#2C1F0E',fontSize:14}}>{sel.purchaseWhere}</div>
               </div>
             )}
           </div>
         ) : (
-          <div style={{color:'#5a6480',fontSize:12,fontStyle:'italic'}}>Tap "+ Add purchase info" to record what you paid and where.</div>
+          <div style={{color:'#9A7A50',fontSize:12,fontStyle:'italic'}}>Tap "+ Add purchase info" to record what you paid and where.</div>
         )}
       </div>
 
@@ -1480,8 +1474,8 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
           <div className="sec">TASTING NOTES</div>
           {[['Nose',sel.tastingNotes.nose],['Palate',sel.tastingNotes.palate],['Finish',sel.tastingNotes.finish]].map(([lbl,val])=>val?(
             <div key={lbl} style={{marginBottom:8}}>
-              <div style={{color:'#c4a44a',fontSize:11,fontStyle:'italic',marginBottom:2}}>{lbl}</div>
-              <div style={{color:'#8a96b8',fontSize:12,lineHeight:1.5}}>{val}</div>
+              <div style={{color:'#C4963A',fontSize:11,fontStyle:'italic',marginBottom:2}}>{lbl}</div>
+              <div style={{color:'#6A5030',fontSize:12,lineHeight:1.5}}>{val}</div>
             </div>
           ):null)}
         </div>
@@ -1490,7 +1484,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       <div className="card" style={{marginBottom:10}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
           <div className="sec" style={{marginBottom:0}}>MY NOTES</div>
-          {!editNotes&&<button onClick={()=>{setNotesDraft(sel.myNotes||'');setEditNotes(true);}} style={{background:'none',border:'none',color:'#c4a44a',fontSize:11,cursor:'pointer'}}>Edit</button>}
+          {!editNotes&&<button onClick={()=>{setNotesDraft(sel.myNotes||'');setEditNotes(true);}} style={{background:'none',border:'none',color:'#C4963A',fontSize:11,cursor:'pointer'}}>Edit</button>}
         </div>
         {editNotes ? <>
           <textarea value={notesDraft} onChange={e=>setNotesDraft(e.target.value)} rows={3} placeholder="Personal tasting notes, occasion, food pairing…" style={{marginBottom:8}}/>
@@ -1498,12 +1492,12 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
             <button className="btn" style={{padding:9}} onClick={saveMyNotes}>Save</button>
             <button className="gbtn" style={{padding:9}} onClick={()=>setEditNotes(false)}>Cancel</button>
           </div>
-        </> : <div style={{color:sel.myNotes?'#8a96b8':'#5a6480',fontSize:13,fontStyle:sel.myNotes?'normal':'italic'}}>{sel.myNotes||'Tap Edit to add personal notes…'}</div>}
+        </> : <div style={{color:sel.myNotes?'#6A5030':'#9A7A50',fontSize:13,fontStyle:sel.myNotes?'normal':'italic'}}>{sel.myNotes||'Tap Edit to add personal notes…'}</div>}
       </div>
 
       {sel.cellaring&&(
-        <div style={{background:'#251608',border:'0.5px solid #3d2810',borderRadius:14,padding:14,marginBottom:10}}>
-          <div style={{color:'#c47a2a',fontSize:10,letterSpacing:'.1em',marginBottom:6}}>CELLARING ADVICE</div>
+        <div style={{background:'#F5EAD8',border:'0.5px solid #D4A870',borderRadius:14,padding:14,marginBottom:10}}>
+          <div style={{color:'#9A5818',fontSize:10,letterSpacing:'.1em',marginBottom:6}}>CELLARING ADVICE</div>
           <div style={{color:'#e8c4a0',fontSize:12,lineHeight:1.6}}>
             {sel.cellaring.shouldCellar?`Hold ${sel.cellaring.yearsToHold}. `:'Drink now — no need to cellar. '}{sel.cellaring.storageNotes}
           </div>
@@ -1513,14 +1507,14 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       {sel.drinkingWindow?.recommendation&&(
         <div className="card" style={{marginBottom:10}}>
           <div className="sec">DRINKING WINDOW</div>
-          <div style={{color:'#8a96b8',fontSize:12,lineHeight:1.6}}>{sel.drinkingWindow.recommendation}</div>
+          <div style={{color:'#6A5030',fontSize:12,lineHeight:1.6}}>{sel.drinkingWindow.recommendation}</div>
         </div>
       )}
 
       {(sel.servingTemp||sel.decantingAdvice)&&(
         <div style={{display:'flex',gap:8,marginBottom:16}}>
-          {sel.servingTemp&&<div className="card" style={{flex:1,padding:12}}><div className="sec" style={{marginBottom:4}}>SERVE AT</div><div className="df" style={{color:'#f0ead8',fontSize:16}}>{sel.servingTemp}</div></div>}
-          {sel.decantingAdvice&&<div className="card" style={{flex:2,padding:12}}><div className="sec" style={{marginBottom:4}}>DECANT</div><div style={{color:'#8a96b8',fontSize:12,lineHeight:1.4}}>{sel.decantingAdvice}</div></div>}
+          {sel.servingTemp&&<div className="card" style={{flex:1,padding:12}}><div className="sec" style={{marginBottom:4}}>SERVE AT</div><div className="df" style={{color:'#2C1F0E',fontSize:16}}>{sel.servingTemp}</div></div>}
+          {sel.decantingAdvice&&<div className="card" style={{flex:2,padding:12}}><div className="sec" style={{marginBottom:4}}>DECANT</div><div style={{color:'#6A5030',fontSize:12,lineHeight:1.4}}>{sel.decantingAdvice}</div></div>}
         </div>
       )}
       <div style={{height:8}}/>
@@ -1531,35 +1525,35 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   if (view==='log' && sel) return wrap(<>
     <div style={{padding:'18px 16px 6px',display:'flex',alignItems:'center',gap:10}}>
       <button className="back" onClick={()=>{setLogAction('');setView('detail');}}>←</button>
-      <span className="di" style={{color:'#f0ead8',fontSize:18}}>Log a bottle</span>
+      <span className="di" style={{color:'#2C1F0E',fontSize:18}}>Log a bottle</span>
     </div>
-    <div style={{padding:'4px 16px 14px',color:'#8a96b8',fontSize:13}}>
-      {sel.producer} {sel.wineName} {sel.vintage} · <span style={{color:'#c4a44a'}}>{sel.bottles} remaining</span>
+    <div style={{padding:'4px 16px 14px',color:'#6A5030',fontSize:13}}>
+      {sel.producer} {sel.wineName} {sel.vintage} · <span style={{color:'#C4963A'}}>{sel.bottles} remaining</span>
     </div>
     <div style={{padding:'0 16px',flex:1}}>
       {!logAction ? <>
         <div className="sec">WHAT HAPPENED TO THIS BOTTLE?</div>
         {[
           {key:'drank',icon:'🥂',bg:'#0e2318',bdr:'#1a3d28',label:'Drank it',sub:'Logs date + removes from count'},
-          {key:'gave',icon:'🎁',bg:'#162038',bdr:'#1e3060',label:'Gave away',sub:'Gift or shared — removes from count'},
+          {key:'gave',icon:'🎁',bg:'#B8D0E8',bdr:'#1e3060',label:'Gave away',sub:'Gift or shared — removes from count'},
           {key:'lost',icon:'💔',bg:'#251608',bdr:'#3d2810',label:'Lost / broken / corked',sub:'Removes from count, no drink log'},
-          {key:'delete',icon:'📦',bg:'#162038',bdr:'#1e3060',label:'Archive this wine',sub:'Moves to archive with full history',danger:false},
+          {key:'delete',icon:'📦',bg:'#B8D0E8',bdr:'#1e3060',label:'Archive this wine',sub:'Moves to archive with full history',danger:false},
           {key:'permdelete',icon:'🗑',bg:'#2a1010',bdr:'#4a2020',label:'Delete permanently',sub:'Removes all data — cannot be undone',danger:true},
         ].map(o=>(
-          <div key={o.key} className="lopt" style={{borderColor:o.danger?'#4a2020':'#2d3654'}} onClick={()=>setLogAction(o.key)}>
+          <div key={o.key} className="lopt" style={{borderColor:o.danger?'#D4A090':'#D4C4A0'}} onClick={()=>setLogAction(o.key)}>
             <div style={{width:36,height:36,borderRadius:10,background:o.bg,border:`0.5px solid ${o.bdr}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}}>{o.icon}</div>
             <div style={{flex:1}}>
-              <div style={{color:o.danger?'#c44a4a':'#f0ead8',fontSize:13,fontWeight:500}}>{o.label}</div>
-              <div style={{color:'#5a6480',fontSize:11,marginTop:1}}>{o.sub}</div>
+              <div style={{color:o.danger?'#8B2020':'#2C1F0E',fontSize:13,fontWeight:500}}>{o.label}</div>
+              <div style={{color:'#9A7A50',fontSize:11,marginTop:1}}>{o.sub}</div>
             </div>
-            <div style={{color:'#5a6480'}}>›</div>
+            <div style={{color:'#9A7A50'}}>›</div>
           </div>
         ))}
       </> : logAction==='permdelete' ? (
         <div className="card" style={{textAlign:'center',padding:28}}>
           <div style={{fontSize:32,marginBottom:12}}>🗑</div>
-          <div className="di" style={{color:'#f0ead8',fontSize:20,marginBottom:8}}>Delete permanently?</div>
-          <div style={{color:'#8a96b8',fontSize:13,marginBottom:20,lineHeight:1.5}}>
+          <div className="di" style={{color:'#2C1F0E',fontSize:20,marginBottom:8}}>Delete permanently?</div>
+          <div style={{color:'#6A5030',fontSize:13,marginBottom:20,lineHeight:1.5}}>
             All data for <em>{sel.wineName}</em> will be permanently deleted with no archive. Cannot be undone.
           </div>
           <button className="dbtn" style={{marginBottom:8}} onClick={confirmLog}>Yes, delete forever</button>
@@ -1568,8 +1562,8 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       ) : logAction==='delete' ? (
         <div className="card" style={{textAlign:'center',padding:28}}>
           <div style={{fontSize:32,marginBottom:12}}>🗑</div>
-          <div className="di" style={{color:'#f0ead8',fontSize:20,marginBottom:8}}>Archive this wine?</div>
-          <div style={{color:'#8a96b8',fontSize:13,marginBottom:20,lineHeight:1.5}}>
+          <div className="di" style={{color:'#2C1F0E',fontSize:20,marginBottom:8}}>Archive this wine?</div>
+          <div style={{color:'#6A5030',fontSize:13,marginBottom:20,lineHeight:1.5}}>
             Moves all {sel.bottles} bottle{sel.bottles!==1?'s':''} of <em>{sel.wineName}</em> to your archive with full history intact.
           </div>
           <button className="btn" style={{marginBottom:8}} onClick={confirmLog}>Yes, archive it</button>
@@ -1578,19 +1572,19 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       ) : (
         <div className="card">
           <div style={{fontSize:28,textAlign:'center',marginBottom:10}}>{logAction==='drank'?'🥂':'🎁'}</div>
-          <div className="di" style={{color:'#f0ead8',fontSize:18,textAlign:'center',marginBottom:14}}>{logAction==='drank'?'Drank it':'Gave it away'}</div>
+          <div className="di" style={{color:'#2C1F0E',fontSize:18,textAlign:'center',marginBottom:14}}>{logAction==='drank'?'Drank it':'Gave it away'}</div>
           {logAction==='drank'&&(
             <div style={{marginBottom:12}}>
-              <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:6}}>RATE THIS BOTTLE</div>
+              <div style={{color:'#9A7A50',fontSize:10,letterSpacing:'.08em',marginBottom:6}}>RATE THIS BOTTLE</div>
               <div style={{display:'flex',gap:6}}>
                 {[1,2,3,4,5].map(n=>(
-                  <span key={n} className="star" style={{color:n<=logRating?'#c4a44a':'#252d4a'}} onClick={()=>setLogRating(n)}>★</span>
+                  <span key={n} className="star" style={{color:n<=logRating?'#C4963A':'#EDE0C4'}} onClick={()=>setLogRating(n)}>★</span>
                 ))}
               </div>
             </div>
           )}
           <div style={{marginBottom:12}}>
-            <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:6}}>NOTES (OPTIONAL)</div>
+            <div style={{color:'#9A7A50',fontSize:10,letterSpacing:'.08em',marginBottom:6}}>NOTES (OPTIONAL)</div>
             <textarea value={logNotes} onChange={e=>setLogNotes(e.target.value)} rows={3}
               placeholder={logAction==='drank'?'How was it? Occasion, food pairing…':'Who did you give it to?'}/>
           </div>
@@ -1607,18 +1601,18 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   if (view==='cellar') return wrap(<>
     <div style={{padding:'20px 16px 10px'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-        <div className="di" style={{color:'#f0ead8',fontSize:26}}>Cellar</div>
+        <div className="di" style={{color:'#2C1F0E',fontSize:26}}>Cellar</div>
         <div style={{display:'flex',gap:6}}>
           <button onClick={()=>{if(quickPriceMode)saveQuickPrices();else{setQuickPriceMode(true);setQuickPriceEdits({});}}}
-            style={{background:quickPriceMode?'#c4a44a':'#1e2640',color:quickPriceMode?'#0f0c05':'#c4a44a',border:'0.5px solid '+(quickPriceMode?'#c4a44a':'#3d3015'),borderRadius:8,padding:'5px 10px',fontSize:11,cursor:'pointer',fontWeight:quickPriceMode?700:400}}>
+            style={{background:quickPriceMode?'#C4963A':'#EDE0C4',color:quickPriceMode?'#FDF8EE':'#8A5E20',border:'0.5px solid '+(quickPriceMode?'#C4963A':'#3d3015'),borderRadius:8,padding:'5px 10px',fontSize:11,cursor:'pointer',fontWeight:quickPriceMode?700:400}}>
             {quickPriceMode?'✓ Save':'$ Prices'}
           </button>
           <button onClick={()=>setView('grid')}
-            style={{background:'#1e2640',border:'0.5px solid #2d3654',borderRadius:8,padding:'5px 10px',color:'#8a96b8',fontSize:11,cursor:'pointer'}}>
+            style={{background:'#EDE0C4',border:'0.5px solid #D4C4A0',borderRadius:8,padding:'5px 10px',color:'#6A5030',fontSize:11,cursor:'pointer'}}>
             ⊞ Grid
           </button>
           <button onClick={()=>{loadArchive();setView('archived');}}
-            style={{background:'#1e2640',border:'0.5px solid #2d3654',borderRadius:8,padding:'5px 10px',color:'#8a96b8',fontSize:11,cursor:'pointer'}}>
+            style={{background:'#EDE0C4',border:'0.5px solid #D4C4A0',borderRadius:8,padding:'5px 10px',color:'#6A5030',fontSize:11,cursor:'pointer'}}>
             📦 Archive
           </button>
         </div>
@@ -1626,10 +1620,10 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       <div style={{position:'relative',marginBottom:10}}>
         <input type="text" value={searchQuery} onChange={e=>setSearchQuery(e.target.value)}
           placeholder="Search producer, wine, vintage, region…"
-          style={{paddingLeft:32,fontSize:13,background:'#1e2640',border:'0.5px solid #2d3654'}}/>
-        <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:'#5a6480',fontSize:14,pointerEvents:'none'}}>🔍</span>
+          style={{paddingLeft:32,fontSize:13,background:'#EDE0C4',border:'0.5px solid #D4C4A0'}}/>
+        <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:'#9A7A50',fontSize:14,pointerEvents:'none'}}>🔍</span>
         {searchQuery&&<button onClick={()=>setSearchQuery('')}
-          style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:'#5a6480',cursor:'pointer',fontSize:16,lineHeight:1}}>×</button>}
+          style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:'#9A7A50',cursor:'pointer',fontSize:16,lineHeight:1}}>×</button>}
       </div>
       <div className="scrl" style={{marginBottom:8}}>
         {[['all',`All (${cellar.length})`],['red',`Red (${cellar.filter(w=>w.wineType==='red').length})`],
@@ -1641,7 +1635,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
         ))}
       </div>
       <div className="scrl">
-        <span style={{color:'#5a6480',fontSize:11,alignSelf:'center',flexShrink:0}}>Sort:</span>
+        <span style={{color:'#9A7A50',fontSize:11,alignSelf:'center',flexShrink:0}}>Sort:</span>
         {[['type','Type'],['varietal','Varietal'],['price↑','Price ↑'],['price↓','Price ↓'],['drink','Drink by']].map(([v,l])=>(
           <button key={v} className={`chip ${sortBy===v?'chipon':''}`} onClick={()=>setSortBy(v)}>{l}</button>
         ))}
@@ -1649,47 +1643,47 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     </div>
     <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
       {filteredCellar.length===0 ? (
-        <div style={{textAlign:'center',padding:'48px 0',color:'#5a6480'}}>
+        <div style={{textAlign:'center',padding:'48px 0',color:'#9A7A50'}}>
           <div style={{fontSize:32,marginBottom:8}}>🍷</div>
-          <div className="di" style={{color:'#8a96b8',fontSize:18}}>No wines here yet</div>
+          <div className="di" style={{color:'#6A5030',fontSize:18}}>No wines here yet</div>
         </div>
       ) : filteredCellar.map(w=>(
         <div key={w.id}>
           <div className="row" onClick={()=>{setSelId(w.id);setView('detail');}}>
-            <div style={{width:34,height:46,borderRadius:5,background:w.image?'#252d4a':wineBg(w.wineType),border:'0.5px solid '+wineBorder(w.wineType),display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0,overflow:'hidden'}}>
+            <div style={{width:34,height:46,borderRadius:5,background:w.image?'#EDE0C4':wineBg(w.wineType),border:'0.5px solid '+wineBorder(w.wineType),display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0,overflow:'hidden'}}>
               {(w.image||w.labelImage)?<img src={w.image||w.labelImage} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:4}}/>:wineEmoji(w.wineType)}
             </div>
             <div style={{flex:1,minWidth:0}}>
-              <div style={{color:'#f0ead8',fontSize:13,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.producer}</div>
-              <div style={{color:'#5a6480',fontSize:11,marginTop:1,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.wineName} {w.vintage}</div>
+              <div style={{color:'#2C1F0E',fontSize:13,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.producer}</div>
+              <div style={{color:'#9A7A50',fontSize:11,marginTop:1,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.wineName} {w.vintage}</div>
               <div style={{marginTop:3,display:'flex',gap:4,alignItems:'center'}}>
-                <span style={{color:'#c4a44a',fontSize:11}}>{w.bottles} btl</span>
-                <span style={{color:'#3a4468'}}>·</span>
+                <span style={{color:'#C4963A',fontSize:11}}>{w.bottles} btl</span>
+                <span style={{color:'#C4B48A'}}>·</span>
                 {(w.grapeVarieties||[]).slice(0,1).map(g=><span key={g} className={pillCls(w.wineType)}>{g}</span>)}
               </div>
             </div>
             <div style={{textAlign:'right',flexShrink:0}}>
-              <div style={{color:'#c4a44a',fontSize:13}}>${Math.round(avg(w))}</div>
+              <div style={{color:'#C4963A',fontSize:13}}>${Math.round(avg(w))}</div>
               <div className={statusCls(w.drinkingWindow?.status||'')} style={{marginTop:4}}>{statusLabel(w.drinkingWindow?.status)||'—'}</div>
             </div>
           </div>
           {quickPriceMode ? (
             <div style={{padding:'6px 0 10px',marginLeft:44,display:'flex',alignItems:'center',gap:8}}>
-              <span style={{color:'#5a6480',fontSize:11}}>Paid:</span>
+              <span style={{color:'#9A7A50',fontSize:11}}>Paid:</span>
               <div style={{position:'relative',flex:1,maxWidth:130}}>
-                <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:'#5a6480',fontSize:13,pointerEvents:'none'}}>$</span>
+                <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:'#9A7A50',fontSize:13,pointerEvents:'none'}}>$</span>
                 <input type="number" placeholder={w.purchasePrice?String(w.purchasePrice):'enter price'}
                   value={quickPriceEdits[w.id]!==undefined?quickPriceEdits[w.id]:(w.purchasePrice||'')}
                   onChange={e=>{const v={};v[w.id]=e.target.value;setQuickPriceEdits(prev=>Object.assign({},prev,v));}}
                   onClick={e=>e.stopPropagation()}
                   style={{paddingLeft:22,fontSize:13,width:'100%'}}/>
               </div>
-              {w.purchasePrice&&<span style={{color:'#5a6480',fontSize:10}}>was ${w.purchasePrice}</span>}
+              {w.purchasePrice&&<span style={{color:'#9A7A50',fontSize:10}}>was ${w.purchasePrice}</span>}
             </div>
           ) : (
             <div style={{display:'flex',gap:6,padding:'4px 0 8px',marginLeft:44}}>
               {[{lbl:'🥂 Drank',action:'drank',bg:'#0e2318',bdr:'#1a3d28',col:'#4a9e6a'},
-                {lbl:'🎁 Gave',action:'gave',bg:'#162038',bdr:'#1e3060',col:'#7ab0e8'},
+                {lbl:'🎁 Gave',action:'gave',bg:'#B8D0E8',bdr:'#1e3060',col:'#7ab0e8'},
                 {lbl:'🗑',action:'delete',bg:'#2a1010',bdr:'#4a2020',col:'#c44a4a'}].map(a=>(
                 <button key={a.action} style={{background:a.bg,border:`0.5px solid ${a.bdr}`,color:a.col,borderRadius:8,padding:'4px 10px',fontSize:11,cursor:'pointer'}}
                   onClick={e=>{e.stopPropagation();setSelId(w.id);setLogAction(a.action);setLogNotes('');setLogRating(0);setView('log');}}>
@@ -1807,19 +1801,19 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     return wrap(<>
       <div style={{padding:'14px 16px 8px',display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
         <div>
-          <div className="di" style={{color:'#f0ead8',fontSize:22}}>Constellation</div>
-          <div style={{color:'#5a6480',fontSize:11,marginTop:2}}>
+          <div className="di" style={{color:'#2C1F0E',fontSize:22}}>Constellation</div>
+          <div style={{color:'#9A7A50',fontSize:11,marginTop:2}}>
             {priced.length} wines · ${totalVal.toLocaleString()} est. retail
           </div>
         </div>
         <div style={{display:'flex',gap:6}}>
-          <div style={{background:'#0e2318',border:'0.5px solid #1a3d28',borderRadius:8,padding:'5px 10px',textAlign:'center'}}>
-            <div className="df" style={{color:'#4a9e6a',fontSize:17}}>{drinkNowCount}</div>
-            <div style={{color:'#5a6480',fontSize:9,letterSpacing:'.04em'}}>OPEN</div>
+          <div style={{background:'#E8F0DC',border:'0.5px solid #A0C878',borderRadius:8,padding:'5px 10px',textAlign:'center'}}>
+            <div className="df" style={{color:'#4A7A2E',fontSize:17}}>{drinkNowCount}</div>
+            <div style={{color:'#9A7A50',fontSize:9,letterSpacing:'.04em'}}>OPEN</div>
           </div>
-          <div style={{background:'#251608',border:'0.5px solid #3d2810',borderRadius:8,padding:'5px 10px',textAlign:'center'}}>
-            <div className="df" style={{color:'#c47a2a',fontSize:17}}>{holdCount}</div>
-            <div style={{color:'#5a6480',fontSize:9,letterSpacing:'.04em'}}>HOLD</div>
+          <div style={{background:'#F5EAD8',border:'0.5px solid #D4A870',borderRadius:8,padding:'5px 10px',textAlign:'center'}}>
+            <div className="df" style={{color:'#9A5818',fontSize:17}}>{holdCount}</div>
+            <div style={{color:'#9A7A50',fontSize:9,letterSpacing:'.04em'}}>HOLD</div>
           </div>
         </div>
       </div>
@@ -1840,9 +1834,9 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 
           {/* Drink-zone soft tint */}
           <rect x={toX(0)} y={T} width={toX(9)-toX(0)} height={CH}
-            fill="rgba(74,158,106,0.07)" rx="4"/>
+            fill="rgba(74,140,58,0.12)" rx="4"/>
           <text x={L+(toX(7)-L)/2} y={T-5} textAnchor="middle"
-            style={{fontSize:8,fill:'rgba(74,158,106,0.55)',fontFamily:'system-ui'}}>open now</text>
+            style={{fontSize:8,fill:'rgba(60,120,40,0.7)',fontFamily:'system-ui'}}>open now</text>
 
           {/* X grid lines + labels */}
           {xMoTicks.map((mo,i)=>{
@@ -1850,9 +1844,9 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
             return (
               <g key={mo}>
                 <line x1={x} y1={T} x2={x} y2={T+CH}
-                  stroke="rgba(255,255,255,0.06)" strokeDasharray="3,4"/>
+                  stroke="rgba(44,31,14,0.10)" strokeDasharray="3,4"/>
                 <text x={x} y={T+CH+13} textAnchor="middle"
-                  style={{fontSize:9,fill:'rgba(255,255,255,0.3)',fontFamily:'system-ui'}}>
+                  style={{fontSize:9,fill:'rgba(44,31,14,0.45)',fontFamily:'system-ui'}}>
                   {xMoLabels[i]}
                 </text>
               </g>
@@ -1865,9 +1859,9 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
             return (
               <g key={p}>
                 <line x1={L} y1={y} x2={L+CW} y2={y}
-                  stroke="rgba(255,255,255,0.06)" strokeDasharray="2,5"/>
+                  stroke="rgba(44,31,14,0.10)" strokeDasharray="2,5"/>
                 <text x={L-4} y={y+4} textAnchor="end"
-                  style={{fontSize:9,fill:'rgba(255,255,255,0.3)',fontFamily:'system-ui'}}>
+                  style={{fontSize:9,fill:'rgba(44,31,14,0.45)',fontFamily:'system-ui'}}>
                   ${p}
                 </text>
               </g>
@@ -1876,12 +1870,12 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 
           {/* Axis labels */}
           <text x={L+CW/2} y={T+CH+30} textAnchor="middle"
-            style={{fontSize:9,fill:'rgba(255,255,255,0.25)',fontFamily:'system-ui'}}>
+            style={{fontSize:9,fill:'rgba(44,31,14,0.40)',fontFamily:'system-ui'}}>
             months until optimal drinking
           </text>
           <text x={11} y={T+CH/2} textAnchor="middle"
             transform={`rotate(-90,11,${T+CH/2})`}
-            style={{fontSize:9,fill:'rgba(255,255,255,0.25)',fontFamily:'system-ui'}}>
+            style={{fontSize:9,fill:'rgba(44,31,14,0.40)',fontFamily:'system-ui'}}>
             retail value
           </text>
 
@@ -1938,27 +1932,27 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
               position:'absolute',
               top: (w._cy/VH*100)+'%',
               ...(isLeft ? {left:(w._cx/VW*100+8)+'%'} : {right:((VW-w._cx)/VW*100+4)+'%'}),
-              background:'#1e2640',
+              background:'#EDE0C4',
               border:`0.5px solid ${wTypeColor(w.wineType)}55`,
               borderRadius:10,padding:'8px 12px',
               pointerEvents:'none',zIndex:10,minWidth:130,
               transform:'translateY(-50%)'
             }}>
-              <div style={{color:'#f0ead8',fontSize:12,fontWeight:500,marginBottom:3}}>
+              <div style={{color:'#2C1F0E',fontSize:12,fontWeight:500,marginBottom:3}}>
                 {w.producer}
               </div>
-              <div style={{color:'#8a96b8',fontSize:11,marginBottom:4}}>
+              <div style={{color:'#6A5030',fontSize:11,marginBottom:4}}>
                 {w.wineName} {w.vintage}
               </div>
               <div style={{display:'flex',gap:8,alignItems:'center'}}>
-                <span className="df" style={{color:'#c4a44a',fontSize:14}}>
+                <span className="df" style={{color:'#C4963A',fontSize:14}}>
                   {w._price>0?`$${Math.round(w._price)}`:'—'}
                 </span>
                 <span className={statusCls(w.drinkingWindow?.status)}>
                   {statusLabel(w.drinkingWindow?.status||'')||'—'}
                 </span>
               </div>
-              {w.bottles>0&&<div style={{color:'#5a6480',fontSize:10,marginTop:3}}>
+              {w.bottles>0&&<div style={{color:'#9A7A50',fontSize:10,marginTop:3}}>
                 {w.bottles} bottle{w.bottles!==1?'s':''}
               </div>}
             </div>
@@ -1972,19 +1966,19 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
           ['sparkling','Sparkling','#1f6fa8'],['rosé','Rosé','#c2387a']].map(([k,l,c])=>(
           <div key={k} style={{display:'flex',alignItems:'center',gap:5}}>
             <div style={{width:8,height:8,borderRadius:'50%',background:c,opacity:.85}}/>
-            <span style={{color:'#5a6480',fontSize:10}}>{l}</span>
+            <span style={{color:'#9A7A50',fontSize:10}}>{l}</span>
           </div>
         ))}
         <div style={{display:'flex',alignItems:'center',gap:5,marginLeft:'auto'}}>
           <svg width="14" height="10"><circle cx="7" cy="5" r="4" fill="none"
-            stroke="#c4a44a" strokeWidth="0.8" strokeDasharray="2,1.5"/></svg>
-          <span style={{color:'#5a6480',fontSize:10}}>open now ≥$75</span>
+            stroke="#C4963A" strokeWidth="0.8" strokeDasharray="2,1.5"/></svg>
+          <span style={{color:'#9A7A50',fontSize:10}}>open now ≥$75</span>
         </div>
       </div>
 
       {cellar.length===0&&(
-        <div style={{textAlign:'center',padding:'32px 0',color:'#5a6480'}}>
-          <div className="di" style={{fontSize:18,color:'#8a96b8'}}>Add wines to see the constellation</div>
+        <div style={{textAlign:'center',padding:'32px 0',color:'#9A7A50'}}>
+          <div className="di" style={{fontSize:18,color:'#6A5030'}}>Add wines to see the constellation</div>
         </div>
       )}
     </>, 'cellar');
@@ -1993,8 +1987,8 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   // ── CONCIERGE ─────────────────────────────────────────────────────────────
   if (view==='concierge') return wrap(<>
     <div style={{padding:'20px 16px 12px'}}>
-      <div className="di" style={{color:'#f0ead8',fontSize:26,marginBottom:3}}>Concierge</div>
-      <div style={{color:'#5a6480',fontSize:13}}>Tell me about your evening</div>
+      <div className="di" style={{color:'#2C1F0E',fontSize:26,marginBottom:3}}>Concierge</div>
+      <div style={{color:'#9A7A50',fontSize:13}}>Tell me about your evening</div>
     </div>
     <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
       <div className="card" style={{marginBottom:12}}>
@@ -2004,42 +1998,42 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
         <button className="btn" onClick={runConcierge} disabled={loading||!concText.trim()||!cellar.length}>
           {loading?'Consulting the sommelier…':'Get recommendation'}
         </button>
-        {!cellar.length&&<div style={{color:'#5a6480',fontSize:11,textAlign:'center',marginTop:8}}>Add wines to your cave first</div>}
+        {!cellar.length&&<div style={{color:'#9A7A50',fontSize:11,textAlign:'center',marginTop:8}}>Add wines to your cave first</div>}
       </div>
       {error&&<div className="err" style={{marginBottom:12}}>{error}</div>}
       {recs!==null&&(
         <div className="card">
           <div className="sec">FROM YOUR CAVE</div>
           {recs.length===0 ? (
-            <div style={{color:'#8a96b8',fontSize:13,fontStyle:'italic',lineHeight:1.6}}>
+            <div style={{color:'#6A5030',fontSize:13,fontStyle:'italic',lineHeight:1.6}}>
               No wines in your cave are ready to drink right now.
             </div>
           ) : recs.map(({wine:w,reason},i)=>w&&(
-            <div key={i} style={{marginBottom:10,borderRadius:12,overflow:'hidden',border:`0.5px solid ${i===0?'#3d3015':'#2d3654'}`}}>
-              {i===0&&<div style={{background:'#251f0e',padding:'5px 14px',color:'#c4a44a',fontSize:10,letterSpacing:'.08em',fontWeight:600}}>★ TOP PICK</div>}
+            <div key={i} style={{marginBottom:10,borderRadius:12,overflow:'hidden',border:`0.5px solid ${i===0?'#C4963A':'#D4C4A0'}`}}>
+              {i===0&&<div style={{background:'#2C1F0E',padding:'5px 14px',color:'#C4963A',fontSize:10,letterSpacing:'.08em',fontWeight:600}}>★ TOP PICK</div>}
               {/* Sommelier reason */}
-              <div style={{background:'#1e2640',padding:'10px 14px',borderBottom:'0.5px solid #2d3654'}}>
-                <div style={{color:'#8a96b8',fontSize:12,lineHeight:1.6,fontStyle:'italic'}}>{reason}</div>
+              <div style={{background:'#EDE0C4',padding:'10px 14px',borderBottom:'0.5px solid #D4C4A0'}}>
+                <div style={{color:'#6A5030',fontSize:12,lineHeight:1.6,fontStyle:'italic'}}>{reason}</div>
               </div>
               {/* Mini wine card */}
               <div onClick={()=>{setSelId(w.id);setView('detail');}}
-                style={{background:i===0?'#1a1e2e':'#161c2e',padding:'12px 14px',cursor:'pointer',display:'flex',gap:12,alignItems:'flex-start'}}>
-                <div style={{width:44,height:60,borderRadius:6,background:w.image?'#252d4a':wineBg(w.wineType),border:'0.5px solid '+wineBorder(w.wineType),display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,flexShrink:0,overflow:'hidden'}}>
+                style={{background:i===0?'#E8DCC8':'#F0E8D4',padding:'12px 14px',cursor:'pointer',display:'flex',gap:12,alignItems:'flex-start'}}>
+                <div style={{width:44,height:60,borderRadius:6,background:w.image?'#EDE0C4':wineBg(w.wineType),border:'0.5px solid '+wineBorder(w.wineType),display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,flexShrink:0,overflow:'hidden'}}>
                   {(w.image||w.labelImage)?<img src={w.image||w.labelImage} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:wineEmoji(w.wineType)}
                 </div>
                 <div style={{flex:1,minWidth:0}}>
-                  <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:1}}>{(w.producer||'').toUpperCase()}</div>
-                  <div className="di" style={{color:'#f0ead8',fontSize:16,lineHeight:1.2,marginBottom:3}}>{w.wineName}</div>
-                  <div style={{color:'#8a96b8',fontSize:11,marginBottom:5}}>{w.vintage}{w.region?` · ${w.region}`:''}</div>
+                  <div style={{color:'#9A7A50',fontSize:10,letterSpacing:'.08em',marginBottom:1}}>{(w.producer||'').toUpperCase()}</div>
+                  <div className="di" style={{color:'#2C1F0E',fontSize:16,lineHeight:1.2,marginBottom:3}}>{w.wineName}</div>
+                  <div style={{color:'#6A5030',fontSize:11,marginBottom:5}}>{w.vintage}{w.region?` · ${w.region}`:''}</div>
                   <div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
-                    <span className="df" style={{color:'#c4a44a',fontSize:14}}>{avg(w)>0?`$${Math.round(avg(w))}`:'—'}</span>
+                    <span className="df" style={{color:'#C4963A',fontSize:14}}>{avg(w)>0?`$${Math.round(avg(w))}`:'—'}</span>
                     <span className={statusCls(w.drinkingWindow?.status)}>{statusLabel(w.drinkingWindow?.status)||'—'}</span>
-                    <span style={{color:'#5a6480',fontSize:10}}>{w.bottles} btl</span>
-                    {w.servingTemp&&<span style={{color:'#5a6480',fontSize:10}}>· {w.servingTemp}</span>}
+                    <span style={{color:'#9A7A50',fontSize:10}}>{w.bottles} btl</span>
+                    {w.servingTemp&&<span style={{color:'#9A7A50',fontSize:10}}>· {w.servingTemp}</span>}
                   </div>
-                  {w.tastingNotes?.nose&&<div style={{color:'#5a6480',fontSize:11,marginTop:5,fontStyle:'italic',lineHeight:1.4}}>"{w.tastingNotes.nose}"</div>}
+                  {w.tastingNotes?.nose&&<div style={{color:'#9A7A50',fontSize:11,marginTop:5,fontStyle:'italic',lineHeight:1.4}}>"{w.tastingNotes.nose}"</div>}
                 </div>
-                <div style={{color:'#c4a44a',fontSize:16,flexShrink:0,marginTop:4}}>›</div>
+                <div style={{color:'#C4963A',fontSize:16,flexShrink:0,marginTop:4}}>›</div>
               </div>
             </div>
           ))}
@@ -2161,11 +2155,11 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   // ── SETTINGS ──────────────────────────────────────────────────────────────
   if (view==='settings') return wrap(<>
     <div style={{padding:'20px 16px 12px'}}>
-      <div className="di" style={{color:'#f0ead8',fontSize:26,marginBottom:3}}>Settings</div>
-      <div style={{color:'#5a6480',fontSize:13}}>{profileName}</div>
+      <div className="di" style={{color:'#2C1F0E',fontSize:26,marginBottom:3}}>Settings</div>
+      <div style={{color:'#9A7A50',fontSize:13}}>{profileName}</div>
     </div>
     <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
-      <SettingsPanel profileId={profileId} onSwitchProfile={onSwitchProfile} importCSV={importCSV} onRefreshAllPrices={refreshAllPrices} refreshingPrice={refreshingPrice} refreshMsg={refreshMsg} onRefreshAllImages={refreshAllImages} refreshingImages={refreshingImages} imageMsg={imageMsg}/>
+      <SettingsPanel profileId={profileId} onSwitchProfile={onSwitchProfile} importCSV={importCSV} onRefreshAllPrices={refreshAllPrices} refreshingPrice={refreshingPrice} refreshMsg={refreshMsg}/>
       <div style={{height:16}}/>
     </div>
   </>, 'settings');
@@ -2174,7 +2168,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 }
 
 // ─── SETTINGS PANEL ───────────────────────────────────────────────────────────
-function SettingsPanel({ profileId, onSwitchProfile, importCSV, onRefreshAllPrices, refreshingPrice, refreshMsg, onRefreshAllImages, refreshingImages, imageMsg }) {
+function SettingsPanel({ profileId, onSwitchProfile, importCSV, onRefreshAllPrices, refreshingPrice, refreshMsg }) {
   const { useState } = React;
   const [key, setKey] = useState(getApiKey(profileId));
   const [saved, setSaved] = useState(false);
@@ -2250,17 +2244,17 @@ function SettingsPanel({ profileId, onSwitchProfile, importCSV, onRefreshAllPric
   return (
     <>
       {!isPwaInstalled&&(
-        <div style={{background:'#251f0e',border:'0.5px solid #3d3015',borderRadius:14,padding:16,marginBottom:14}}>
-          <div style={{color:'#c4a44a',fontSize:13,fontWeight:600,marginBottom:6}}>📲 Install Cave for data persistence</div>
-          <div style={{color:'#8a7a50',fontSize:12,lineHeight:1.6,marginBottom:10}}>
-            In Safari: tap the <strong style={{color:'#c4a44a'}}>Share button</strong> → <strong style={{color:'#c4a44a'}}>Add to Home Screen</strong>. This prevents Safari from clearing your data.
+        <div style={{background:'#2C1F0E',border:'0.5px solid #8A6A40',borderRadius:14,padding:16,marginBottom:14}}>
+          <div style={{color:'#C4963A',fontSize:13,fontWeight:600,marginBottom:6}}>📲 Install Cave for data persistence</div>
+          <div style={{color:'#9A7A50',fontSize:12,lineHeight:1.6,marginBottom:10}}>
+            In Safari: tap the <strong style={{color:'#C4963A'}}>Share button</strong> → <strong style={{color:'#C4963A'}}>Add to Home Screen</strong>. This prevents Safari from clearing your data.
           </div>
-          <div style={{color:'#5a6480',fontSize:11}}>Currently running in browser — data may not persist.</div>
+          <div style={{color:'#9A7A50',fontSize:11}}>Currently running in browser — data may not persist.</div>
         </div>
       )}
       {isPwaInstalled&&(
-        <div style={{background:'#0e2318',border:'0.5px solid #1a3d28',borderRadius:14,padding:14,marginBottom:14}}>
-          <div style={{color:'#4a9e6a',fontSize:13,fontWeight:600}}>✓ Installed as PWA — data persists</div>
+        <div style={{background:'#E8F0DC',border:'0.5px solid #A0C878',borderRadius:14,padding:14,marginBottom:14}}>
+          <div style={{color:'#4A7A2E',fontSize:13,fontWeight:600}}>✓ Installed as PWA — data persists</div>
         </div>
       )}
 
@@ -2269,17 +2263,17 @@ function SettingsPanel({ profileId, onSwitchProfile, importCSV, onRefreshAllPric
         <input type="password" value={key} onChange={e=>setKey(e.target.value)} style={{marginBottom:8}}/>
         {keyErr&&<div className="err" style={{marginBottom:8}}>{keyErr}</div>}
         <button onClick={saveKey} disabled={!key.trim()||testing}
-          style={{background:saved?'#0e2318':(!key.trim()||testing)?'#252d4a':'#c4a44a',color:saved?'#4a9e6a':(!key.trim()||testing)?'#5a6480':'#0f0c05',border:'none',borderRadius:10,padding:12,fontSize:13,fontWeight:600,cursor:'pointer',width:'100%'}}>
+          style={{background:saved?'#0e2318':(!key.trim()||testing)?'#EDE0C4':'#C4963A',color:saved?'#4a9e6a':(!key.trim()||testing)?'#9A7A50':'#FDF8EE',border:'none',borderRadius:10,padding:12,fontSize:13,fontWeight:600,cursor:'pointer',width:'100%'}}>
           {testing?'Verifying…':saved?'✓ Saved':'Update API key'}
         </button>
-        <div style={{color:'#5a6480',fontSize:11,marginTop:8,lineHeight:1.6}}>
-          Get a key at <a href="https://console.anthropic.com/keys" target="_blank" style={{color:'#c4a44a'}}>console.anthropic.com/keys</a>
+        <div style={{color:'#9A7A50',fontSize:11,marginTop:8,lineHeight:1.6}}>
+          Get a key at <a href="https://console.anthropic.com/keys" target="_blank" style={{color:'#C4963A'}}>console.anthropic.com/keys</a>
         </div>
       </div>
 
       <div className="card" style={{marginBottom:12}}>
         <div className="sec">PROFILES</div>
-        <div style={{color:'#8a96b8',fontSize:13,marginBottom:10}}>Switch profile or add a new one — perfect for sharing Cave with someone else.</div>
+        <div style={{color:'#6A5030',fontSize:13,marginBottom:10}}>Switch profile or add a new one — perfect for sharing Cave with someone else.</div>
         <button className="gbtn" onClick={onSwitchProfile} style={{marginBottom:8}}>Switch / manage profiles</button>
       </div>
 
@@ -2292,7 +2286,7 @@ function SettingsPanel({ profileId, onSwitchProfile, importCSV, onRefreshAllPric
             <input type="file" accept=".csv" onChange={e=>importCSV(e)} style={{opacity:0,position:'fixed',top:-100,left:-100,width:1,height:1}}/>
           </label>
         </div>
-        <div style={{color:'#5a6480',fontSize:11,marginBottom:10,lineHeight:1.5}}>
+        <div style={{color:'#9A7A50',fontSize:11,marginBottom:10,lineHeight:1.5}}>
           Import wines from a Cave CSV export. Duplicates (same producer + name + vintage) are skipped.
         </div>
         <button onClick={onRefreshAllPrices} disabled={refreshingPrice||refreshingImages}
@@ -2300,29 +2294,18 @@ function SettingsPanel({ profileId, onSwitchProfile, importCSV, onRefreshAllPric
           {refreshingPrice ? (refreshMsg || 'Refreshing prices…') : '🔄 Refresh all prices from Wine-Searcher'}
         </button>
         {refreshingPrice && (
-          <div style={{color:'#5a6480',fontSize:11,marginBottom:8,lineHeight:1.5,fontStyle:'italic'}}>
+          <div style={{color:'#9A7A50',fontSize:11,marginBottom:8,lineHeight:1.5,fontStyle:'italic'}}>
             {refreshMsg}
           </div>
         )}
-        <div style={{color:'#5a6480',fontSize:11,marginBottom:10,lineHeight:1.5}}>
+        <div style={{color:'#9A7A50',fontSize:11,marginBottom:10,lineHeight:1.5}}>
           Updates retail prices for all wines in your cave. ~5 sec per wine.
         </div>
-        <button onClick={onRefreshAllImages} disabled={refreshingImages||refreshingPrice}
-          className="gbtn" style={{marginBottom:8,opacity:(refreshingImages||refreshingPrice)?0.6:1}}>
-          {refreshingImages ? (imageMsg || 'Fetching images…') : '🖼 Fetch label images for all wines'}
-        </button>
-        {refreshingImages && (
-          <div style={{color:'#5a6480',fontSize:11,marginBottom:8,lineHeight:1.5,fontStyle:'italic'}}>
-            {imageMsg}
-          </div>
-        )}
-        <div style={{color:'#5a6480',fontSize:11,marginBottom:10,lineHeight:1.5}}>
-          Finds real label photos for wines without images. ~4 sec per wine. Only fetches missing ones.
-        </div>
+
         <button onClick={clearData} className="dbtn">Clear all data for this profile</button>
       </div>
 
-      <div style={{color:'#5a6480',fontSize:11,textAlign:'center',padding:'8px 0'}}>Cave v2.0</div>
+      <div style={{color:'#9A7A50',fontSize:11,textAlign:'center',padding:'8px 0'}}>Cave v2.0</div>
     </>
   );
 }
@@ -2355,41 +2338,41 @@ function ProfileSelect({ onSelect }) {
   }
 
   return (
-    <div style={{background:'#161c2e',minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'32px 24px',maxWidth:440,margin:'0 auto'}}>
+    <div style={{background:'#F5EDD8',minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'32px 24px',maxWidth:440,margin:'0 auto'}}>
       <style>{CSS}</style>
       <div style={{fontSize:52,marginBottom:16}}>🍷</div>
-      <div className="di" style={{color:'#f0ead8',fontSize:34,marginBottom:6}}>Cave</div>
-      <div style={{color:'#5a6480',fontSize:13,marginBottom:32}}>Your personal wine cellar</div>
+      <div className="di" style={{color:'#2C1F0E',fontSize:34,marginBottom:6}}>Cave</div>
+      <div style={{color:'#9A7A50',fontSize:13,marginBottom:32}}>Your personal wine cellar</div>
 
       {!creating && profiles.length > 0 ? (
         <div style={{width:'100%'}}>
-          <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.1em',marginBottom:10}}>SELECT PROFILE</div>
+          <div style={{color:'#9A7A50',fontSize:10,letterSpacing:'.1em',marginBottom:10}}>SELECT PROFILE</div>
           {profiles.map(p=>(
             <button key={p.id} onClick={()=>onSelect(p.id, p.name)}
-              style={{width:'100%',background:'#1e2640',border:'0.5px solid #2d3654',borderRadius:12,padding:'14px 16px',display:'flex',alignItems:'center',gap:12,cursor:'pointer',marginBottom:8,textAlign:'left'}}>
-              <div style={{width:38,height:38,borderRadius:'50%',background:'#252d4a',border:'0.5px solid #3a4468',display:'flex',alignItems:'center',justifyContent:'center',color:'#c4a44a',fontSize:16,fontWeight:600,flexShrink:0}}>
+              style={{width:'100%',background:'#EDE0C4',border:'0.5px solid #D4C4A0',borderRadius:12,padding:'14px 16px',display:'flex',alignItems:'center',gap:12,cursor:'pointer',marginBottom:8,textAlign:'left'}}>
+              <div style={{width:38,height:38,borderRadius:'50%',background:'#F0E8D4',border:'0.5px solid #C4B48A',display:'flex',alignItems:'center',justifyContent:'center',color:'#C4963A',fontSize:16,fontWeight:600,flexShrink:0}}>
                 {p.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <div style={{color:'#f0ead8',fontSize:15,fontWeight:500}}>{p.name}</div>
-                <div style={{color:'#5a6480',fontSize:11,marginTop:2}}>Cave profile</div>
+                <div style={{color:'#2C1F0E',fontSize:15,fontWeight:500}}>{p.name}</div>
+                <div style={{color:'#9A7A50',fontSize:11,marginTop:2}}>Cave profile</div>
               </div>
-              <div style={{marginLeft:'auto',color:'#c4a44a',fontSize:18}}>›</div>
+              <div style={{marginLeft:'auto',color:'#C4963A',fontSize:18}}>›</div>
             </button>
           ))}
           <button className="gbtn" style={{marginTop:8}} onClick={()=>setCreating(true)}>+ Add new profile</button>
         </div>
       ) : (
-        <div style={{width:'100%',background:'#1e2640',border:'0.5px solid #2d3654',borderRadius:16,padding:24}}>
-          <div style={{color:'#f0ead8',fontSize:16,fontWeight:500,marginBottom:16}}>
+        <div style={{width:'100%',background:'#EDE0C4',border:'0.5px solid #D4C4A0',borderRadius:16,padding:24}}>
+          <div style={{color:'#2C1F0E',fontSize:16,fontWeight:500,marginBottom:16}}>
             {profiles.length===0 ? 'Create your profile' : 'New profile'}
           </div>
-          <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:5}}>YOUR NAME</div>
+          <div style={{color:'#9A7A50',fontSize:10,letterSpacing:'.08em',marginBottom:5}}>YOUR NAME</div>
           <input type="text" value={newName} onChange={e=>setNewName(e.target.value)} placeholder="e.g. Alok" style={{marginBottom:12}}/>
-          <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:5}}>ANTHROPIC API KEY</div>
+          <div style={{color:'#9A7A50',fontSize:10,letterSpacing:'.08em',marginBottom:5}}>ANTHROPIC API KEY</div>
           <input type="password" value={newKey} onChange={e=>setNewKey(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleCreate()} placeholder="sk-ant-api03-..." style={{marginBottom:8}}/>
-          <div style={{color:'#5a6480',fontSize:11,marginBottom:14,lineHeight:1.7}}>
-            Get key at <a href="https://console.anthropic.com/keys" target="_blank" style={{color:'#c4a44a'}}>console.anthropic.com/keys</a>. Stored only on this device.
+          <div style={{color:'#9A7A50',fontSize:11,marginBottom:14,lineHeight:1.7}}>
+            Get key at <a href="https://console.anthropic.com/keys" target="_blank" style={{color:'#C4963A'}}>console.anthropic.com/keys</a>. Stored only on this device.
           </div>
           {err&&<div className="err" style={{marginBottom:12}}>{err}</div>}
           <button className="btn" onClick={handleCreate} disabled={!newName.trim()||!newKey.trim()||busy}>
