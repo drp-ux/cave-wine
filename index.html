@@ -280,20 +280,8 @@ function imgToBase64(dataUrl) {
   return dataUrl.split(',')[1];
 }
 
-async function fetchLabelImage(producer, wineName, vintage, apiKey) {
-  try {
-    const res = await fetch('/api/wine-image', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ apiKey, producer, wineName, vintage })
-    });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.proxyUrl || null;
-  } catch(e) {
-    return null;
-  }
-}
+// Image fetching from external sources removed — photos stored from scan directly
+async function fetchLabelImage() { return null; }
 
 async function identifyWine(frontDataUrl, backDataUrl, manualText, profileId) {
   const prompt = `You are an expert sommelier with access to a comprehensive wine database. Analyze the wine label image(s) provided and identify the wine.
@@ -430,6 +418,24 @@ async function compressForVision(dataUrl, maxDim=1200) {
   });
 }
 
+// Compress to a tiny thumbnail for localStorage storage (~3KB per image)
+function makeTinyThumb(dataUrl) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 100; // 100px max dimension
+      const scale = Math.min(1, MAX/Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width*scale);
+      c.height = Math.round(img.height*scale);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      resolve(c.toDataURL('image/jpeg', 0.55)); // aggressive compression → ~3KB
+    };
+    img.onerror = () => resolve('');
+    img.src = dataUrl;
+  });
+}
+
 // ─── CAVE COMPONENT ───────────────────────────────────────────────────────────
 function GainLoss({ paid, retail }) {
   const gain = retail - paid;
@@ -465,6 +471,8 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   const [filterType, setFilterType] = useState('all');
   const [sortBy, setSortBy] = useState('type');
   const [searchQuery, setSearchQuery] = useState('');
+  const [quickPriceMode, setQuickPriceMode] = useState(false);
+  const [quickPriceEdits, setQuickPriceEdits] = useState({});
   const [concText, setConcText] = useState('');
   const [recs, setRecs] = useState(null);
   const [notesDraft, setNotesDraft] = useState('');
@@ -473,8 +481,12 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   const [archive, setArchive] = useState([]);
   const [editPending, setEditPending] = useState(null);
   const [editPurchase, setEditPurchase] = useState(false);
+  const [capturingPhoto, setCapturingPhoto] = useState(false);
   const [confirmPermDelete, setConfirmPermDelete] = useState(false);
   const [hovId, setHovId] = useState(null);
+  const [batchQueue, setBatchQueue] = useState([]);    // [{id, dataUrl, status, result}]
+  const [batchProcessing, setBatchProcessing] = useState(false);
+  const [batchMsg, setBatchMsg] = useState('');
   const [refreshMsg, setRefreshMsg] = useState('');
   const [refreshingImages, setRefreshingImages] = useState(false);
   const [imageMsg, setImageMsg] = useState('');
@@ -489,6 +501,8 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
   // File input refs — must be at top level (Rules of Hooks)
   const { useRef } = React;
   const frontCamRef    = useRef(null);
+  const detailPhotoRef = useRef(null);
+  const batchPhotoRef   = useRef(null);
   const csvImportRef   = useRef(null);
   const frontLibRef    = useRef(null);
   const retakeFrontRef = useRef(null);
@@ -571,6 +585,63 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     reader.readAsDataURL(file);
   }
 
+  async function addToBatch(e) {
+    const file = e.target.files?.[0]; e.target.value='';
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const compressed = await compressForVision(reader.result);
+      const id = Date.now().toString() + Math.random().toString(36).slice(2,6);
+      setBatchQueue(prev => [...prev, {id, dataUrl:compressed, status:'queued', result:null}]);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function processBatchQueue() {
+    const queued = batchQueue.filter(function(b){ return b.status==='queued'; });
+    if (queued.length===0) return;
+    setBatchProcessing(true);
+    var i = 0;
+    function next() {
+      if (i >= queued.length) {
+        setBatchProcessing(false);
+        setBatchMsg('');
+        return;
+      }
+      var item = queued[i]; i++;
+      setBatchMsg('Identifying ' + i + ' of ' + queued.length + '…');
+      // Mark as processing
+      setBatchQueue(prev => prev.map(function(b){ return b.id===item.id ? Object.assign({},b,{status:'processing'}) : b; }));
+      identifyWine(item.dataUrl, null, '', profileId)
+        .then(function(wine) {
+          var status = wine.identified ? (wine.confidence==='low'?'review':'done') : 'failed';
+          setBatchQueue(prev => prev.map(function(b){
+            return b.id===item.id ? Object.assign({},b,{status,result:wine}) : b;
+          }));
+        })
+        .catch(function() {
+          setBatchQueue(prev => prev.map(function(b){
+            return b.id===item.id ? Object.assign({},b,{status:'failed'}) : b;
+          }));
+        })
+        .then(next);
+    }
+    next();
+  }
+
+  async function confirmBatchItem(item, qty) {
+    const w = item.result; if (!w || !w.identified) return;
+    const thumb = await makeTinyThumb(item.dataUrl);
+    const existing = cellar.find(function(x){ return x.producer===w.producer && x.wineName===w.wineName && x.vintage===w.vintage; });
+    if (existing) {
+      await saveWine(Object.assign({}, existing, {bottles:(existing.bottles||0)+qty}));
+    } else {
+      await saveWine({id:Date.now().toString(), ...w, bottles:qty, myNotes:'', rating:0,
+        image:thumb, addedAt:Date.now(), drinkLog:[]});
+    }
+    setBatchQueue(prev => prev.filter(function(b){ return b.id!==item.id; }));
+  }
+
   async function runIdentification() {
     if (!frontImg && !manualText.trim()) { setError('Add a front label photo or type the wine details.'); return; }
     setView('scanning'); setLoadMsg('Identifying wine…'); setError('');
@@ -578,35 +649,27 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     try {
       const wine = await identifyWine(frontImg, null, manualText, profileId);
       if (wine.identified) {
-        // Fetch price AND label image in parallel for speed
-        setLoadMsg('Fetching price & label image…');
-        const parallelResults = await Promise.allSettled([
-          fetchLivePrice(wine.producer, wine.wineName, wine.vintage, profileId),
-          fetchLabelImage(wine.producer, wine.wineName, wine.vintage, getApiKey(profileId))
-        ]);
-        const priceResult = parallelResults[0];
-        const imageResult = parallelResults[1];
-
-        // Apply price data
-        if (priceResult.status === 'fulfilled' && priceResult.value && priceResult.value.listingsFound > 0) {
-          const pd = priceResult.value;
-          wine.retailPriceLow   = pd.priceLow;
-          wine.retailPriceHigh  = pd.priceHigh;
-          wine.priceMedian      = pd.priceMedian;
-          wine.priceNote        = pd.priceNote;
-          wine.priceSources     = pd.sources || [];
-          wine.priceListings    = pd.listingsFound;
-          wine.priceConfidence  = pd.confidence;
-          wine.livePriceFetched = true;
-          wine.priceUpdatedAt   = Date.now();
-        } else {
-          wine.priceNote        = `No current US listings found — price is Claude's estimate`;
+        // Fetch live price from Wine-Searcher
+        setLoadMsg('Fetching live price from Wine-Searcher…');
+        try {
+          const pd = await fetchLivePrice(wine.producer, wine.wineName, wine.vintage, profileId);
+          if (pd && pd.listingsFound > 0) {
+            wine.retailPriceLow   = pd.priceLow;
+            wine.retailPriceHigh  = pd.priceHigh;
+            wine.priceMedian      = pd.priceMedian;
+            wine.priceNote        = pd.priceNote;
+            wine.priceSources     = pd.sources || [];
+            wine.priceListings    = pd.listingsFound;
+            wine.priceConfidence  = pd.confidence;
+            wine.livePriceFetched = true;
+            wine.priceUpdatedAt   = Date.now();
+          } else {
+            wine.priceNote        = `No current US listings found — price is Claude's estimate`;
+            wine.livePriceFetched = false;
+          }
+        } catch(e) {
+          wine.priceNote = `Price lookup unavailable`;
           wine.livePriceFetched = false;
-        }
-
-        // Apply label image if found server-side
-        if (imageResult.status === 'fulfilled' && imageResult.value) {
-          wine.labelImage = imageResult.value;
         }
 
         // Auto-confirm high confidence — still show is-this-right for qty & purchase info
@@ -623,23 +686,10 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 
   async function confirmAdd(wineData) {
     const w = wineData || pending; if (!w) return;
-    // Use the label image fetched from server if available, else compress front photo
+    // Compress the scan photo to a tiny thumbnail (~3KB) for localStorage
     let thumb = '';
-    if (w.labelImage || w.image) {
-      thumb = w.labelImage || w.image; // Already sized appropriately from server
-    } else if (frontImg) {
-      thumb = await new Promise(resolve => {
-        const img = new Image();
-        img.onload = () => {
-          const s = Math.min(140/img.width, 140/img.height);
-          const c = document.createElement('canvas');
-          c.width = Math.round(img.width*s); c.height = Math.round(img.height*s);
-          c.getContext('2d').drawImage(img,0,0,c.width,c.height);
-          resolve(c.toDataURL('image/jpeg',0.75));
-        };
-        img.onerror = () => resolve('');
-        img.src = frontImg;
-      });
+    if (frontImg) {
+      thumb = await makeTinyThumb(frontImg);
     }
     const existing = cellar.find(x => x.producer===w.producer && x.wineName===w.wineName && x.vintage===w.vintage);
     if (existing) {
@@ -682,33 +732,9 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
 
   async function adjustQty(delta) { if (!sel) return; await saveWine({ ...sel, bottles: Math.max(0,(sel.bottles||0)+delta) }); }
   function refreshAllImages() {
-    const wines = cellar.slice(); // Fetch for ALL wines — overwrites any broken/missing images
-    // Always proceed — re-fetches even if image exists
-    setRefreshingImages(true);
-    var idx = 0;
-
-    function processNext() {
-      if (idx >= wines.length) {
-        return loadCellar().then(function() {
-          setRefreshingImages(false);
-          setImageMsg('');
-          alert('Label images fetched for ' + wines.length + ' wine' + (wines.length !== 1 ? 's' : '') + '.');
-        });
-      }
-      var wine = wines[idx];
-      idx++;
-      setImageMsg('Fetching label ' + idx + ' of ' + wines.length + ': ' + wine.producer + '...');
-      return fetchLabelImage(wine.producer, wine.wineName, wine.vintage, getApiKey(profileId))
-        .then(function(proxyUrl) {
-          if (proxyUrl) {
-            var updated = Object.assign({}, wine, { image: proxyUrl, labelImage: proxyUrl });
-            return window.storage.set('wine:' + wine.id, JSON.stringify(updated));
-          }
-        })
-        .catch(function() {})
-        .then(processNext);
-    }
-    processNext();
+    // External image fetching removed — images come from your scan photos.
+    // Use 'Update photo' on any wine's detail screen to add/replace its photo.
+    alert('To add a photo to a wine, open it and tap "Update photo".');
   }
 
   function refreshAllPrices() {
@@ -783,6 +809,13 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     }
   }
 
+  async function updateWinePhoto(photoDataUrl) {
+    if (!sel || !photoDataUrl) return;
+    const thumb = await makeTinyThumb(photoDataUrl);
+    if (thumb) await saveWine({ ...sel, image: thumb });
+    setCapturingPhoto(false);
+  }
+
   async function savePurchaseInfo() {
     if (!sel) return;
     await saveWine({ ...sel,
@@ -791,6 +824,24 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     });
     setEditPurchase(false);
   }
+  async function saveQuickPrices() {
+    const updates = Object.entries(quickPriceEdits);
+    if (updates.length === 0) { setQuickPriceMode(false); return; }
+    const saves = updates.map(function([id, price]) {
+      const wine = cellar.find(function(w){ return w.id===id; });
+      if (!wine) return Promise.resolve();
+      const parsed = parseFloat(price);
+      return window.storage.set('wine:'+id, JSON.stringify(
+        Object.assign({}, wine, { purchasePrice: isNaN(parsed)?wine.purchasePrice:parsed })
+      ));
+    });
+    Promise.all(saves).then(function() {
+      loadCellar();
+      setQuickPriceMode(false);
+      setQuickPriceEdits({});
+    });
+  }
+
   async function saveMyNotes() { if (!sel) return; await saveWine({ ...sel, myNotes: notesDraft }); setEditNotes(false); }
 
   async function runConcierge() {
@@ -898,7 +949,10 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       ))}
       {cellar.length>8&&<div style={{color:'#5a6480',fontSize:11,textAlign:'center',padding:'10px 0'}}>+{cellar.length-8} more · see Cellar tab</div>}
     </div>
-    <div style={{padding:'10px 16px'}}><button className="btn" onClick={goScan}>+ Scan new bottle</button></div>
+    <div style={{padding:'10px 16px',display:'flex',gap:8}}>
+      <button className="btn" onClick={goScan} style={{flex:2}}>+ Scan bottle</button>
+      <button className="gbtn" onClick={()=>{setBatchQueue([]);setView('batch');}} style={{flex:1}}>Batch 📷</button>
+    </div>
   </>, 'home');
 
   // ── SCAN ─────────────────────────────────────────────────────────────────
@@ -967,6 +1021,114 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       <div style={{color:'#5a6480',fontSize:11,textAlign:'center',marginBottom:4}}>
         {frontImg ? 'Photo ready ✓' : 'Add a photo or type the wine details'}
       </div>
+      <div style={{height:16}}/>
+    </div>
+  </>, '');
+
+  // ── BATCH SCAN ───────────────────────────────────────────────────────────────
+  if (view==='batch') return wrap(<>
+    {/* Hidden file input - no capture attr so user can choose camera or library */}
+    <input ref={batchPhotoRef} type="file" accept="image/*"
+      onChange={addToBatch}
+      style={{opacity:0,position:'fixed',top:-100,left:-100,width:1,height:1}}/>
+
+    <div style={{padding:'18px 16px 10px',display:'flex',alignItems:'center',gap:10}}>
+      <button className="back" onClick={()=>{if(batchQueue.length===0||confirm('Leave batch? Unsaved photos will be lost.'))setView('home');}}>←</button>
+      <span className="di" style={{color:'#f0ead8',fontSize:18}}>Batch scan</span>
+      <span style={{marginLeft:'auto',color:'#5a6480',fontSize:11}}>{batchQueue.length} photo{batchQueue.length!==1?'s':''}</span>
+    </div>
+
+    <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
+      {/* Add photo button */}
+      <button onClick={()=>batchPhotoRef.current&&batchPhotoRef.current.click()}
+        disabled={batchProcessing}
+        style={{width:'100%',background:'#1e2640',border:'1.5px dashed #3a4468',borderRadius:12,padding:'18px 0',display:'flex',flexDirection:'column',alignItems:'center',gap:8,cursor:'pointer',marginBottom:12,opacity:batchProcessing?.6:1}}>
+        <div style={{fontSize:28}}>📷</div>
+        <div style={{color:'#8a96b8',fontSize:13}}>Add photo{batchQueue.length>0?' (add more)':''}</div>
+        <div style={{color:'#5a6480',fontSize:11}}>Tap repeatedly to queue multiple bottles</div>
+      </button>
+
+      {/* Identify all button */}
+      {batchQueue.some(function(b){return b.status==='queued';})&&!batchProcessing&&(
+        <button className="btn" onClick={processBatchQueue} style={{marginBottom:12}}>
+          🔍 Identify all {batchQueue.filter(function(b){return b.status==='queued';}).length} bottle{batchQueue.filter(function(b){return b.status==='queued';}).length!==1?'s':''}
+        </button>
+      )}
+      {batchProcessing&&(
+        <div style={{background:'#1e2640',border:'0.5px solid #2d3654',borderRadius:10,padding:'12px 14px',marginBottom:12,textAlign:'center'}}>
+          <div style={{color:'#c4a44a',fontSize:13,marginBottom:4}}>{batchMsg||'Identifying…'}</div>
+          <div style={{color:'#5a6480',fontSize:11}}>Processing one at a time — please wait</div>
+        </div>
+      )}
+
+      {/* Queue items */}
+      {batchQueue.length===0&&(
+        <div style={{textAlign:'center',padding:'32px 0',color:'#5a6480'}}>
+          <div style={{fontSize:32,marginBottom:8}}>📷</div>
+          <div className="di" style={{color:'#8a96b8',fontSize:18}}>No photos yet</div>
+          <div style={{fontSize:12,marginTop:6}}>Tap the button above to add bottles</div>
+        </div>
+      )}
+
+      {batchQueue.map(function(item){
+        const w = item.result;
+        const statusColor = item.status==='done'?'#4a9e6a':item.status==='review'?'#c47a2a':item.status==='failed'?'#c44a4a':item.status==='processing'?'#5a8ae8':'#5a6480';
+        const statusLabel2 = item.status==='done'?'identified':item.status==='review'?'low confidence — review':item.status==='failed'?'failed':item.status==='processing'?'identifying…':'queued';
+        return (
+          <div key={item.id} style={{background:'#1e2640',border:'0.5px solid #2d3654',borderRadius:12,marginBottom:8,overflow:'hidden'}}>
+            <div style={{display:'flex',gap:10,padding:10}}>
+              {/* Thumbnail */}
+              <div style={{width:52,height:70,borderRadius:6,overflow:'hidden',flexShrink:0,background:'#252d4a'}}>
+                <img src={item.dataUrl} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:4}}>
+                  <span style={{color:statusColor,fontSize:10,letterSpacing:'.04em',fontWeight:600}}>{statusLabel2.toUpperCase()}</span>
+                  <button onClick={function(){setBatchQueue(prev=>prev.filter(function(b){return b.id!==item.id;}));}}
+                    style={{background:'none',border:'none',color:'#5a6480',cursor:'pointer',fontSize:16,lineHeight:1,padding:0}}>×</button>
+                </div>
+                {w&&w.identified ? (
+                  <>
+                    <div style={{color:'#f0ead8',fontSize:13,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.producer}</div>
+                    <div style={{color:'#8a96b8',fontSize:11,marginTop:1,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{w.wineName} {w.vintage}</div>
+                    <div style={{color:'#c4a44a',fontSize:12,marginTop:2}}>
+                      {w.retailPriceLow&&w.retailPriceHigh?`$${w.retailPriceLow}–$${w.retailPriceHigh}`:w.priceMedian?`$${w.priceMedian}`:'—'}
+                    </div>
+                  </>
+                ) : item.status==='failed' ? (
+                  <div style={{color:'#c44a4a',fontSize:12,marginTop:4}}>Could not identify — delete and re-scan</div>
+                ) : item.status==='queued' ? (
+                  <div style={{color:'#5a6480',fontSize:12,marginTop:4}}>Waiting to be identified</div>
+                ) : (
+                  <div style={{color:'#5a8ae8',fontSize:12,marginTop:4}}>Working…</div>
+                )}
+              </div>
+            </div>
+            {/* Confirm row for identified wines */}
+            {w&&w.identified&&(item.status==='done'||item.status==='review')&&(
+              <div style={{borderTop:'0.5px solid #2d3654',padding:'8px 10px',display:'flex',gap:8,alignItems:'center',background:item.status==='review'?'#251608':'#1a2236'}}>
+                {item.status==='review'&&<span style={{color:'#c47a2a',fontSize:10,flex:1}}>⚠ Low confidence — tap to verify</span>}
+                {item.status==='done'&&<span style={{color:'#5a6480',fontSize:10,flex:1}}>Tap to save</span>}
+                <button onClick={function(){setSelId(null);setPending(w);setPendingQty(1);setView('is-this-right');}}
+                  style={{background:'#252d4a',border:'0.5px solid #3a4468',borderRadius:8,padding:'5px 12px',color:'#c4a44a',fontSize:11,cursor:'pointer'}}>
+                  Review
+                </button>
+                <button onClick={function(){confirmBatchItem(item,1);}}
+                  style={{background:'#0e2318',border:'0.5px solid #1a3d28',borderRadius:8,padding:'5px 12px',color:'#4a9e6a',fontSize:11,cursor:'pointer',fontWeight:600}}>
+                  ✓ Save 1
+                </button>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* Done button */}
+      {batchQueue.length>0&&!batchProcessing&&batchQueue.every(function(b){return b.status==='done'||b.status==='failed';})&&(
+        <button className="btn" onClick={function(){setBatchQueue([]);setView('home');}}>
+          ✓ Done — go to cellar
+        </button>
+      )}
       <div style={{height:16}}/>
     </div>
   </>, '');
@@ -1164,8 +1326,18 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     )}
     <div style={{padding:'0 16px',flex:1,overflowY:'auto'}}>
       <div style={{display:'flex',gap:14,marginBottom:16,alignItems:'flex-start'}}>
-        <div style={{width:54,height:74,borderRadius:8,background:sel.image?'#252d4a':wineBg(sel.wineType),border:'0.5px solid '+wineBorder(sel.wineType),display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,flexShrink:0,overflow:'hidden'}}>
-          {(sel.image||sel.labelImage)?<img src={sel.image||sel.labelImage} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:wineEmoji(sel.wineType)}
+        {/* Hidden file input for photo update */}
+        <input ref={detailPhotoRef} type="file" accept="image/*" capture="environment"
+          onChange={e=>{const f=e.target.files?.[0];e.target.value='';if(!f)return;const r=new FileReader();r.onload=()=>updateWinePhoto(r.result);r.readAsDataURL(f);}}
+          style={{opacity:0,position:'fixed',top:-100,left:-100,width:1,height:1}}/>
+        <div style={{position:'relative',flexShrink:0}}>
+          <div style={{width:54,height:74,borderRadius:8,background:sel.image?'#252d4a':wineBg(sel.wineType),border:'0.5px solid '+wineBorder(sel.wineType),display:'flex',alignItems:'center',justifyContent:'center',fontSize:28,overflow:'hidden'}}>
+            {(sel.image||sel.labelImage)?<img src={sel.image||sel.labelImage} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:wineEmoji(sel.wineType)}
+          </div>
+          <button onClick={()=>detailPhotoRef.current&&detailPhotoRef.current.click()}
+            style={{position:'absolute',bottom:-8,right:-8,width:22,height:22,borderRadius:'50%',background:'#c4a44a',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,color:'#0f0c05',fontWeight:700}}>
+            📷
+          </button>
         </div>
         <div style={{flex:1}}>
           <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.1em',marginBottom:2}}>{(sel.producer||'').toUpperCase()}</div>
@@ -1437,6 +1609,10 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
         <div className="di" style={{color:'#f0ead8',fontSize:26}}>Cellar</div>
         <div style={{display:'flex',gap:6}}>
+          <button onClick={()=>{if(quickPriceMode)saveQuickPrices();else{setQuickPriceMode(true);setQuickPriceEdits({});}}}
+            style={{background:quickPriceMode?'#c4a44a':'#1e2640',color:quickPriceMode?'#0f0c05':'#c4a44a',border:'0.5px solid '+(quickPriceMode?'#c4a44a':'#3d3015'),borderRadius:8,padding:'5px 10px',fontSize:11,cursor:'pointer',fontWeight:quickPriceMode?700:400}}>
+            {quickPriceMode?'✓ Save':'$ Prices'}
+          </button>
           <button onClick={()=>setView('grid')}
             style={{background:'#1e2640',border:'0.5px solid #2d3654',borderRadius:8,padding:'5px 10px',color:'#8a96b8',fontSize:11,cursor:'pointer'}}>
             ⊞ Grid
@@ -1497,16 +1673,31 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
               <div className={statusCls(w.drinkingWindow?.status||'')} style={{marginTop:4}}>{statusLabel(w.drinkingWindow?.status)||'—'}</div>
             </div>
           </div>
-          <div style={{display:'flex',gap:6,padding:'4px 0 8px',marginLeft:44}}>
-            {[{lbl:'🥂 Drank',action:'drank',bg:'#0e2318',bdr:'#1a3d28',col:'#4a9e6a'},
-              {lbl:'🎁 Gave',action:'gave',bg:'#162038',bdr:'#1e3060',col:'#7ab0e8'},
-              {lbl:'🗑',action:'delete',bg:'#2a1010',bdr:'#4a2020',col:'#c44a4a'}].map(a=>(
-              <button key={a.action} style={{background:a.bg,border:`0.5px solid ${a.bdr}`,color:a.col,borderRadius:8,padding:'4px 10px',fontSize:11,cursor:'pointer'}}
-                onClick={e=>{e.stopPropagation();setSelId(w.id);setLogAction(a.action);setLogNotes('');setLogRating(0);setView('log');}}>
-                {a.lbl}
-              </button>
-            ))}
-          </div>
+          {quickPriceMode ? (
+            <div style={{padding:'6px 0 10px',marginLeft:44,display:'flex',alignItems:'center',gap:8}}>
+              <span style={{color:'#5a6480',fontSize:11}}>Paid:</span>
+              <div style={{position:'relative',flex:1,maxWidth:130}}>
+                <span style={{position:'absolute',left:10,top:'50%',transform:'translateY(-50%)',color:'#5a6480',fontSize:13,pointerEvents:'none'}}>$</span>
+                <input type="number" placeholder={w.purchasePrice?String(w.purchasePrice):'enter price'}
+                  value={quickPriceEdits[w.id]!==undefined?quickPriceEdits[w.id]:(w.purchasePrice||'')}
+                  onChange={e=>{const v={};v[w.id]=e.target.value;setQuickPriceEdits(prev=>Object.assign({},prev,v));}}
+                  onClick={e=>e.stopPropagation()}
+                  style={{paddingLeft:22,fontSize:13,width:'100%'}}/>
+              </div>
+              {w.purchasePrice&&<span style={{color:'#5a6480',fontSize:10}}>was ${w.purchasePrice}</span>}
+            </div>
+          ) : (
+            <div style={{display:'flex',gap:6,padding:'4px 0 8px',marginLeft:44}}>
+              {[{lbl:'🥂 Drank',action:'drank',bg:'#0e2318',bdr:'#1a3d28',col:'#4a9e6a'},
+                {lbl:'🎁 Gave',action:'gave',bg:'#162038',bdr:'#1e3060',col:'#7ab0e8'},
+                {lbl:'🗑',action:'delete',bg:'#2a1010',bdr:'#4a2020',col:'#c44a4a'}].map(a=>(
+                <button key={a.action} style={{background:a.bg,border:`0.5px solid ${a.bdr}`,color:a.col,borderRadius:8,padding:'4px 10px',fontSize:11,cursor:'pointer'}}
+                  onClick={e=>{e.stopPropagation();setSelId(w.id);setLogAction(a.action);setLogNotes('');setLogRating(0);setView('log');}}>
+                  {a.lbl}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       ))}
       <div style={{height:8}}/>
@@ -1824,16 +2015,32 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
               No wines in your cave are ready to drink right now.
             </div>
           ) : recs.map(({wine:w,reason},i)=>w&&(
-            <div key={i} onClick={()=>{setSelId(w.id);setView('detail');}}
-              style={{display:'flex',alignItems:'flex-start',gap:10,padding:'10px 12px',background:i===0?'#252d4a':'#1a2236',borderRadius:10,border:`0.5px solid ${i===0?'#3d3015':'#2d3654'}`,marginBottom:8,cursor:'pointer'}}>
-              <div style={{fontSize:22,flexShrink:0}}>{wineEmoji(w.wineType)}</div>
-              <div style={{flex:1}}>
-                {i===0&&<div style={{color:'#c4a44a',fontSize:10,letterSpacing:'.08em',marginBottom:2}}>TOP PICK</div>}
-                <div style={{color:'#f0ead8',fontSize:13,fontWeight:500}}>{w.producer} {w.wineName} {w.vintage}</div>
-                <div style={{color:'#5a6480',fontSize:11,marginTop:1}}>{w.bottles} btl available · {w.drinkingWindow?.status}</div>
-                <div style={{color:'#8a96b8',fontSize:12,marginTop:5,lineHeight:1.5}}>{reason}</div>
+            <div key={i} style={{marginBottom:10,borderRadius:12,overflow:'hidden',border:`0.5px solid ${i===0?'#3d3015':'#2d3654'}`}}>
+              {i===0&&<div style={{background:'#251f0e',padding:'5px 14px',color:'#c4a44a',fontSize:10,letterSpacing:'.08em',fontWeight:600}}>★ TOP PICK</div>}
+              {/* Sommelier reason */}
+              <div style={{background:'#1e2640',padding:'10px 14px',borderBottom:'0.5px solid #2d3654'}}>
+                <div style={{color:'#8a96b8',fontSize:12,lineHeight:1.6,fontStyle:'italic'}}>{reason}</div>
               </div>
-              <div style={{color:'#c4a44a',fontSize:16,flexShrink:0}}>›</div>
+              {/* Mini wine card */}
+              <div onClick={()=>{setSelId(w.id);setView('detail');}}
+                style={{background:i===0?'#1a1e2e':'#161c2e',padding:'12px 14px',cursor:'pointer',display:'flex',gap:12,alignItems:'flex-start'}}>
+                <div style={{width:44,height:60,borderRadius:6,background:w.image?'#252d4a':wineBg(w.wineType),border:'0.5px solid '+wineBorder(w.wineType),display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,flexShrink:0,overflow:'hidden'}}>
+                  {(w.image||w.labelImage)?<img src={w.image||w.labelImage} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:wineEmoji(w.wineType)}
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{color:'#5a6480',fontSize:10,letterSpacing:'.08em',marginBottom:1}}>{(w.producer||'').toUpperCase()}</div>
+                  <div className="di" style={{color:'#f0ead8',fontSize:16,lineHeight:1.2,marginBottom:3}}>{w.wineName}</div>
+                  <div style={{color:'#8a96b8',fontSize:11,marginBottom:5}}>{w.vintage}{w.region?` · ${w.region}`:''}</div>
+                  <div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
+                    <span className="df" style={{color:'#c4a44a',fontSize:14}}>{avg(w)>0?`$${Math.round(avg(w))}`:'—'}</span>
+                    <span className={statusCls(w.drinkingWindow?.status)}>{statusLabel(w.drinkingWindow?.status)||'—'}</span>
+                    <span style={{color:'#5a6480',fontSize:10}}>{w.bottles} btl</span>
+                    {w.servingTemp&&<span style={{color:'#5a6480',fontSize:10}}>· {w.servingTemp}</span>}
+                  </div>
+                  {w.tastingNotes?.nose&&<div style={{color:'#5a6480',fontSize:11,marginTop:5,fontStyle:'italic',lineHeight:1.4}}>"{w.tastingNotes.nose}"</div>}
+                </div>
+                <div style={{color:'#c4a44a',fontSize:16,flexShrink:0,marginTop:4}}>›</div>
+              </div>
             </div>
           ))}
         </div>
