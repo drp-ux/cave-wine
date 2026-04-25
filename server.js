@@ -1,6 +1,3 @@
-// Cave Wine — Node.js server
-// Serves the static app + proxies wine label images (bypasses CORS/hotlink blocking)
-
 const express = require('express');
 const https   = require('https');
 const http    = require('http');
@@ -11,17 +8,14 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname)));
 
 // ── /api/wine-image ───────────────────────────────────────────────────────────
-// Searches for wine label image via Anthropic web search, fetches it server-side,
-// and returns it as a base64 data URL — bypasses all CDN hotlink protection.
-//
-// POST body: { apiKey, producer, wineName, vintage }
-// Response:  { imageDataUrl: "data:image/jpeg;base64,...", source: "vivino" }
-//            { imageDataUrl: null }  (if not found)
+// Searches for wine label image via Anthropic web search.
+// Returns a proxyUrl (small string) — NOT base64 (which blows localStorage quota).
+// Client stores the proxyUrl; /api/proxy-image serves the actual image bytes.
 // ─────────────────────────────────────────────────────────────────────────────
 app.post('/api/wine-image', async (req, res) => {
   const { apiKey, producer, wineName, vintage } = req.body || {};
   if (!apiKey || !producer) {
-    return res.status(400).json({ imageDataUrl: null, error: 'Missing apiKey or producer' });
+    return res.status(400).json({ proxyUrl: null, error: 'Missing params' });
   }
 
   const query = [producer, wineName, vintage].filter(Boolean).join(' ');
@@ -29,19 +23,18 @@ app.post('/api/wine-image', async (req, res) => {
   const prompt = `Search for a wine bottle label image for: "${query}"
 
 Search vivino.com, wine-searcher.com, and wine retailer sites.
-Find a direct image URL for the wine label or bottle photo.
+Find a direct image URL (.jpg .jpeg .png .webp) for the wine label or bottle photo.
 
-Return ONLY a raw JSON object, nothing else before or after it:
+Return ONLY a raw JSON object:
 {"imageUrl":"https://images.vivino.com/thumbs/...","source":"vivino"}
 
 Rules:
-- imageUrl must be a direct link to an image file (.jpg .jpeg .png .webp)
-- Prefer vivino.com or wine-searcher.com images
-- Must be for the specific producer and wine, not a generic photo
-- If you cannot find a real image URL: {"imageUrl":null,"reason":"not found"}`;
+- imageUrl must be a direct link to a real image file
+- Must be for this specific wine — not a generic photo
+- Prefer vivino.com thumbnail images (they are small and fast)
+- If not found: {"imageUrl":null}`;
 
   try {
-    // Step 1: Ask Anthropic (with web search) to find the image URL
     const searchRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -51,7 +44,7 @@ Rules:
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 500,
+        max_tokens: 300,
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
         messages: [{ role: 'user', content: prompt }]
       })
@@ -59,40 +52,41 @@ Rules:
 
     if (!searchRes.ok) {
       const err = await searchRes.text();
-      return res.json({ imageDataUrl: null, error: `API ${searchRes.status}: ${err.slice(0, 100)}` });
+      return res.json({ proxyUrl: null, error: `API ${searchRes.status}: ${err.slice(0,100)}` });
     }
 
     const data = await searchRes.json();
     const text = (data.content || [])
-      .filter(b => b.type === 'text')
-      .map(b => b.text)
-      .join('').trim();
+      .filter(b => b.type === 'text').map(b => b.text).join('').trim();
 
-    if (!text) return res.json({ imageDataUrl: null, error: 'Empty response' });
+    if (!text) return res.json({ proxyUrl: null });
 
-    // Parse JSON from response
     const jsonMatch = text.match(/\{[\s\S]*?\}/);
-    if (!jsonMatch) return res.json({ imageDataUrl: null, error: 'No JSON in response' });
+    if (!jsonMatch) return res.json({ proxyUrl: null });
 
     let result;
-    try { result = JSON.parse(jsonMatch[0]); }
-    catch { return res.json({ imageDataUrl: null, error: 'JSON parse failed' }); }
+    try { result = JSON.parse(jsonMatch[0]); } 
+    catch { return res.json({ proxyUrl: null }); }
 
-    if (!result.imageUrl) return res.json({ imageDataUrl: null });
+    if (!result.imageUrl) return res.json({ proxyUrl: null });
 
-    // Step 2: Fetch the image server-side (bypasses browser CORS/hotlink restrictions)
-    const imageDataUrl = await fetchImageAsBase64(result.imageUrl);
-    res.json({ imageDataUrl, source: result.source || 'unknown' });
+    // Verify the image actually loads before returning
+    const valid = await checkImageExists(result.imageUrl);
+    if (!valid) return res.json({ proxyUrl: null });
+
+    // Return proxy URL — client stores this tiny string, not the full image
+    const proxyUrl = '/api/proxy-image?url=' + encodeURIComponent(result.imageUrl);
+    res.json({ proxyUrl, source: result.source || 'unknown' });
 
   } catch (e) {
     console.error('wine-image error:', e.message);
-    res.json({ imageDataUrl: null, error: e.message });
+    res.json({ proxyUrl: null, error: e.message });
   }
 });
 
 // ── /api/proxy-image ──────────────────────────────────────────────────────────
-// Simple image proxy: fetches any image URL server-side and streams it back.
-// Usage: /api/proxy-image?url=https://...
+// Fetches any image URL server-side and streams it to the client.
+// Bypasses CORS/hotlink protection since the request comes from a server.
 // ─────────────────────────────────────────────────────────────────────────────
 app.get('/api/proxy-image', (req, res) => {
   const url = req.query.url;
@@ -108,25 +102,25 @@ app.get('/api/proxy-image', (req, res) => {
       'Referer': 'https://www.google.com/'
     }
   }, (imgRes) => {
-    // Follow redirects
     if (imgRes.statusCode === 301 || imgRes.statusCode === 302) {
-      const location = imgRes.headers.location;
-      if (location) return res.redirect('/api/proxy-image?url=' + encodeURIComponent(location));
+      const loc = imgRes.headers.location;
+      if (loc) return res.redirect('/api/proxy-image?url=' + encodeURIComponent(loc));
+      return res.status(404).end();
     }
     if (imgRes.statusCode !== 200) {
-      return res.status(imgRes.statusCode).json({ error: 'Image fetch failed' });
+      return res.status(imgRes.statusCode).end();
     }
-    res.setHeader('Content-Type', imgRes.headers['content-type'] || 'image/jpeg');
+    const ct = imgRes.headers['content-type'] || 'image/jpeg';
+    if (!ct.startsWith('image/')) return res.status(415).end();
+    
+    res.setHeader('Content-Type', ct);
     res.setHeader('Cache-Control', 'public, max-age=604800'); // 7 days
     res.setHeader('Access-Control-Allow-Origin', '*');
     imgRes.pipe(res);
   });
 
-  request.on('error', e => res.status(500).json({ error: e.message }));
-  request.setTimeout(10000, () => {
-    request.destroy();
-    res.status(504).json({ error: 'Timeout' });
-  });
+  request.on('error', e => res.status(500).end());
+  request.setTimeout(10000, () => { request.destroy(); res.status(504).end(); });
 });
 
 // ── Catch-all: serve index.html ───────────────────────────────────────────────
@@ -135,46 +129,22 @@ app.get('*', (req, res) => {
 });
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function fetchImageAsBase64(url) {
-  return new Promise((resolve) => {
+function checkImageExists(url) {
+  return new Promise(resolve => {
     const protocol = url.startsWith('https') ? https : http;
-    const req = protocol.get(url, {
+    const req = protocol.request(url, { method: 'HEAD',
       headers: {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-        'Accept': 'image/webp,image/jpeg,image/png,image/*',
         'Referer': 'https://www.google.com/'
       }
-    }, (res) => {
-      if (res.statusCode === 301 || res.statusCode === 302) {
-        const loc = res.headers.location;
-        if (loc) return fetchImageAsBase64(loc).then(resolve);
-        return resolve(null);
-      }
-      if (res.statusCode !== 200) return resolve(null);
-
-      const contentType = res.headers['content-type'] || 'image/jpeg';
-      const chunks = [];
-      res.on('data', chunk => chunks.push(chunk));
-      res.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        if (buffer.length < 1000) return resolve(null); // Too small = not a real image
-        if (buffer.length > 2 * 1024 * 1024) {
-          // Compress large images by returning the URL instead for proxy
-          resolve(null);
-          return;
-        }
-        const base64 = buffer.toString('base64');
-        resolve(`data:${contentType};base64,${base64}`);
-      });
+    }, res => {
+      resolve(res.statusCode === 200 && (res.headers['content-type']||'').startsWith('image/'));
     });
-
-    req.on('error', () => resolve(null));
-    req.setTimeout(10000, () => { req.destroy(); resolve(null); });
+    req.on('error', () => resolve(false));
+    req.setTimeout(5000, () => { req.destroy(); resolve(false); });
+    req.end();
   });
 }
 
-// ── Start ─────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Cave Wine server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Cave Wine server on port ${PORT}`));
