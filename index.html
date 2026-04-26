@@ -2289,8 +2289,8 @@ function SettingsPanel({ profileId, onSwitchProfile, importCSV, onRefreshAllPric
         <div style={{color:'#9A7A50',fontSize:11,marginBottom:10,lineHeight:1.5}}>
           Import wines from a Cave CSV export. Duplicates (same producer + name + vintage) are skipped.
         </div>
-        <button onClick={onRefreshAllPrices} disabled={refreshingPrice||refreshingImages}
-          className="gbtn" style={{marginBottom:8,opacity:(refreshingPrice||refreshingImages)?0.6:1}}>
+        <button onClick={onRefreshAllPrices} disabled={refreshingPrice}
+          className="gbtn" style={{marginBottom:8,opacity:refreshingPrice?0.6:1}}>
           {refreshingPrice ? (refreshMsg || 'Refreshing prices…') : '🔄 Refresh all prices from Wine-Searcher'}
         </button>
         {refreshingPrice && (
