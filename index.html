@@ -25,7 +25,7 @@
       <div style="color:#9A7A50;font-size:13px;font-family:system-ui">Loading Cave…</div>
     </div>
   </div>
-  <div id="js-err" style="display:none;position:fixed;inset:0;background:#100808;padding:20px;overflow:auto;z-index:9999">
+  <div id="js-err" style="display:none;position:fixed;inset:0;background:#F5E4E0;padding:20px;overflow:auto;z-index:9999">
     <div style="color:#ff6b6b;font-family:monospace;font-size:11px;white-space:pre-wrap;word-break:break-all;line-height:1.6"></div>
   </div>
 
@@ -121,8 +121,8 @@ const statusCls = s => {
 };
 const statusLabel = s => normalizeStatus(s);
 const wineEmoji = t => ({'red':'🍷','white':'🍷','sparkling':'🥂','rosé':'🍷','rose':'🍷','dessert':'🍯','fortified':'🥃'}[(t||'').toLowerCase()]||'🍷');
-const wineBg = t => ({'red':'#C8A898','white':'#E0D8A8','sparkling':'#B8D0E8','rosé':'#E0B8C8','rose':'#E0B8C8','dessert':'#2a1a00','fortified':'#1a1400'}[(t||'').toLowerCase()]||'#F0E8D4');
-const wineBorder = t => ({'red':'#8B4030','white':'#8B7828','sparkling':'#3060A8','rosé':'#8B3050','rose':'#8B3050','dessert':'#8a5a00','fortified':'#5a4400'}[(t||'').toLowerCase()]||'#C4B48A');
+const wineBg = t => ({'red':'#C8A898','white':'#E0D8A8','sparkling':'#B8D0E8','rosé':'#E0B8C8','rose':'#E0B8C8','dessert':'#F5EAD0','fortified':'#EDE0C0'}[(t||'').toLowerCase()]||'#F0E8D4');
+const wineBorder = t => ({'red':'#8B4030','white':'#8B7828','sparkling':'#3060A8','rosé':'#8B3050','rose':'#8B3050','dessert':'#C4963A','fortified':'#A87830'}[(t||'').toLowerCase()]||'#C4B48A');
 const avg = w => {
   if (w.priceMedian) return parseFloat(w.priceMedian);
   const lo = parseFloat(w.retailPriceLow) || 0;
@@ -526,22 +526,6 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       setCellar(wines);
     } catch { setCellar([]); }
   }
-
-  async function loadArchive() {
-    try {
-      const res = await window.storage.list('archive:');
-      if (!res?.keys?.length) { setArchive([]); return; }
-      const entries = [];
-      for (const key of res.keys) {
-        try { const r = await window.storage.get(key); if (r) entries.push(JSON.parse(r.value)); } catch {}
-      }
-      entries.sort((a,b)=>(b.archivedAt||0)-(a.archivedAt||0));
-      setArchive(entries);
-    } catch { setArchive([]); }
-  }
-
-  async function saveWine(wine) { await window.storage.set(`wine:${wine.id}`, JSON.stringify(wine)); await loadCellar(); }
-  async function removeWine(id) { await window.storage.delete(`wine:${id}`); await loadCellar(); }
 
   async function loadArchive() {
     try {
@@ -999,7 +983,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       </div>
 
       {error && (
-        <div style={{padding:'12px 14px',background:'#1a0e0e',border:'0.5px solid #D4A090',borderRadius:10,marginBottom:12}}>
+        <div style={{padding:'12px 14px',background:'#F5E4E0',border:'0.5px solid #D4A090',borderRadius:10,marginBottom:12}}>
           <div style={{color:'#8B2020',fontSize:12,marginBottom:6,fontWeight:600}}>Couldn't identify — try:</div>
           <div style={{color:'#8a6060',fontSize:12,lineHeight:1.8}}>
             • Type the wine name in the text box<br/>
@@ -1329,7 +1313,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
             {(sel.image||sel.labelImage)?<img src={sel.image||sel.labelImage} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:wineEmoji(sel.wineType)}
           </div>
           <button onClick={()=>detailPhotoRef.current&&detailPhotoRef.current.click()}
-            style={{position:'absolute',bottom:-8,right:-8,width:22,height:22,borderRadius:'50%',background:'#C4963A',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,color:'#0f0c05',fontWeight:700}}>
+            style={{position:'absolute',bottom:-8,right:-8,width:22,height:22,borderRadius:'50%',background:'#C4963A',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,color:'#FDF8EE',fontWeight:700}}>
             📷
           </button>
         </div>
@@ -1534,11 +1518,11 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
       {!logAction ? <>
         <div className="sec">WHAT HAPPENED TO THIS BOTTLE?</div>
         {[
-          {key:'drank',icon:'🥂',bg:'#0e2318',bdr:'#1a3d28',label:'Drank it',sub:'Logs date + removes from count'},
+          {key:'drank',icon:'🥂',bg:'#E8F0DC',bdr:'#A0C878',label:'Drank it',sub:'Logs date + removes from count'},
           {key:'gave',icon:'🎁',bg:'#B8D0E8',bdr:'#1e3060',label:'Gave away',sub:'Gift or shared — removes from count'},
-          {key:'lost',icon:'💔',bg:'#251608',bdr:'#3d2810',label:'Lost / broken / corked',sub:'Removes from count, no drink log'},
+          {key:'lost',icon:'💔',bg:'#F5EAD8',bdr:'#D4A870',label:'Lost / broken / corked',sub:'Removes from count, no drink log'},
           {key:'delete',icon:'📦',bg:'#B8D0E8',bdr:'#1e3060',label:'Archive this wine',sub:'Moves to archive with full history',danger:false},
-          {key:'permdelete',icon:'🗑',bg:'#2a1010',bdr:'#4a2020',label:'Delete permanently',sub:'Removes all data — cannot be undone',danger:true},
+          {key:'permdelete',icon:'🗑',bg:'#F5E4E0',bdr:'#D4A090',label:'Delete permanently',sub:'Removes all data — cannot be undone',danger:true},
         ].map(o=>(
           <div key={o.key} className="lopt" style={{borderColor:o.danger?'#D4A090':'#D4C4A0'}} onClick={()=>setLogAction(o.key)}>
             <div style={{width:36,height:36,borderRadius:10,background:o.bg,border:`0.5px solid ${o.bdr}`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}}>{o.icon}</div>
@@ -1604,7 +1588,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
         <div className="di" style={{color:'#2C1F0E',fontSize:26}}>Cellar</div>
         <div style={{display:'flex',gap:6}}>
           <button onClick={()=>{if(quickPriceMode)saveQuickPrices();else{setQuickPriceMode(true);setQuickPriceEdits({});}}}
-            style={{background:quickPriceMode?'#C4963A':'#EDE0C4',color:quickPriceMode?'#FDF8EE':'#8A5E20',border:'0.5px solid '+(quickPriceMode?'#C4963A':'#3d3015'),borderRadius:8,padding:'5px 10px',fontSize:11,cursor:'pointer',fontWeight:quickPriceMode?700:400}}>
+            style={{background:quickPriceMode?'#C4963A':'#EDE0C4',color:quickPriceMode?'#FDF8EE':'#8A5E20',border:'0.5px solid '+(quickPriceMode?'#C4963A':'#C4B48A'),borderRadius:8,padding:'5px 10px',fontSize:11,cursor:'pointer',fontWeight:quickPriceMode?700:400}}>
             {quickPriceMode?'✓ Save':'$ Prices'}
           </button>
           <button onClick={()=>setView('grid')}
@@ -1682,9 +1666,9 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
             </div>
           ) : (
             <div style={{display:'flex',gap:6,padding:'4px 0 8px',marginLeft:44}}>
-              {[{lbl:'🥂 Drank',action:'drank',bg:'#0e2318',bdr:'#1a3d28',col:'#4a9e6a'},
+              {[{lbl:'🥂 Drank',action:'drank',bg:'#E8F0DC',bdr:'#A0C878',col:'#4a9e6a'},
                 {lbl:'🎁 Gave',action:'gave',bg:'#B8D0E8',bdr:'#1e3060',col:'#7ab0e8'},
-                {lbl:'🗑',action:'delete',bg:'#2a1010',bdr:'#4a2020',col:'#c44a4a'}].map(a=>(
+                {lbl:'🗑',action:'delete',bg:'#F5E4E0',bdr:'#D4A090',col:'#c44a4a'}].map(a=>(
                 <button key={a.action} style={{background:a.bg,border:`0.5px solid ${a.bdr}`,color:a.col,borderRadius:8,padding:'4px 10px',fontSize:11,cursor:'pointer'}}
                   onClick={e=>{e.stopPropagation();setSelId(w.id);setLogAction(a.action);setLogNotes('');setLogRating(0);setView('log');}}>
                   {a.lbl}
