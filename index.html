@@ -67,7 +67,7 @@
     };
   </script>
 
-  <script type="text/babel" data-presets="react,env">
+  <script type="text/babel" data-presets="react" data-plugins="">
 
 
 // Cave v2 — full rewrite
@@ -685,34 +685,41 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     setPurchasePrice(''); setPurchaseWhere(''); setEditPending(null); setShowAdvanced(false); resetScan(); setView('home');
   }
 
-  async function confirmLog() {
+  function confirmLog() {
     if (!sel) return;
-    if (logAction==='permdelete') {
-      await removeWine(sel.id);
-      setSelId(null); setLogAction(''); setView('cellar'); return;
+
+    if (logAction === 'permdelete') {
+      removeWine(sel.id).then(function() {
+        setSelId(null); setLogAction(''); setView('cellar');
+      });
+      return;
     }
-    if (logAction==='delete') {
-      // Archive the wine record before removing
-      const archiveEntry = { ...sel, archivedAt: Date.now(), archiveReason: 'removed' };
-      await window.storage.set(`archive:${sel.id}`, JSON.stringify(archiveEntry));
-      await removeWine(sel.id);
-      await loadArchive();
-      setSelId(null); setLogAction(''); setView('cellar'); return;
+
+    if (logAction === 'delete') {
+      var archiveEntry = Object.assign({}, sel, { archivedAt: Date.now(), archiveReason: 'removed' });
+      window.storage.set('archive:' + sel.id, JSON.stringify(archiveEntry))
+        .then(function() { return removeWine(sel.id); })
+        .then(function() { return loadArchive(); })
+        .then(function() { setSelId(null); setLogAction(''); setView('cellar'); });
+      return;
     }
-    const entry = { date: new Date().toLocaleDateString(), type: logAction, notes: logNotes, rating: logRating };
-    const newBottles = Math.max(0,(sel.bottles||0)-1);
-    const updatedWine = { ...sel, bottles: newBottles, drinkLog: [entry,...(sel.drinkLog||[])] };
-    await saveWine(updatedWine);
-    // Auto-archive when last bottle is logged
-    if (newBottles === 0) {
-      const archiveEntry = { ...updatedWine, archivedAt: Date.now(), archiveReason: logAction };
-      await window.storage.set(`archive:${sel.id}`, JSON.stringify(archiveEntry));
-      await loadArchive();
-    }
-    setLogAction(''); setLogNotes(''); setLogRating(0); setView('detail');
+
+    var entry = { date: new Date().toLocaleDateString(), type: logAction, notes: logNotes, rating: logRating };
+    var newBottles = Math.max(0, (sel.bottles || 0) - 1);
+    var updatedWine = Object.assign({}, sel, { bottles: newBottles, drinkLog: [entry].concat(sel.drinkLog || []) });
+
+    saveWine(updatedWine).then(function() {
+      if (newBottles === 0) {
+        var archiveEntry2 = Object.assign({}, updatedWine, { archivedAt: Date.now(), archiveReason: logAction });
+        return window.storage.set('archive:' + sel.id, JSON.stringify(archiveEntry2))
+          .then(function() { return loadArchive(); });
+      }
+    }).then(function() {
+      setLogAction(''); setLogNotes(''); setLogRating(0); setView('detail');
+    });
   }
 
-  async function adjustQty(delta) { if (!sel) return; await saveWine({ ...sel, bottles: Math.max(0,(sel.bottles||0)+delta) }); }
+  function adjustQty(delta) { if (!sel) return; saveWine(Object.assign({}, sel, {bottles: Math.max(0,(sel.bottles||0)+delta)})); }
 
 
   function refreshAllPrices() {
@@ -794,13 +801,12 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     setCapturingPhoto(false);
   }
 
-  async function savePurchaseInfo() {
+  function savePurchaseInfo() {
     if (!sel) return;
-    await saveWine({ ...sel,
+    saveWine(Object.assign({}, sel, {
       purchasePrice: draftPurchasePrice ? parseFloat(draftPurchasePrice) : null,
       purchaseWhere: draftPurchaseWhere || null
-    });
-    setEditPurchase(false);
+    })).then(function(){ setEditPurchase(false); });
   }
   async function saveQuickPrices() {
     const updates = Object.entries(quickPriceEdits);
@@ -820,7 +826,7 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     });
   }
 
-  async function saveMyNotes() { if (!sel) return; await saveWine({ ...sel, myNotes: notesDraft }); setEditNotes(false); }
+  function saveMyNotes() { if (!sel) return; saveWine(Object.assign({}, sel, {myNotes: notesDraft})).then(function(){ setEditNotes(false); }); }
 
   async function runConcierge() {
     if (!concText.trim()||!cellar.length) return;
