@@ -552,6 +552,16 @@ function Cave({ profileId, profileName, onSwitchProfile }) {
     await loadArchive();
   }
 
+  async function saveWine(wine) {
+    await window.storage.set(`wine:${wine.id}`, JSON.stringify(wine));
+    await loadCellar();
+  }
+
+  async function removeWine(id) {
+    await window.storage.delete(`wine:${id}`);
+    await loadCellar();
+  }
+
   function resetScan() { setFrontImg(null); setManualText(''); setPending(null); setError(''); }
   function goScan() { resetScan(); setView('scan'); }
 
